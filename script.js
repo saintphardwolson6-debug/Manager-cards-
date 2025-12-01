@@ -20,9 +20,7 @@ import {
   orderByChild,
   limitToFirst,
   remove,
-  orderByValue,
-  onChildAdded,
-  off
+  orderByValue
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
 // Configuration Firebase
@@ -41,7 +39,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// Déclaration des éléments UI
+// Éléments UI
 const screens = {
   login: document.getElementById('screen-login'),
   register: document.getElementById('screen-register'),
@@ -57,7 +55,9 @@ const screens = {
   clan: document.getElementById('screen-clan'),
   market: document.getElementById('screen-market'),
   badges: document.getElementById('screen-badges'),
-  events: document.getElementById('screen-events')
+  season: document.getElementById('screen-season'),
+  training: document.getElementById('screen-training'),
+  tactics: document.getElementById('screen-tactics')
 };
 
 const footer = document.getElementById('app-footer');
@@ -78,38 +78,14 @@ let matchHistory = [];
 let matchmakingInterval = null;
 let clans = [];
 let playerCollectionLimit = 50;
+let selectedTactic = 'balanced'; // Tactique par défaut
 
-// NOUVELLES VARIABLES POUR LES FONCTIONNALITÉS AVANCÉES
+// Nouvelles variables pour les fonctionnalités
 let marketPlayers = [];
 let availableBadges = [];
-let currentSeason = null;
-let battlePassData = null;
-let activeEvents = [];
-let clanWars = [];
-let clanTechTree = [];
-let clanChatListener = null;
-
-// Système de Saisons
-const SEASON_DURATION = 8; // 8 semaines
-const BATTLE_PASS_FREE_REWARDS = [
-  { level: 1, type: 'coins', amount: 500 },
-  { level: 2, type: 'gems', amount: 25 },
-  { level: 3, type: 'card', rarity: 'silver' },
-  { level: 5, type: 'coins', amount: 1000 },
-  { level: 7, type: 'energy', amount: 20 },
-  { level: 10, type: 'card', rarity: 'gold' },
-  { level: 15, type: 'badge', name: 'Saison 1' }
-];
-
-const BATTLE_PASS_PREMIUM_REWARDS = [
-  { level: 1, type: 'gems', amount: 100 },
-  { level: 2, type: 'card', rarity: 'gold' },
-  { level: 3, type: 'vip', days: 7 },
-  { level: 5, type: 'coins', amount: 2000 },
-  { level: 7, type: 'card', rarity: 'legendary' },
-  { level: 10, type: 'gems', amount: 500 },
-  { level: 15, type: 'badge', name: 'VIP Saison 1' }
-];
+let coaches = [];
+let battlePassLevel = 1;
+let seasonProgress = 0;
 
 // Noms de cartes étendus
 const extendedCardNames = [
@@ -117,19 +93,7 @@ const extendedCardNames = [
   'De Bruyne', 'Salah', 'Mané', 'Kane', 'Benzema', 'Modric', 
   'Van Dijk', 'Kante', 'Son', 'Lukaku', 'Griezmann', 'Sterling',
   'Bellingham', 'Pedri', 'Foden', 'Musiala', 'Gavi', 'Davies',
-  'Hernández', 'Alvarez', 'Martinez', 'Osimhen', 'Kvaratskhelia', 'Leao',
-  'Vinicius', 'Rodrygo', 'Valverde', 'Camavinga', 'Tchouaméni', 'Militao',
-  'Diaz', 'Gakpo', 'Nunez', 'Mac Allister', 'Caicedo', 'Enzo',
-  'Szoboszlai', 'Olmo', 'Simons', 'Xavi Simons', 'Wirtz', 'Musiala'
-];
-
-// NOUVEAU: Arbre de talents du clan
-const CLAN_TECH_TREE = [
-  { id: 'training_boost', name: 'Bonus Entraînement', cost: 1000, effect: '+5% efficacité entraînement', level: 1, maxLevel: 5 },
-  { id: 'match_rewards', name: 'Récompenses Match', cost: 1500, effect: '+5% pièces par match', level: 0, maxLevel: 3 },
-  { id: 'energy_regen', name: 'Régénération Énergie', cost: 2000, effect: '+1 énergie/heure', level: 0, maxLevel: 2 },
-  { id: 'pack_discount', name: 'Réduction Packs', cost: 2500, effect: '-5% prix packs', level: 0, maxLevel: 3 },
-  { id: 'fusion_discount', name: 'Réduction Fusion', cost: 1800, effect: '-10% coût fusion', level: 0, maxLevel: 2 }
+  'Hernández', 'Alvarez', 'Martinez', 'Osimhen', 'Kvaratskhelia', 'Leao'
 ];
 
 // Fonction utilitaire pour obtenir l'ID utilisateur
@@ -137,13 +101,13 @@ function getUserId() {
   return auth.currentUser ? auth.currentUser.uid : null;
 }
 
-// Fonction pour obtenir la référence de l'utilisateur dans la base de données
+// Fonction pour obtenir la référence de l'utilisateur
 function getUserRef(uid = null) {
   const userId = uid || getUserId();
   return userId ? ref(db, `users/${userId}`) : null;
 }
 
-// Show notification function
+// Fonction pour afficher les notifications
 function showNotification(message, type = '') {
   if (!notification) return;
   
@@ -157,37 +121,20 @@ function showNotification(message, type = '') {
   }, 3000);
 }
 
-// Fonction pour ajouter une entrée au journal admin
-function addAdminLog(message) {
-  const adminLog = document.getElementById('admin-log');
-  if (!adminLog) return;
-  
-  const logEntry = document.createElement('div');
-  logEntry.className = 'admin-log-entry';
-  logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-  adminLog.appendChild(logEntry);
-  adminLog.scrollTop = adminLog.scrollHeight;
-}
-
-// CORRECTION: Fonction showScreen améliorée avec tous les écrans
+// Fonction pour basculer entre les écrans
 function showScreen(name) {
-  if (!screens[name]) {
-    console.error(`Écran ${name} non trouvé`);
-    return;
-  }
-  
   Object.values(screens).forEach(s => {
     if (s) s.classList.remove('active');
   });
   
-  // CORRECTION: Toujours montrer le footer sauf pour login/register
+  // Gestion de la visibilité du footer
   if (name === 'login' || name === 'register') {
     if (footer) footer.classList.remove('visible');
   } else {
     if (footer) footer.classList.add('visible');
   }
   
-  // Update footer button states
+  // Mettre à jour l'état des boutons du footer
   if (footer) {
     const footerButtons = footer.querySelectorAll('button');
     footerButtons.forEach(btn => btn.classList.remove('active'));
@@ -208,13 +155,13 @@ function showScreen(name) {
       const ftStore = document.getElementById('ft-store');
       if (ftStore) ftStore.classList.add('active');
     }
-    if (name === 'events') {
-      const ftEvents = document.getElementById('ft-events');
-      if (ftEvents) ftEvents.classList.add('active');
+    if (name === 'profile') {
+      const ftProfile = document.getElementById('ft-profile');
+      if (ftProfile) ftProfile.classList.add('active');
     }
   }
   
-  // CORRECTION: Charger les données pour tous les écrans
+  // Charger les données spécifiques à l'écran
   if (name === 'dashboard') loadDashboard();
   if (name === 'team') loadTeam();
   if (name === 'profile') loadProfile();
@@ -226,8 +173,9 @@ function showScreen(name) {
   if (name === 'clan') loadClan();
   if (name === 'market') loadMarket();
   if (name === 'badges') loadBadges();
-  if (name === 'events') loadEvents();
-  if (name === 'store') loadStore();
+  if (name === 'season') loadSeason();
+  if (name === 'training') loadTraining();
+  if (name === 'tactics') loadTactics();
   
   setTimeout(() => {
     if (screens[name]) {
@@ -236,7 +184,7 @@ function showScreen(name) {
   }, 10);
 }
 
-// CORRECTION: Fonction pour vérifier et charger les données utilisateur
+// Fonction pour vérifier et charger les données utilisateur
 async function ensureUserData() {
   if (!currentUserData) {
     await loadUserData();
@@ -244,741 +192,32 @@ async function ensureUserData() {
   return currentUserData !== null;
 }
 
-// NOUVEAU: Système de Saisons et Battle Pass
-async function initializeSeasonSystem() {
-  const seasonRef = ref(db, 'currentSeason');
-  const snapshot = await get(seasonRef);
+// Charger les données utilisateur depuis Firebase
+async function loadUserData() {
+  const userId = getUserId();
+  if (!userId) return null;
   
-  if (!snapshot.exists()) {
-    // Créer une nouvelle saison
-    const seasonData = {
-      number: 1,
-      startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + SEASON_DURATION * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      active: true
-    };
-    await set(seasonRef, seasonData);
-    currentSeason = seasonData;
-  } else {
-    currentSeason = snapshot.val();
-    
-    // Vérifier si la saison est terminée
-    const now = new Date();
-    const endDate = new Date(currentSeason.endDate);
-    
-    if (now > endDate) {
-      // Terminer la saison et en créer une nouvelle
-      await endSeasonAndStartNew();
-    }
-  }
-  
-  // Initialiser le Battle Pass de l'utilisateur
-  await initializeUserBattlePass();
-}
-
-// NOUVEAU: Terminer la saison et en commencer une nouvelle
-async function endSeasonAndStartNew() {
-  // Distribuer les récompenses de fin de saison
-  const allUsers = await loadAllUsers();
-  
-  for (const user of allUsers) {
-    const userBattlePassRef = ref(db, `battlePass/${user.uid}/${currentSeason.number}`);
-    const userBPSnapshot = await get(userBattlePassRef);
-    
-    if (userBPSnapshot.exists()) {
-      const userBP = userBPSnapshot.val();
-      
-      // Récompenses basées sur le niveau du Battle Pass
-      if (userBP.level >= 10) {
-        const userRef = getUserRef(user.uid);
-        const rewards = {
-          coins: userBP.level * 100,
-          gems: Math.floor(userBP.level / 2) * 25
-        };
-        
-        await update(userRef, {
-          coins: (user.coins || 0) + rewards.coins,
-          gems: (user.gems || 0) + rewards.gems
-        });
-      }
-    }
-  }
-  
-  // Créer une nouvelle saison
-  const newSeasonNumber = currentSeason.number + 1;
-  const newSeasonData = {
-    number: newSeasonNumber,
-    startDate: new Date().toISOString(),
-    endDate: new Date(Date.now() + SEASON_DURATION * 7 * 24 * 60 * 60 * 1000).toISOString(),
-    active: true
-  };
-  
-  await set(ref(db, 'currentSeason'), newSeasonData);
-  currentSeason = newSeasonData;
-}
-
-// NOUVEAU: Initialiser le Battle Pass utilisateur
-async function initializeUserBattlePass() {
-  if (!currentSeason || !currentUserData) return;
-  
-  const userBattlePassRef = ref(db, `battlePass/${getUserId()}/${currentSeason.number}`);
-  const snapshot = await get(userBattlePassRef);
-  
-  if (!snapshot.exists()) {
-    const battlePassData = {
-      level: 1,
-      xp: 0,
-      xpToNextLevel: 1000,
-      premium: false,
-      claimedRewards: [],
-      challengesCompleted: 0
-    };
-    
-    await set(userBattlePassRef, battlePassData);
-    battlePassData = battlePassData;
-  } else {
-    battlePassData = snapshot.val();
-  }
-}
-
-// NOUVEAU: Ajouter de l'XP au Battle Pass
-async function addBattlePassXP(xpAmount) {
-  if (!battlePassData || !currentSeason) return;
-  
-  const newXP = battlePassData.xp + xpAmount;
-  let newLevel = battlePassData.level;
-  let xpToNextLevel = battlePassData.xpToNextLevel;
-  let leveledUp = false;
-  
-  // Vérifier les montées de niveau
-  while (newXP >= xpToNextLevel && newLevel < 50) {
-    newXP -= xpToNextLevel;
-    newLevel++;
-    xpToNextLevel = Math.floor(xpToNextLevel * 1.2); // 20% d'augmentation par niveau
-    leveledUp = true;
-    
-    showNotification(`Battle Pass: Niveau ${newLevel} atteint!`, "success");
-  }
-  
-  // Mettre à jour le Battle Pass
-  const userBattlePassRef = ref(db, `battlePass/${getUserId()}/${currentSeason.number}`);
-  await update(userBattlePassRef, {
-    level: newLevel,
-    xp: newXP,
-    xpToNextLevel: xpToNextLevel
-  });
-  
-  battlePassData.level = newLevel;
-  battlePassData.xp = newXP;
-  battlePassData.xpToNextLevel = xpToNextLevel;
-  
-  // Recharger l'affichage du Battle Pass
-  if (document.getElementById('battle-pass-preview')) {
-    loadBattlePassPreview();
-  }
-}
-
-// NOUVEAU: Charger l'aperçu du Battle Pass
-function loadBattlePassPreview() {
-  if (!battlePassData || !currentSeason) return;
-  
-  const bpPreview = document.getElementById('battle-pass-preview');
-  const bpProgressFill = document.getElementById('bp-progress-fill');
-  const bpCurrentLevel = document.getElementById('bp-current-level');
-  
-  if (bpPreview && bpProgressFill && bpCurrentLevel) {
-    const progressPercent = (battlePassData.xp / battlePassData.xpToNextLevel) * 100;
-    
-    bpProgressFill.style.width = `${progressPercent}%`;
-    bpCurrentLevel.textContent = `Niv. ${battlePassData.level}`;
-  }
-}
-
-// NOUVEAU: Afficher le modal du Battle Pass
-function showBattlePassModal() {
-  const modal = document.getElementById('battle-pass-modal');
-  if (!modal) return;
-  
-  modal.classList.add('active');
-  
-  // Charger les récompenses
-  loadBattlePassRewards();
-}
-
-// NOUVEAU: Charger les récompenses du Battle Pass
-function loadBattlePassRewards() {
-  const freeRewards = document.getElementById('free-rewards');
-  const premiumRewards = document.getElementById('premium-rewards');
-  
-  if (!freeRewards || !premiumRewards) return;
-  
-  // Récompenses gratuites
-  freeRewards.innerHTML = BATTLE_PASS_FREE_REWARDS.map(reward => `
-    <div class="reward-item ${battlePassData.level >= reward.level ? 'unlocked' : 'locked'} ${battlePassData.claimedRewards?.includes(`free_${reward.level}`) ? 'claimed' : ''}">
-      <div class="reward-level">Niv. ${reward.level}</div>
-      <div class="reward-content">
-        ${getRewardDisplay(reward)}
-      </div>
-      ${battlePassData.level >= reward.level && !battlePassData.claimedRewards?.includes(`free_${reward.level}`) ? 
-        `<button class="small-btn claim-reward" data-type="free" data-level="${reward.level}">Récupérer</button>` : 
-        ''}
-    </div>
-  `).join('');
-  
-  // Récompenses premium
-  premiumRewards.innerHTML = BATTLE_PASS_PREMIUM_REWARDS.map(reward => `
-    <div class="reward-item ${!battlePassData.premium ? 'premium-locked' : battlePassData.level >= reward.level ? 'unlocked' : 'locked'} ${battlePassData.claimedRewards?.includes(`premium_${reward.level}`) ? 'claimed' : ''}">
-      <div class="reward-level">Niv. ${reward.level}</div>
-      <div class="reward-content">
-        ${getRewardDisplay(reward)}
-        ${!battlePassData.premium ? '<div class="premium-badge">VIP</div>' : ''}
-      </div>
-      ${battlePassData.premium && battlePassData.level >= reward.level && !battlePassData.claimedRewards?.includes(`premium_${reward.level}`) ? 
-        `<button class="small-btn claim-reward" data-type="premium" data-level="${reward.level}">Récupérer</button>` : 
-        ''}
-    </div>
-  `).join('');
-  
-  // Événements pour réclamer les récompenses
-  document.querySelectorAll('.claim-reward').forEach(btn => {
-    btn.addEventListener('click', claimBattlePassReward);
-  });
-}
-
-// NOUVEAU: Obtenir l'affichage d'une récompense
-function getRewardDisplay(reward) {
-  switch (reward.type) {
-    case 'coins':
-      return `<div class="reward-icon">🪙</div><div>${reward.amount} Pièces</div>`;
-    case 'gems':
-      return `<div class="reward-icon">💎</div><div>${reward.amount} Gems</div>`;
-    case 'card':
-      return `<div class="reward-icon">🎴</div><div>Carte ${reward.rarity}</div>`;
-    case 'energy':
-      return `<div class="reward-icon">⚡</div><div>${reward.amount} Énergie</div>`;
-    case 'vip':
-      return `<div class="reward-icon">👑</div><div>VIP ${reward.days} jours</div>`;
-    case 'badge':
-      return `<div class="reward-icon">🏅</div><div>Badge ${reward.name}</div>`;
-    default:
-      return '<div>Récompense</div>';
-  }
-}
-
-// NOUVEAU: Réclamer une récompense du Battle Pass
-async function claimBattlePassReward(event) {
-  const button = event.target;
-  const rewardType = button.getAttribute('data-type');
-  const rewardLevel = parseInt(button.getAttribute('data-level'));
-  
-  const rewardKey = `${rewardType}_${rewardLevel}`;
-  
-  if (battlePassData.claimedRewards?.includes(rewardKey)) {
-    showNotification("Récompense déjà réclamée", "warning");
-    return;
-  }
-  
-  // Trouver la récompense
-  const rewards = rewardType === 'free' ? BATTLE_PASS_FREE_REWARDS : BATTLE_PASS_PREMIUM_REWARDS;
-  const reward = rewards.find(r => r.level === rewardLevel);
-  
-  if (!reward) return;
-  
-  // Appliquer la récompense
-  await applyReward(reward);
-  
-  // Marquer comme réclamée
-  const updatedClaimedRewards = [...(battlePassData.claimedRewards || []), rewardKey];
-  const userBattlePassRef = ref(db, `battlePass/${getUserId()}/${currentSeason.number}`);
-  
-  await update(userBattlePassRef, {
-    claimedRewards: updatedClaimedRewards
-  });
-  
-  battlePassData.claimedRewards = updatedClaimedRewards;
-  
-  showNotification("Récompense réclamée!", "success");
-  loadBattlePassRewards();
-}
-
-// NOUVEAU: Appliquer une récompense
-async function applyReward(reward) {
-  switch (reward.type) {
-    case 'coins':
-      await updateUserData({
-        coins: (currentUserData.coins || 0) + reward.amount
-      });
-      break;
-    case 'gems':
-      await updateUserData({
-        gems: (currentUserData.gems || 0) + reward.amount
-      });
-      break;
-    case 'energy':
-      await updateUserData({
-        energy: Math.min(currentUserData.maxEnergy || 20, (currentUserData.energy || 0) + reward.amount)
-      });
-      break;
-    case 'card':
-      await generateCardReward(reward.rarity);
-      break;
-    case 'vip':
-      await activateTemporaryVIP(reward.days);
-      break;
-    case 'badge':
-      await addBadge(reward.name);
-      break;
-  }
-  
-  loadDashboard();
-}
-
-// NOUVEAU: Générer une carte récompense
-async function generateCardReward(rarity) {
-  const cardId = 'card' + Date.now();
-  const name = extendedCardNames[Math.floor(Math.random() * extendedCardNames.length)];
-  
-  const baseStats = {
-    bronze: { attack: 10, defense: 8, speed: 5 },
-    silver: { attack: 15, defense: 12, speed: 8 },
-    gold: { attack: 22, defense: 18, speed: 12 },
-    legendary: { attack: 30, defense: 25, speed: 18 }
-  };
-  
-  const stats = baseStats[rarity] || baseStats.bronze;
-  
-  const newCard = {
-    id: cardId,
-    name: `${name} ${Math.floor(Math.random() * 100)}`,
-    rarity: rarity,
-    attack: stats.attack + Math.floor(Math.random() * 5),
-    defense: stats.defense + Math.floor(Math.random() * 5),
-    speed: stats.speed + Math.floor(Math.random() * 3),
-    level: 1,
-    nation: getRandomNation(),
-    position: getRandomPosition()
-  };
-  
-  const updatedCards = {
-    ...currentUserData.cards,
-    [cardId]: newCard
-  };
-  
-  const updatedSubs = [...(currentUserData.subs || []), cardId];
-  
-  await updateUserData({
-    cards: updatedCards,
-    subs: updatedSubs
-  });
-  
-  showNotification(`Nouvelle carte ${rarity} obtenue: ${newCard.name}`, "success");
-}
-
-// NOUVEAU: Activer le VIP temporaire
-async function activateTemporaryVIP(days) {
-  const now = new Date();
-  const expirationDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-  
-  await updateUserData({
-    vip: true,
-    vipExpiration: expirationDate.toISOString(),
-    maxEnergy: 30
-  });
-  
-  showNotification(`VIP activé pour ${days} jours!`, "success");
-}
-
-// NOUVEAU: Ajouter un badge
-async function addBadge(badgeName) {
-  const updatedBadges = [...(currentUserData.badges || []), badgeName];
-  await updateUserData({
-    badges: updatedBadges
-  });
-  
-  showNotification(`Nouveau badge: ${badgeName}`, "success");
-}
-
-// NOUVEAU: Acheter le Battle Pass premium
-async function buyBattlePass() {
-  if (!currentUserData) return;
-  
-  const battlePassCost = 1500;
-  
-  if ((currentUserData.gems || 0) < battlePassCost) {
-    showNotification(`Pas assez de gems pour acheter le Battle Pass (${battlePassCost} gems requis)`, "warning");
-    return;
-  }
-  
-  if (battlePassData.premium) {
-    showNotification("Vous avez déjà le Battle Pass premium", "warning");
-    return;
-  }
-  
-  const userBattlePassRef = ref(db, `battlePass/${getUserId()}/${currentSeason.number}`);
-  
-  await update(userBattlePassRef, {
-    premium: true
-  });
-  
-  await updateUserData({
-    gems: (currentUserData.gems || 0) - battlePassCost
-  });
-  
-  battlePassData.premium = true;
-  
-  showNotification("Battle Pass premium acheté!", "success");
-  loadBattlePassRewards();
-  loadDashboard();
-}
-
-// NOUVEAU: Système d'Événements et Défis
-async function loadEvents() {
-  if (!await ensureUserData()) return;
-  
-  await loadActiveEvents();
-  await loadWeeklyTournaments();
-  await loadDailyChallenges();
-  
-  // Afficher les événements actifs
-  displayActiveEvents();
-  displayWeeklyTournaments();
-  displayDailyChallenges();
-}
-
-// NOUVEAU: Charger les événements actifs
-async function loadActiveEvents() {
-  const eventsRef = ref(db, 'events');
-  const snapshot = await get(eventsRef);
+  const userRef = getUserRef();
+  const snapshot = await get(userRef);
   
   if (snapshot.exists()) {
-    const eventsData = snapshot.val();
-    const now = new Date();
-    
-    activeEvents = Object.values(eventsData).filter(event => {
-      const startDate = new Date(event.startDate);
-      const endDate = new Date(event.endDate);
-      return now >= startDate && now <= endDate;
-    });
-  } else {
-    activeEvents = [];
+    currentUserData = snapshot.val();
+    return currentUserData;
   }
+  return null;
 }
 
-// NOUVEAU: Charger les tournois hebdomadaires
-async function loadWeeklyTournaments() {
-  // Pour l'instant, générer des tournois fictifs
-  const now = new Date();
-  const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-  const endOfWeek = new Date(now.setDate(now.getDate() - now.getDay() + 6));
+// Mettre à jour les données utilisateur
+async function updateUserData(updates) {
+  const userId = getUserId();
+  if (!userId) return;
   
-  weeklyTournaments = [
-    {
-      id: 'tournament1',
-      name: 'Tournoi Débutants',
-      description: 'Réservé aux joueurs niveau 1-10',
-      startDate: startOfWeek.toISOString(),
-      endDate: endOfWeek.toISOString(),
-      requirements: { maxLevel: 10 },
-      rewards: { coins: 2000, gems: 100 }
-    },
-    {
-      id: 'tournament2',
-      name: 'Ligue des Champions',
-      description: 'Tournoi élite sans restrictions',
-      startDate: startOfWeek.toISOString(),
-      endDate: endOfWeek.toISOString(),
-      requirements: {},
-      rewards: { coins: 5000, gems: 250, card: 'legendary' }
-    }
-  ];
-}
-
-// NOUVEAU: Charger les défis quotidiens
-async function loadDailyChallenges() {
-  const today = new Date().toDateString();
-  const userChallengesRef = ref(db, `users/${getUserId()}/dailyChallenges`);
-  const snapshot = await get(userChallengesRef);
+  const userRef = getUserRef();
+  await update(userRef, updates);
   
-  if (!snapshot.exists() || snapshot.val().date !== today) {
-    // Générer de nouveaux défis quotidiens
-    const dailyChallenges = {
-      date: today,
-      challenges: [
-        { id: 'play_matches', type: 'play_matches', target: 3, progress: 0, reward: { coins: 100, xp: 50 } },
-        { id: 'win_matches', type: 'win_matches', target: 2, progress: 0, reward: { coins: 200, xp: 100 } },
-        { id: 'open_packs', type: 'open_packs', target: 1, progress: 0, reward: { coins: 150, xp: 75 } },
-        { id: 'train_players', type: 'train_players', target: 2, progress: 0, reward: { coins: 120, xp: 60 } }
-      ]
-    };
-    
-    await set(userChallengesRef, dailyChallenges);
-    currentUserData.dailyChallenges = dailyChallenges;
-  } else {
-    currentUserData.dailyChallenges = snapshot.val();
+  if (currentUserData) {
+    currentUserData = { ...currentUserData, ...updates };
   }
-}
-
-// NOUVEAU: Afficher les événements actifs
-function displayActiveEvents() {
-  const eventsList = document.getElementById('events-list');
-  if (!eventsList) return;
-  
-  if (activeEvents.length === 0) {
-    eventsList.innerHTML = '<div class="small">Aucun événement actif</div>';
-  } else {
-    eventsList.innerHTML = activeEvents.map(event => `
-      <div class="event-item ${event.special ? 'special' : ''}">
-        <h4>${event.name}</h4>
-        <p class="small">${event.description}</p>
-        <div class="event-time">
-          ${new Date(event.endDate).toLocaleDateString()}
-        </div>
-      </div>
-    `).join('');
-  }
-}
-
-// NOUVEAU: Afficher les tournois hebdomadaires
-function displayWeeklyTournaments() {
-  const tournamentsList = document.getElementById('weekly-tournaments');
-  if (!tournamentsList) return;
-  
-  tournamentsList.innerHTML = weeklyTournaments.map(tournament => {
-    const canParticipate = checkTournamentRequirements(tournament);
-    
-    return `
-      <div class="tournament-item ${canParticipate ? 'eligible' : 'not-eligible'}">
-        <h4>${tournament.name}</h4>
-        <p class="small">${tournament.description}</p>
-        <div class="tournament-rewards">
-          <span>${tournament.rewards.coins}🪙</span>
-          <span>${tournament.rewards.gems}💎</span>
-          ${tournament.rewards.card ? `<span>Carte ${tournament.rewards.card}</span>` : ''}
-        </div>
-        <button class="small-btn ${canParticipate ? 'success' : 'ghost'}" ${!canParticipate ? 'disabled' : ''}>
-          ${canParticipate ? 'Participer' : 'Non éligible'}
-        </button>
-      </div>
-    `;
-  }).join('');
-}
-
-// NOUVEAU: Vérifier les conditions d'un tournoi
-function checkTournamentRequirements(tournament) {
-  if (!currentUserData) return false;
-  
-  if (tournament.requirements.maxLevel && currentUserData.level > tournament.requirements.maxLevel) {
-    return false;
-  }
-  
-  if (tournament.requirements.minLevel && currentUserData.level < tournament.requirements.minLevel) {
-    return false;
-  }
-  
-  return true;
-}
-
-// NOUVEAU: Afficher les défis quotidiens
-function displayDailyChallenges() {
-  const challengesList = document.getElementById('daily-challenges');
-  if (!challengesList || !currentUserData.dailyChallenges) return;
-  
-  challengesList.innerHTML = currentUserData.dailyChallenges.challenges.map(challenge => {
-    const progressPercent = (challenge.progress / challenge.target) * 100;
-    const isCompleted = challenge.progress >= challenge.target;
-    
-    return `
-      <div class="challenge-item ${isCompleted ? 'completed' : ''}">
-        <div class="challenge-info">
-          <div class="challenge-name">${getChallengeName(challenge.type)}</div>
-          <div class="challenge-progress">${challenge.progress}/${challenge.target}</div>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: ${progressPercent}%"></div>
-        </div>
-        <div class="challenge-reward">
-          <span>${challenge.reward.coins}🪙</span>
-          <span>${challenge.reward.xp}⭐</span>
-          ${isCompleted ? 
-            `<button class="small-btn claim-challenge" data-id="${challenge.id}">Récupérer</button>` :
-            ''}
-        </div>
-      </div>
-    `;
-  }).join('');
-  
-  // Événements pour réclamer les défis
-  document.querySelectorAll('.claim-challenge').forEach(btn => {
-    btn.addEventListener('click', claimDailyChallenge);
-  });
-}
-
-// NOUVEAU: Obtenir le nom d'un défi
-function getChallengeName(challengeType) {
-  const names = {
-    'play_matches': 'Jouer des matchs',
-    'win_matches': 'Gagner des matchs',
-    'open_packs': 'Ouvrir des packs',
-    'train_players': 'Entraîner des joueurs',
-    'fuse_cards': 'Fusionner des cartes',
-    'join_clan': 'Rejoindre un clan'
-  };
-  
-  return names[challengeType] || 'Défi';
-}
-
-// NOUVEAU: Réclamer un défi quotidien
-async function claimDailyChallenge(event) {
-  const challengeId = event.target.getAttribute('data-id');
-  const challenges = currentUserData.dailyChallenges.challenges;
-  const challenge = challenges.find(c => c.id === challengeId);
-  
-  if (!challenge || challenge.progress < challenge.target) {
-    showNotification("Défi non terminé", "warning");
-    return;
-  }
-  
-  // Appliquer les récompenses
-  await updateUserData({
-    coins: (currentUserData.coins || 0) + challenge.reward.coins
-  });
-  
-  // Ajouter l'XP au Battle Pass
-  await addBattlePassXP(challenge.reward.xp);
-  
-  // Marquer le défi comme réclamé
-  const updatedChallenges = challenges.map(c => 
-    c.id === challengeId ? { ...c, progress: -1 } : c
-  );
-  
-  const userChallengesRef = ref(db, `users/${getUserId()}/dailyChallenges`);
-  await update(userChallengesRef, {
-    challenges: updatedChallenges
-  });
-  
-  currentUserData.dailyChallenges.challenges = updatedChallenges;
-  
-  showNotification("Défi réclamé!", "success");
-  displayDailyChallenges();
-}
-
-// NOUVEAU: Mettre à jour la progression des défis
-async function updateChallengeProgress(challengeType, amount = 1) {
-  if (!currentUserData.dailyChallenges) return;
-  
-  const challenges = currentUserData.dailyChallenges.challenges;
-  const challenge = challenges.find(c => c.type === challengeType);
-  
-  if (challenge && challenge.progress >= 0) {
-    const newProgress = Math.min(challenge.target, challenge.progress + amount);
-    
-    if (newProgress !== challenge.progress) {
-      challenge.progress = newProgress;
-      
-      const userChallengesRef = ref(db, `users/${getUserId()}/dailyChallenges`);
-      await update(userChallengesRef, {
-        challenges: challenges
-      });
-      
-      // Recharger l'affichage si on est sur l'écran des événements
-      if (document.getElementById('daily-challenges')) {
-        displayDailyChallenges();
-      }
-      
-      // Vérifier si le défi est complété pour la première fois
-      if (newProgress === challenge.target) {
-        showNotification(`Défi "${getChallengeName(challengeType)}" terminé!`, "success");
-      }
-    }
-  }
-}
-
-// Système de récompense quotidienne
-function checkDailyReward() {
-  if (!currentUserData) return;
-  
-  const btnDailyReward = document.getElementById('btn-daily-reward');
-  const rewardTimer = document.getElementById('reward-timer');
-  
-  if (!btnDailyReward || !rewardTimer) return;
-  
-  const lastReward = currentUserData.lastDailyReward;
-  const now = new Date();
-  
-  if (lastReward) {
-    const lastRewardDate = new Date(lastReward);
-    const timeDiff = now - lastRewardDate;
-    const hoursDiff = timeDiff / (1000 * 60 * 60);
-    
-    if (hoursDiff < 24) {
-      // Récompense déjà récupérée aujourd'hui
-      btnDailyReward.disabled = true;
-      const hoursLeft = Math.floor(24 - hoursDiff);
-      rewardTimer.textContent = `Prochaine récompense dans ${hoursLeft}h`;
-    } else {
-      // Récompense disponible
-      btnDailyReward.disabled = false;
-      rewardTimer.textContent = "Récompense disponible!";
-    }
-  } else {
-    // Première récompense
-    btnDailyReward.disabled = false;
-    rewardTimer.textContent = "Récompense disponible!";
-  }
-}
-
-// Fonctions utilitaires pour les nations et positions
-function getRandomNation() {
-  const nations = ['France', 'Brésil', 'Argentine', 'Espagne', 'Allemagne', 'Angleterre', 'Italie', 'Portugal', 'Pays-Bas', 'Belgique'];
-  return nations[Math.floor(Math.random() * nations.length)];
-}
-
-function getRandomPosition() {
-  const positions = ['ATT', 'MID', 'DEF', 'GK'];
-  return positions[Math.floor(Math.random() * positions.length)];
-}
-
-// Générer des cartes de départ avec plus de variété
-function generateStarterCards() {
-  const rarities = ['bronze', 'bronze', 'bronze', 'silver', 'silver', 'gold', 'gold', 'legendary'];
-  const cards = {};
-  const starters = [];
-  const subs = [];
-  
-  for (let i = 0; i < 20; i++) {
-    const id = 'card' + Date.now() + i;
-    const rarity = i < 8 ? rarities[Math.floor(Math.random() * 3)] : 
-                  i < 15 ? 'silver' : 
-                  i < 18 ? 'gold' : 'legendary';
-    
-    const name = extendedCardNames[Math.floor(Math.random() * extendedCardNames.length)];
-    const attack = 5 + Math.floor(Math.random() * 20);
-    const defense = 3 + Math.floor(Math.random() * 18);
-    const speed = 1 + Math.floor(Math.random() * 12);
-    
-    cards[id] = {
-      id,
-      name,
-      rarity,
-      attack,
-      defense,
-      speed,
-      level: 1,
-      nation: getRandomNation(),
-      position: getRandomPosition(),
-      contract: 30, // 30 matchs de contrat
-      fatigue: 0, // 0% de fatigue
-      lastTraining: null
-    };
-    
-    if (i < 5) {
-      starters.push(id);
-    } else if (i < 11) {
-      subs.push(id);
-    }
-  }
-  
-  return { cards, starters, subs };
 }
 
 // Créer ou récupérer le profil utilisateur
@@ -987,8 +226,8 @@ async function ensureUserProfile(uid, username, email) {
   const snapshot = await get(userRef);
   
   if (!snapshot.exists()) {
-    // Créer un nouveau profil utilisateur
-    const { cards, starters, subs } = generateStarterCards();
+    // Générer des cartes de départ
+    const cards = generateStarterCards();
     
     const userData = {
       username: username,
@@ -1009,9 +248,9 @@ async function ensureUserProfile(uid, username, email) {
       badges: ["Débutant"],
       friends: [],
       friendRequests: [],
-      starters,
-      subs,
-      cards,
+      starters: ['card1', 'card2', 'card3', 'card4', 'card5'],
+      subs: ['card6', 'card7', 'card8', 'card9', 'card10'],
+      cards: cards,
       matchHistory: {},
       lastDailyReward: null,
       likes: 0,
@@ -1020,26 +259,26 @@ async function ensureUserProfile(uid, username, email) {
       winRate: 0,
       totalGoals: 0,
       totalDefenses: 0,
-      quests: {
-        daily: {},
-        weekly: {}
-      },
-      registrationDate: new Date().toISOString(),
-      lastLogin: new Date().toISOString(),
       playersSold: 0,
-      // NOUVEAUX CHAMPS
-      currentTactic: 'balanced',
       trainingPoints: 0,
-      clanId: null,
-      battlePassLevel: 1
+      tactic: 'balanced',
+      battlePass: {
+        level: 1,
+        xp: 0,
+        isVIP: false,
+        claimedLevels: []
+      },
+      season: {
+        seasonNumber: 1,
+        challenges: {},
+        progress: 0
+      }
     };
     
     await set(userRef, userData);
     return userData;
   } else {
-    // Retourner les données existantes
     const data = snapshot.val();
-    // Mettre à jour la dernière connexion
     await update(userRef, {
       lastLogin: new Date().toISOString()
     });
@@ -1047,35 +286,43 @@ async function ensureUserProfile(uid, username, email) {
   }
 }
 
-// Charger les données utilisateur depuis Firebase
-async function loadUserData() {
-  const userId = getUserId();
-  if (!userId) return null;
-  
-  const userRef = getUserRef();
-  const snapshot = await get(userRef);
-  
-  if (snapshot.exists()) {
-    currentUserData = snapshot.val();
-    return currentUserData;
+// Générer des cartes de départ
+function generateStarterCards() {
+  const cards = {};
+  for (let i = 1; i <= 15; i++) {
+    const rarity = i <= 8 ? 'bronze' : i <= 12 ? 'silver' : i <= 14 ? 'gold' : 'legendary';
+    cards[`card${i}`] = {
+      id: `card${i}`,
+      name: extendedCardNames[Math.floor(Math.random() * extendedCardNames.length)],
+      rarity: rarity,
+      attack: 5 + Math.floor(Math.random() * 20),
+      defense: 3 + Math.floor(Math.random() * 18),
+      speed: 1 + Math.floor(Math.random() * 12),
+      level: 1,
+      training: {
+        attack: 0,
+        defense: 0,
+        speed: 0
+      },
+      nation: getRandomNation(),
+      position: getRandomPosition()
+    };
   }
-  return null;
+  return cards;
 }
 
-// Mettre à jour les données utilisateur dans Firebase
-async function updateUserData(updates) {
-  const userId = getUserId();
-  if (!userId) return;
-  
-  const userRef = getUserRef();
-  await update(userRef, updates);
-  
-  if (currentUserData) {
-    currentUserData = { ...currentUserData, ...updates };
-  }
+// Fonctions utilitaires
+function getRandomNation() {
+  const nations = ['France', 'Brésil', 'Argentine', 'Espagne', 'Allemagne', 'Angleterre', 'Italie', 'Portugal', 'Pays-Bas', 'Belgique'];
+  return nations[Math.floor(Math.random() * nations.length)];
 }
 
-// Charger tous les utilisateurs pour le classement
+function getRandomPosition() {
+  const positions = ['ATT', 'MID', 'DEF', 'GK'];
+  return positions[Math.floor(Math.random() * positions.length)];
+}
+
+// Charger tous les utilisateurs
 async function loadAllUsers() {
   const usersRef = ref(db, 'users');
   const snapshot = await get(usersRef);
@@ -1093,11 +340,857 @@ async function loadAllUsers() {
   return [];
 }
 
-// Load dashboard
+// NOUVEAU: Système de saisons et Battle Pass
+async function loadSeason() {
+  if (!await ensureUserData()) return;
+  
+  const seasonPanel = document.querySelector('.season-panel');
+  if (seasonPanel) {
+    seasonPanel.innerHTML = `
+      <div class="row" style="justify-content: space-between; align-items: center;">
+        <div>
+          <div class="small">Saison ${currentUserData.season?.seasonNumber || 1}</div>
+          <div>Jour <span id="season-day">12</span>/42</div>
+        </div>
+        <div class="season-badge">EN COURS</div>
+      </div>
+      <div class="progress-container" style="margin-top: 12px;">
+        <div class="progress-bar" id="season-progress" style="width: ${(currentUserData.season?.progress || 0)}%;"></div>
+      </div>
+      <div class="row" style="margin-top: 12px; justify-content: space-between;">
+        <button id="nav-season" class="ghost small-btn"><i class="fas fa-calendar-alt"></i> Battle Pass</button>
+        <button id="nav-events" class="ghost small-btn"><i class="fas fa-star"></i> Événements</button>
+      </div>
+    `;
+  }
+  
+  // Charger la page de Battle Pass
+  const battlePassLevel = currentUserData.battlePass?.level || 1;
+  const battlePassXP = currentUserData.battlePass?.xp || 0;
+  const isVIP = currentUserData.battlePass?.isVIP || false;
+  
+  document.getElementById('battle-pass-level').textContent = battlePassLevel;
+  document.getElementById('battle-pass-progress').style.width = `${(battlePassXP % 100)}%`;
+  
+  // Mettre à jour les récompenses
+  const rewards = document.querySelectorAll('.season-reward');
+  rewards.forEach(reward => {
+    const level = parseInt(reward.querySelector('.reward-level').textContent.split(' ')[1]);
+    if (level <= battlePassLevel) {
+      reward.classList.add('unlocked');
+    }
+  });
+}
+
+// NOUVEAU: Système d'entraînement
+async function loadTraining() {
+  if (!await ensureUserData()) return;
+  
+  // Charger les joueurs dans le select
+  const trainingSelect = document.getElementById('training-player');
+  trainingSelect.innerHTML = '<option value="">Choisir un joueur</option>';
+  
+  Object.values(currentUserData.cards || {}).forEach(card => {
+    const option = document.createElement('option');
+    option.value = card.id;
+    option.textContent = `${card.name} (${card.rarity}) - ⚔️${card.attack} 🛡️${card.defense} ⚡${card.speed}`;
+    trainingSelect.appendChild(option);
+  });
+  
+  // Événement pour sélectionner un joueur
+  trainingSelect.addEventListener('change', function() {
+    const cardId = this.value;
+    const trainingInfo = document.getElementById('training-info');
+    
+    if (!cardId) {
+      trainingInfo.style.display = 'none';
+      return;
+    }
+    
+    const card = currentUserData.cards[cardId];
+    if (!card) return;
+    
+    trainingInfo.style.display = 'block';
+    document.getElementById('training-attack').textContent = card.attack + (card.training?.attack || 0);
+    document.getElementById('training-defense').textContent = card.defense + (card.training?.defense || 0);
+    document.getElementById('training-speed').textContent = card.speed + (card.training?.speed || 0);
+    
+    // Mettre à jour les boutons d'entraînement
+    document.querySelectorAll('.train-btn').forEach(btn => {
+      btn.onclick = () => trainPlayer(cardId, btn.dataset.stat);
+    });
+  });
+  
+  // Charger les entraîneurs
+  await loadCoaches();
+}
+
+// NOUVEAU: Charger les entraîneurs
+async function loadCoaches() {
+  // Entraîneurs par défaut
+  coaches = [
+    { id: 'coach1', name: 'Ancelotti', specialty: 'attaque', bonus: 10, cost: 1000 },
+    { id: 'coach2', name: 'Guardiola', specialty: 'tactique', bonus: 15, cost: 1500 },
+    { id: 'coach3', name: 'Klopp', specialty: 'vitesse', bonus: 12, cost: 1200 }
+  ];
+  
+  const coachesList = document.getElementById('coaches-list');
+  if (coachesList) {
+    coachesList.innerHTML = '';
+    coaches.forEach(coach => {
+      const coachEl = document.createElement('div');
+      coachEl.className = 'card-item';
+      coachEl.innerHTML = `
+        <div>
+          <div class="card-title">${coach.name}</div>
+          <div class="small">Spécialité: ${coach.specialty}</div>
+          <div class="small">Bonus: +${coach.bonus}%</div>
+        </div>
+        <button class="small-btn hire-coach" data-coach="${coach.id}">
+          <i class="fas fa-user-plus"></i> ${coach.cost}🪙
+        </button>
+      `;
+      coachesList.appendChild(coachEl);
+    });
+    
+    // Événements pour embaucher des entraîneurs
+    document.querySelectorAll('.hire-coach').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const coachId = this.dataset.coach;
+        const coach = coaches.find(c => c.id === coachId);
+        
+        if (!coach) return;
+        
+        if ((currentUserData.coins || 0) < coach.cost) {
+          showNotification(`Pas assez de pièces (${coach.cost} requis)`, 'warning');
+          return;
+        }
+        
+        // Appliquer le bonus de l'entraîneur
+        const updatedCoins = (currentUserData.coins || 0) - coach.cost;
+        await updateUserData({
+          coins: updatedCoins,
+          activeCoach: coachId,
+          coachBonus: coach.bonus
+        });
+        
+        showNotification(`${coach.name} embauché! Bonus de ${coach.bonus}% appliqué.`, 'success');
+        loadTraining();
+      });
+    });
+  }
+}
+
+// NOUVEAU: Entraîner un joueur
+async function trainPlayer(cardId, stat) {
+  if (!currentUserData) return;
+  
+  const trainingCost = 100;
+  if ((currentUserData.coins || 0) < trainingCost) {
+    showNotification(`Pas assez de pièces (${trainingCost} requis)`, 'warning');
+    return;
+  }
+  
+  const card = currentUserData.cards[cardId];
+  if (!card) return;
+  
+  // Appliquer le bonus de l'entraîneur si présent
+  const coachBonus = currentUserData.coachBonus || 0;
+  const bonusMultiplier = 1 + (coachBonus / 100);
+  
+  // Mettre à jour la statistique
+  const updatedCards = { ...currentUserData.cards };
+  const trainingPoints = (card.training?.[stat] || 0) + Math.floor(5 * bonusMultiplier);
+  
+  updatedCards[cardId] = {
+    ...card,
+    training: {
+      ...(card.training || {}),
+      [stat]: trainingPoints
+    }
+  };
+  
+  const updatedCoins = (currentUserData.coins || 0) - trainingCost;
+  
+  await updateUserData({
+    coins: updatedCoins,
+    cards: updatedCards,
+    trainingPoints: (currentUserData.trainingPoints || 0) + 1
+  });
+  
+  showNotification(`${card.name} entraîné! +${Math.floor(5 * bonusMultiplier)} ${stat}.`, 'success');
+  loadTraining();
+}
+
+// NOUVEAU: Système de tactiques
+async function loadTactics() {
+  if (!await ensureUserData()) return;
+  
+  // Mettre à jour la tactique sélectionnée
+  const tacticCards = document.querySelectorAll('.tactic-card');
+  tacticCards.forEach(card => {
+    const tactic = card.dataset.tactic;
+    card.classList.remove('active');
+    if (tactic === (currentUserData.tactic || 'balanced')) {
+      card.classList.add('active');
+      selectedTactic = tactic;
+    }
+    
+    card.addEventListener('click', async function() {
+      const newTactic = this.dataset.tactic;
+      selectedTactic = newTactic;
+      
+      tacticCards.forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      
+      await updateUserData({
+        tactic: newTactic
+      });
+      
+      showNotification(`Tactique changée: ${newTactic}`, 'success');
+    });
+  });
+}
+
+// NOUVEAU: Calcul de la force d'équipe avec tactiques
+function calculateTeamStrengthWithTactics(userData) {
+  if (!userData?.cards || !userData?.starters) return { strength: 0, bonus: 0 };
+  
+  let totalStrength = 0;
+  let positionCount = { ATT: 0, MID: 0, DEF: 0, GK: 0 };
+  
+  userData.starters.forEach(cardId => {
+    const card = userData.cards[cardId];
+    if (card) {
+      let cardStrength = card.attack + card.defense + card.speed;
+      
+      // Ajouter l'entraînement
+      if (card.training) {
+        cardStrength += (card.training.attack || 0) + (card.training.defense || 0) + (card.training.speed || 0);
+      }
+      
+      // Bonus de rareté
+      const rarityBonus = {
+        'bronze': 0,
+        'silver': 10,
+        'gold': 25,
+        'legendary': 50
+      };
+      cardStrength += rarityBonus[card.rarity] || 0;
+      
+      // Bonus de niveau
+      cardStrength += (card.level || 1) * 2;
+      
+      totalStrength += cardStrength;
+      positionCount[card.position] = (positionCount[card.position] || 0) + 1;
+    }
+  });
+  
+  // Bonus d'équilibre
+  const hasAllPositions = positionCount.ATT > 0 && positionCount.MID > 0 && 
+                         positionCount.DEF > 0 && positionCount.GK > 0;
+  if (hasAllPositions) totalStrength *= 1.1;
+  
+  // Appliquer la tactique
+  let tacticBonus = 0;
+  const tactic = userData.tactic || 'balanced';
+  
+  if (tactic === 'offensive') {
+    tacticBonus = 15;
+    totalStrength *= 1.15; // +15% attaque
+    totalStrength *= 0.90; // -10% défense
+  } else if (tactic === 'defensive') {
+    tacticBonus = 15;
+    totalStrength *= 0.90; // -10% attaque
+    totalStrength *= 1.15; // +15% défense
+  }
+  
+  return {
+    strength: Math.round(totalStrength),
+    bonus: tacticBonus
+  };
+}
+
+// Système de récompense quotidienne amélioré
+function checkDailyReward() {
+  if (!currentUserData) return;
+  
+  const btnDailyReward = document.getElementById('btn-daily-reward');
+  const rewardTimer = document.getElementById('reward-timer');
+  
+  if (!btnDailyReward || !rewardTimer) return;
+  
+  const lastReward = currentUserData.lastDailyReward;
+  const now = new Date();
+  
+  if (lastReward) {
+    const lastRewardDate = new Date(lastReward);
+    const timeDiff = now - lastRewardDate;
+    const hoursDiff = timeDiff / (1000 * 60 * 60);
+    
+    if (hoursDiff < 24) {
+      btnDailyReward.disabled = true;
+      const hoursLeft = Math.floor(24 - hoursDiff);
+      rewardTimer.textContent = `Prochaine récompense dans ${hoursLeft}h`;
+    } else {
+      btnDailyReward.disabled = false;
+      rewardTimer.textContent = "Récompense disponible!";
+    }
+  } else {
+    btnDailyReward.disabled = false;
+    rewardTimer.textContent = "Récompense disponible!";
+  }
+}
+
+// NOUVEAU: Système de clans amélioré
+async function loadClan() {
+  if (!await ensureUserData()) return;
+  
+  await loadAllUsers();
+  await loadClans();
+  
+  const userClan = document.getElementById('user-clan');
+  const clansList = document.getElementById('clans-list');
+  
+  if (userClan) {
+    const userClanData = clans.find(c => c.members?.includes(getUserId()));
+    
+    if (userClanData) {
+      userClan.innerHTML = `
+        <div class="clan-item">
+          <div class="clan-info">
+            <div style="font-weight: bold;">${userClanData.name}</div>
+            <div class="small">Niveau ${userClanData.level || 1} • ${userClanData.members.length}/10 membres</div>
+            <div class="clan-members">
+              ${userClanData.members.slice(0, 5).map(memberId => {
+                const member = globalUsers.find(u => u.uid === memberId);
+                return `<div class="clan-member" title="${member?.displayName || 'Membre'}">${member?.displayName?.charAt(0) || 'M'}</div>`;
+              }).join('')}
+              ${userClanData.members.length > 5 ? `<div class="clan-member">+${userClanData.members.length - 5}</div>` : ''}
+            </div>
+          </div>
+          <button class="ghost small-btn leave-clan" data-clan="${userClanData.id}">Quitter</button>
+        </div>
+      `;
+    } else {
+      userClan.innerHTML = '<div class="small">Vous n\'êtes dans aucun clan</div>';
+    }
+  }
+  
+  if (clansList) {
+    clansList.innerHTML = '';
+    
+    if (clans.length === 0) {
+      clansList.innerHTML = '<div class="small">Aucun clan disponible</div>';
+    } else {
+      clans.forEach(clan => {
+        if (!clan.members?.includes(getUserId())) {
+          const clanEl = document.createElement('div');
+          clanEl.className = 'clan-item';
+          clanEl.innerHTML = `
+            <div class="clan-info">
+              <div style="font-weight: bold;">${clan.name}</div>
+              <div class="small">${clan.members.length}/10 membres • Niveau ${clan.level || 1}</div>
+            </div>
+            <button class="small-btn join-clan" data-clan="${clan.id}">Rejoindre</button>
+          `;
+          clansList.appendChild(clanEl);
+        }
+      });
+    }
+  }
+  
+  // Événements pour les boutons de clan
+  document.querySelectorAll('.join-clan').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const clanId = this.getAttribute('data-clan');
+      const clan = clans.find(c => c.id === clanId);
+      
+      if (clan && clan.members.length < 10) {
+        const clanRef = ref(db, `clans/${clanId}`);
+        const updatedMembers = [...clan.members, getUserId()];
+        
+        await update(clanRef, {
+          members: updatedMembers
+        });
+        
+        showNotification(`Vous avez rejoint le clan ${clan.name}!`, "success");
+        loadClan();
+      } else {
+        showNotification("Clan complet ou introuvable", "warning");
+      }
+    });
+  });
+  
+  document.querySelectorAll('.leave-clan').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const clanId = this.getAttribute('data-clan');
+      const clan = clans.find(c => c.id === clanId);
+      
+      if (clan) {
+        const clanRef = ref(db, `clans/${clanId}`);
+        const updatedMembers = clan.members.filter(memberId => memberId !== getUserId());
+        
+        await update(clanRef, {
+          members: updatedMembers
+        });
+        
+        showNotification(`Vous avez quitté le clan ${clan.name}`, "info");
+        loadClan();
+      }
+    });
+  });
+}
+
+// Charger les clans
+async function loadClans() {
+  const clansRef = ref(db, 'clans');
+  const snapshot = await get(clansRef);
+  
+  if (snapshot.exists()) {
+    const clansData = snapshot.val();
+    clans = Object.entries(clansData).map(([id, clan]) => ({
+      id,
+      ...clan
+    }));
+  } else {
+    clans = [];
+  }
+  return clans;
+}
+
+// Créer un clan
+async function createClan(name) {
+  if (!currentUserData) return false;
+  
+  if ((currentUserData.coins || 0) < 5000) {
+    showNotification("Pas assez de pièces pour créer un clan (5000 pièces requises)", "warning");
+    return false;
+  }
+  
+  const clanId = 'clan' + Date.now();
+  const clanData = {
+    id: clanId,
+    name: name,
+    level: 1,
+    members: [getUserId()],
+    createdBy: getUserId(),
+    createdAt: new Date().toISOString()
+  };
+  
+  const clanRef = ref(db, `clans/${clanId}`);
+  await set(clanRef, clanData);
+  
+  await updateUserData({
+    coins: (currentUserData.coins || 0) - 5000
+  });
+  
+  showNotification(`Clan ${name} créé avec succès!`, "success");
+  return true;
+}
+
+// NOUVEAU: Système de marché
+async function loadMarket() {
+  if (!await ensureUserData()) return;
+  
+  await loadAllUsers();
+  await loadMarketPlayers();
+  
+  const sellPlayer = document.getElementById('sell-player');
+  const upgradePlayer = document.getElementById('upgrade-player');
+  const marketPlayersEl = document.getElementById('market-players');
+  
+  if (sellPlayer) {
+    const userCards = Object.values(currentUserData.cards || {});
+    sellPlayer.innerHTML = `
+      <div class="small">Sélectionnez un joueur à vendre</div>
+      <select id="player-to-sell" style="width: 100%; margin: 8px 0;">
+        <option value="">Choisir un joueur</option>
+        ${userCards.map(card => `
+          <option value="${card.id}" data-rarity="${card.rarity}">${card.name} (${card.rarity})</option>
+        `).join('')}
+      </select>
+      <div class="row">
+        <input type="number" id="sell-price" placeholder="Prix en pièces" min="100" style="flex: 1;"/>
+        <button class="small-btn" id="btn-sell-player">Vendre</button>
+      </div>
+    `;
+    
+    document.getElementById('btn-sell-player').addEventListener('click', sellPlayerOnMarket);
+  }
+  
+  if (marketPlayersEl) {
+    marketPlayersEl.innerHTML = '';
+    
+    if (marketPlayers.length === 0) {
+      marketPlayersEl.innerHTML = '<div class="small">Aucun joueur en vente</div>';
+    } else {
+      marketPlayers.forEach(player => {
+        if (player.sellerId !== getUserId()) {
+          const playerEl = document.createElement('div');
+          playerEl.className = 'player-card-market';
+          playerEl.innerHTML = `
+            <div class="player-info">
+              <div style="font-weight: bold;">${player.name}</div>
+              <div class="small">${player.rarity} • ${player.position} • Niv. ${player.level || 1}</div>
+              <div class="card-stats">
+                <span>⚔️ ${player.attack}</span>
+                <span>🛡️ ${player.defense}</span>
+                <span>⚡ ${player.speed}</span>
+              </div>
+            </div>
+            <div class="player-price">
+              <div>${player.price} 🪙</div>
+              <button class="small-btn buy-player-btn" data-player="${player.id}">Acheter</button>
+            </div>
+          `;
+          marketPlayersEl.appendChild(playerEl);
+        }
+      });
+    }
+    
+    document.querySelectorAll('.buy-player-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const playerId = this.getAttribute('data-player');
+        const player = marketPlayers.find(p => p.id === playerId);
+        
+        if (!player) return;
+        
+        if ((currentUserData.coins || 0) < player.price) {
+          showNotification("Pas assez de pièces pour acheter ce joueur", "warning");
+          return;
+        }
+        
+        const userCardsCount = Object.keys(currentUserData.cards || {}).length;
+        if (userCardsCount >= playerCollectionLimit) {
+          showNotification(`Limite de collection atteinte (${playerCollectionLimit} joueurs maximum)`, "warning");
+          return;
+        }
+        
+        await buyPlayerFromMarket(player);
+      });
+    });
+  }
+}
+
+// Vendre un joueur
+async function sellPlayerOnMarket() {
+  const playerSelect = document.getElementById('player-to-sell');
+  const priceInput = document.getElementById('sell-price');
+  
+  const playerId = playerSelect.value;
+  const price = parseInt(priceInput.value);
+  
+  if (!playerId || !price || price < 100) {
+    showNotification("Veuillez sélectionner un joueur et entrer un prix valide (min. 100 pièces)", "warning");
+    return;
+  }
+  
+  const player = currentUserData.cards[playerId];
+  if (!player) return;
+  
+  if ((currentUserData.starters || []).includes(playerId)) {
+    showNotification("Impossible de vendre un joueur de l'équipe de départ", "warning");
+    return;
+  }
+  
+  const updatedCards = { ...currentUserData.cards };
+  delete updatedCards[playerId];
+  
+  const updatedSubs = (currentUserData.subs || []).filter(id => id !== playerId);
+  
+  const marketPlayer = {
+    id: 'market_' + Date.now(),
+    ...player,
+    sellerId: getUserId(),
+    sellerName: currentUserData.displayName || 'Joueur',
+    price: price,
+    listedAt: new Date().toISOString()
+  };
+  
+  const marketRef = ref(db, `market/${marketPlayer.id}`);
+  await set(marketRef, marketPlayer);
+  
+  await updateUserData({
+    cards: updatedCards,
+    subs: updatedSubs,
+    playersSold: (currentUserData.playersSold || 0) + 1
+  });
+  
+  showNotification(`${player.name} mis en vente pour ${price} pièces!`, "success");
+  loadMarket();
+}
+
+// Acheter un joueur
+async function buyPlayerFromMarket(player) {
+  const updatedCoins = (currentUserData.coins || 0) - player.price;
+  
+  const playerId = 'card' + Date.now();
+  const updatedCards = {
+    ...currentUserData.cards,
+    [playerId]: {
+      ...player,
+      id: playerId
+    }
+  };
+  
+  const updatedSubs = [...(currentUserData.subs || []), playerId];
+  
+  const sellerRef = getUserRef(player.sellerId);
+  const sellerSnapshot = await get(sellerRef);
+  
+  if (sellerSnapshot.exists()) {
+    const sellerData = sellerSnapshot.val();
+    const sellerRevenue = Math.floor(player.price * 0.9);
+    
+    await update(sellerRef, {
+      coins: (sellerData.coins || 0) + sellerRevenue
+    });
+  }
+  
+  const marketRef = ref(db, `market/${player.id}`);
+  await remove(marketRef);
+  
+  await updateUserData({
+    coins: updatedCoins,
+    cards: updatedCards,
+    subs: updatedSubs
+  });
+  
+  showNotification(`${player.name} acheté pour ${player.price} pièces!`, "success");
+  loadMarket();
+}
+
+// Charger les joueurs du marché
+async function loadMarketPlayers() {
+  const marketRef = ref(db, 'market');
+  const snapshot = await get(marketRef);
+  
+  if (snapshot.exists()) {
+    const marketData = snapshot.val();
+    marketPlayers = Object.values(marketData);
+  } else {
+    marketPlayers = [];
+  }
+  return marketPlayers;
+}
+
+// NOUVEAU: Système de badges
+async function loadBadges() {
+  if (!await ensureUserData()) return;
+  
+  await loadAvailableBadges();
+  
+  const userBadges = document.getElementById('user-badges');
+  const availableBadgesEl = document.getElementById('available-badges');
+  
+  if (userBadges) {
+    const userBadgeList = currentUserData.badges || [];
+    userBadges.innerHTML = '';
+    
+    if (userBadgeList.length === 0) {
+      userBadges.innerHTML = '<div class="small" style="grid-column: 1 / -1;">Aucun badge obtenu</div>';
+    } else {
+      userBadgeList.forEach(badgeName => {
+        const badge = availableBadges.find(b => b.name === badgeName);
+        if (badge) {
+          const badgeEl = document.createElement('div');
+          badgeEl.className = 'badge-item unlocked';
+          badgeEl.innerHTML = `
+            <div class="badge-icon">${badge.icon}</div>
+            <div class="small">${badge.name}</div>
+          `;
+          userBadges.appendChild(badgeEl);
+        }
+      });
+    }
+  }
+  
+  if (availableBadgesEl) {
+    availableBadgesEl.innerHTML = '';
+    
+    availableBadges.forEach(badge => {
+      const hasBadge = (currentUserData.badges || []).includes(badge.name);
+      const badgeEl = document.createElement('div');
+      badgeEl.className = `badge-item ${hasBadge ? 'unlocked' : 'locked'}`;
+      badgeEl.innerHTML = `
+        <div class="badge-icon">${badge.icon}</div>
+        <div class="small">${badge.name}</div>
+        <div class="small" style="margin-top: 4px; font-size: 10px;">${badge.description}</div>
+      `;
+      availableBadgesEl.appendChild(badgeEl);
+    });
+  }
+}
+
+// Charger les badges disponibles
+async function loadAvailableBadges() {
+  availableBadges = [
+    { name: "Débutant", icon: "🎯", description: "Compléter le tutoriel" },
+    { name: "Collectionneur", icon: "📚", description: "Collectionner 20 joueurs" },
+    { name: "Vainqueur", icon: "🏆", description: "Gagner 10 matchs" },
+    { name: "Élite", icon: "⭐", description: "Atteindre le niveau 10" },
+    { name: "Légende", icon: "👑", description: "Atteindre le niveau 25" },
+    { name: "Marchand", icon: "💰", description: "Vendre 5 joueurs" },
+    { name: "Stratège", icon: "♟️", description: "Gagner 5 matchs consécutifs" },
+    { name: "Social", icon: "👥", description: "Avoir 10 amis" },
+    { name: "Entraîneur", icon: "🏋️", description: "Entraîner 10 fois" }
+  ];
+  
+  return availableBadges;
+}
+
+// Vérifier et attribuer les badges
+async function checkAndAwardBadges() {
+  if (!currentUserData) return;
+  
+  const userBadges = currentUserData.badges || [];
+  const newBadges = [];
+  
+  // Badge Débutant
+  if (!userBadges.includes("Débutant") && currentUserData.totalMatches >= 1) {
+    newBadges.push("Débutant");
+  }
+  
+  // Badge Collectionneur
+  if (!userBadges.includes("Collectionneur") && Object.keys(currentUserData.cards || {}).length >= 20) {
+    newBadges.push("Collectionneur");
+  }
+  
+  // Badge Vainqueur
+  if (!userBadges.includes("Vainqueur") && (currentUserData.wins || 0) >= 10) {
+    newBadges.push("Vainqueur");
+  }
+  
+  // Badge Élite
+  if (!userBadges.includes("Élite") && (currentUserData.level || 1) >= 10) {
+    newBadges.push("Élite");
+  }
+  
+  // Badge Légende
+  if (!userBadges.includes("Légende") && (currentUserData.level || 1) >= 25) {
+    newBadges.push("Légende");
+  }
+  
+  // Badge Marchand
+  if (!userBadges.includes("Marchand") && (currentUserData.playersSold || 0) >= 5) {
+    newBadges.push("Marchand");
+  }
+  
+  // Badge Social
+  if (!userBadges.includes("Social") && (currentUserData.friends || []).length >= 10) {
+    newBadges.push("Social");
+  }
+  
+  // Badge Entraîneur
+  if (!userBadges.includes("Entraîneur") && (currentUserData.trainingPoints || 0) >= 10) {
+    newBadges.push("Entraîneur");
+  }
+  
+  if (newBadges.length > 0) {
+    const updatedBadges = [...userBadges, ...newBadges];
+    await updateUserData({
+      badges: updatedBadges
+    });
+    
+    newBadges.forEach(badge => {
+      showNotification(`Nouveau badge débloqué: ${badge}!`, "success");
+    });
+  }
+}
+
+// NOUVEAU: Système VIP
+async function buyVip() {
+  if (!currentUserData) return;
+  
+  const vipCost = 2000;
+  
+  if ((currentUserData.gems || 0) < vipCost) {
+    showNotification(`Pas assez de gems pour acheter VIP (${vipCost} gems requis)`, "warning");
+    return;
+  }
+  
+  const now = new Date();
+  const vipExpiration = currentUserData.vipExpiration ? new Date(currentUserData.vipExpiration) : null;
+  
+  if (vipExpiration && vipExpiration > now) {
+    showNotification("Vous avez déjà un abonnement VIP actif", "warning");
+    return;
+  }
+  
+  const newExpiration = new Date();
+  newExpiration.setDate(newExpiration.getDate() + 30);
+  
+  const updatedGems = (currentUserData.gems || 0) - vipCost;
+  const updatedBadges = [...(currentUserData.badges || [])];
+  
+  if (!updatedBadges.includes("VIP")) {
+    updatedBadges.push("VIP");
+  }
+  
+  await updateUserData({
+    vip: true,
+    vipExpiration: newExpiration.toISOString(),
+    gems: updatedGems,
+    badges: updatedBadges,
+    maxEnergy: 30
+  });
+  
+  showNotification("Abonnement VIP activé pour 30 jours! 👑", "success");
+  loadDashboard();
+}
+
+// Vérifier l'expiration du VIP
+function checkVipExpiration() {
+  if (!currentUserData || !currentUserData.vip) return;
+  
+  const now = new Date();
+  const vipExpiration = new Date(currentUserData.vipExpiration);
+  
+  if (vipExpiration < now) {
+    updateUserData({
+      vip: false,
+      maxEnergy: 20
+    });
+    showNotification("Votre abonnement VIP a expiré", "info");
+  }
+}
+
+// Afficher le statut VIP
+function displayVipStatus() {
+  const vipStatus = document.getElementById('vip-status');
+  if (!vipStatus) return;
+  
+  if (currentUserData.vip) {
+    const expiration = new Date(currentUserData.vipExpiration);
+    const now = new Date();
+    const daysLeft = Math.ceil((expiration - now) / (1000 * 60 * 60 * 24));
+    
+    vipStatus.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div>Statut: <span class="vip-badge">VIP Actif</span></div>
+          <div class="small">Expire dans ${daysLeft} jour(s)</div>
+        </div>
+        <div class="vip-timer">${daysLeft}J</div>
+      </div>
+    `;
+  } else {
+    vipStatus.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div>Statut: Standard</div>
+          <div class="small">Passez VIP pour des avantages exclusifs</div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// Charger le dashboard
 async function loadDashboard() {
   if (!await ensureUserData()) return;
   
-  // Vérifier l'expiration du VIP
   checkVipExpiration();
   
   const dashGems = document.getElementById('dash-gems');
@@ -1105,7 +1198,6 @@ async function loadDashboard() {
   const dashEnergy = document.getElementById('dash-energy');
   const dashLevel = document.getElementById('dash-level');
   const hdrUser = document.getElementById('hdr-user');
-  const rewardDay = document.getElementById('reward-day');
   
   if (dashGems) dashGems.textContent = currentUserData.gems || 0;
   if (dashCoins) dashCoins.textContent = currentUserData.coins || 0;
@@ -1113,15 +1205,8 @@ async function loadDashboard() {
   if (dashLevel) dashLevel.textContent = currentUserData.level || 1;
   if (hdrUser) hdrUser.textContent = currentUserData.displayName || 'Joueur';
   
-  // Vérification de la récompense quotidienne
   checkDailyReward();
   
-  // NOUVEAU: Charger le Battle Pass
-  if (currentSeason && battlePassData) {
-    loadBattlePassPreview();
-  }
-  
-  // Afficher le panel admin si l'utilisateur est admin
   const adminPanel = document.getElementById('admin-panel');
   if (adminPanel) {
     if (getUserId() === ADMIN_UID) {
@@ -1133,10 +1218,9 @@ async function loadDashboard() {
     }
   }
   
-  // Charger tous les utilisateurs pour le classement
   await loadAllUsers();
   
-  // Populate mini leaderboard with likes
+  // Charger le classement avec likes
   const miniLeaderboard = document.getElementById('mini-leaderboard');
   if (miniLeaderboard) {
     const sortedUsers = [...globalUsers]
@@ -1166,7 +1250,6 @@ async function loadDashboard() {
       miniLeaderboard.appendChild(item);
     });
     
-    // Événements pour les boutons like dans le classement
     document.querySelectorAll('.like-btn-leaderboard').forEach(btn => {
       btn.addEventListener('click', function() {
         const userId = this.getAttribute('data-user');
@@ -1175,790 +1258,791 @@ async function loadDashboard() {
     });
   }
   
-  // Vérifier et attribuer les badges
   await checkAndAwardBadges();
 }
 
-// NOUVEAU: Système de clans amélioré
-async function loadClan() {
-  if (!await ensureUserData()) return;
+// Système de likes dans le classement
+async function likeUserFromLeaderboard(userId) {
+  if (!currentUserData) return;
   
-  await loadAllUsers();
-  await loadClans();
-  await loadClanWars();
-  await loadClanTechTree();
-  
-  const userClan = document.getElementById('user-clan');
-  const clansList = document.getElementById('clans-list');
-  const resourceSharing = document.getElementById('resource-sharing');
-  const clanWarsSection = document.getElementById('clan-wars');
-  const techTreeSection = document.getElementById('clan-tech-tree');
-  
-  // Afficher le clan de l'utilisateur
-  if (userClan) {
-    const userClanData = clans.find(c => c.members?.includes(getUserId()));
-    
-    if (userClanData) {
-      userClan.innerHTML = `
-        <div class="clan-item">
-          <div class="clan-info">
-            <div style="font-weight: bold;">${userClanData.name}</div>
-            <div class="small">Niveau ${userClanData.level || 1} • ${userClanData.members.length}/10 membres</div>
-            <div class="clan-members">
-              ${userClanData.members.slice(0, 5).map(memberId => {
-                const member = globalUsers.find(u => u.uid === memberId);
-                return `<div class="clan-member" title="${member?.displayName || 'Membre'}">${member?.displayName?.charAt(0) || 'M'}</div>`;
-              }).join('')}
-              ${userClanData.members.length > 5 ? `<div class="clan-member">+${userClanData.members.length - 5}</div>` : ''}
-            </div>
-          </div>
-          <button class="ghost small-btn leave-clan" data-clan="${userClanData.id}">Quitter</button>
-        </div>
-      `;
-      
-      // Initialiser le chat du clan
-      initializeClanChat(userClanData.id);
-    } else {
-      userClan.innerHTML = '<div class="small">Vous n\'êtes dans aucun clan</div>';
-    }
-  }
-  
-  // Afficher les guerres de clan
-  if (clanWarsSection) {
-    const userClanData = clans.find(c => c.members?.includes(getUserId()));
-    
-    if (userClanData) {
-      const clanWarsHTML = clanWars.filter(war => 
-        war.challengerId === userClanData.id || war.defenderId === userClanData.id
-      ).map(war => `
-        <div class="clan-war-item">
-          <div class="war-teams">
-            <span class="${war.challengerId === userClanData.id ? 'own-clan' : ''}">${war.challengerName}</span>
-            <span>VS</span>
-            <span class="${war.defenderId === userClanData.id ? 'own-clan' : ''}">${war.defenderName}</span>
-          </div>
-          <div class="war-score">${war.challengerScore || 0} - ${war.defenderScore || 0}</div>
-          <div class="war-status ${war.status}">${getWarStatusText(war.status)}</div>
-        </div>
-      `).join('');
-      
-      clanWarsSection.querySelector('#active-clan-wars').innerHTML = 
-        clanWarsHTML || '<div class="small">Aucune guerre active</div>';
-    } else {
-      clanWarsSection.style.display = 'none';
-    }
-  }
-  
-  // Afficher l'arbre de talents
-  if (techTreeSection) {
-    const userClanData = clans.find(c => c.members?.includes(getUserId()));
-    
-    if (userClanData && userClanData.techTree) {
-      const techTreeProgress = document.getElementById('tech-tree-progress');
-      const techTreeGrid = document.getElementById('tech-tree-grid');
-      
-      // Calculer le progrès total
-      const totalLevels = CLAN_TECH_TREE.reduce((sum, tech) => sum + tech.maxLevel, 0);
-      const currentLevels = userClanData.techTree.reduce((sum, tech) => sum + tech.level, 0);
-      const progressPercent = (currentLevels / totalLevels) * 100;
-      
-      techTreeProgress.innerHTML = `
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: ${progressPercent}%"></div>
-        </div>
-        <div class="small">Progrès: ${currentLevels}/${totalLevels}</div>
-      `;
-      
-      // Afficher les technologies
-      techTreeGrid.innerHTML = userClanData.techTree.map(tech => {
-        const techData = CLAN_TECH_TREE.find(t => t.id === tech.id);
-        const canUpgrade = tech.level < techData.maxLevel && 
-                          (userClanData.resources || 0) >= techData.cost;
-        
-        return `
-          <div class="tech-item ${tech.level > 0 ? 'unlocked' : 'locked'}">
-            <div class="tech-icon">🔬</div>
-            <div class="tech-info">
-              <div class="tech-name">${techData.name}</div>
-              <div class="tech-level">Niveau ${tech.level}/${techData.maxLevel}</div>
-              <div class="tech-effect">${techData.effect}</div>
-            </div>
-            ${canUpgrade ? 
-              `<button class="small-btn upgrade-tech" data-tech="${tech.id}">
-                Améliorer (${techData.cost})
-              </button>` :
-              '<div class="tech-cost">Coût: ' + techData.cost + '</div>'
-            }
-          </div>
-        `;
-      }).join('');
-      
-      // Événements pour améliorer les technologies
-      document.querySelectorAll('.upgrade-tech').forEach(btn => {
-        btn.addEventListener('click', upgradeClanTech);
-      });
-    } else {
-      techTreeSection.style.display = 'none';
-    }
-  }
-  
-  // Afficher la liste des clans
-  if (clansList) {
-    clansList.innerHTML = '';
-    
-    if (clans.length === 0) {
-      clansList.innerHTML = '<div class="small">Aucun clan disponible</div>';
-    } else {
-      clans.forEach(clan => {
-        if (!clan.members?.includes(getUserId())) {
-          const clanEl = document.createElement('div');
-          clanEl.className = 'clan-item';
-          clanEl.innerHTML = `
-            <div class="clan-info">
-              <div style="font-weight: bold;">${clan.name}</div>
-              <div class="small">${clan.members.length}/10 membres • Niveau ${clan.level || 1}</div>
-            </div>
-            <button class="small-btn join-clan" data-clan="${clan.id}">Rejoindre</button>
-          `;
-          clansList.appendChild(clanEl);
-        }
-      });
-    }
-  }
-  
-  // Afficher le partage de ressources
-  if (resourceSharing) {
-    const userClanData = clans.find(c => c.members?.includes(getUserId()));
-    
-    if (userClanData) {
-      resourceSharing.innerHTML = `
-        <div class="share-resource">
-          <div class="small">Partager des ressources avec le clan</div>
-          <div class="share-amount">
-            <input type="number" id="share-coins" placeholder="Pièces à partager" min="1" max="${currentUserData.coins || 0}"/>
-            <button class="small-btn share-coins-btn">Partager</button>
-          </div>
-          <div class="tax-info">Taxe: 10% (90% vont au destinataire)</div>
-        </div>
-      `;
-      
-      // Événement pour partager des pièces
-      document.querySelector('.share-coins-btn').addEventListener('click', async () => {
-        const coinsInput = document.getElementById('share-coins');
-        const coinsAmount = parseInt(coinsInput.value);
-        
-        if (!coinsAmount || coinsAmount <= 0) {
-          showNotification("Veuillez entrer un montant valide", "warning");
-          return;
-        }
-        
-        if (coinsAmount > (currentUserData.coins || 0)) {
-          showNotification("Pas assez de pièces", "warning");
-          return;
-        }
-        
-        // Calculer la taxe
-        const tax = Math.floor(coinsAmount * 0.1);
-        const netAmount = coinsAmount - tax;
-        
-        // Répartir entre les membres du clan (sauf l'utilisateur actuel)
-        const otherMembers = userClanData.members.filter(memberId => memberId !== getUserId());
-        const sharePerMember = Math.floor(netAmount / otherMembers.length);
-        
-        if (otherMembers.length === 0) {
-          showNotification("Aucun autre membre dans le clan", "warning");
-          return;
-        }
-        
-        // Distribuer aux membres
-        for (const memberId of otherMembers) {
-          const memberRef = getUserRef(memberId);
-          const memberSnapshot = await get(memberRef);
-          
-          if (memberSnapshot.exists()) {
-            const memberData = memberSnapshot.val();
-            await update(memberRef, {
-              coins: (memberData.coins || 0) + sharePerMember
-            });
-          }
-        }
-        
-        // Déduire de l'utilisateur actuel
-        await updateUserData({
-          coins: (currentUserData.coins || 0) - coinsAmount
-        });
-        
-        // Ajouter les ressources au clan
-        const clanRef = ref(db, `clans/${userClanData.id}`);
-        await update(clanRef, {
-          resources: (userClanData.resources || 0) + tax
-        });
-        
-        showNotification(`${coinsAmount} pièces partagées avec le clan!`, "success");
-        loadClan();
-        loadDashboard();
-      });
-    } else {
-      resourceSharing.innerHTML = '<div class="small">Rejoignez un clan pour partager des ressources</div>';
-    }
-  }
-  
-  // Événements pour les boutons de clan
-  document.querySelectorAll('.join-clan').forEach(btn => {
-    btn.addEventListener('click', async function() {
-      const clanId = this.getAttribute('data-clan');
-      const clan = clans.find(c => c.id === clanId);
-      
-      if (clan && clan.members.length < 10) {
-        // Ajouter l'utilisateur au clan
-        const clanRef = ref(db, `clans/${clanId}`);
-        const updatedMembers = [...clan.members, getUserId()];
-        
-        await update(clanRef, {
-          members: updatedMembers
-        });
-        
-        // Mettre à jour l'utilisateur
-        await updateUserData({
-          clanId: clanId
-        });
-        
-        showNotification(`Vous avez rejoint le clan ${clan.name}!`, "success");
-        loadClan();
-      } else {
-        showNotification("Clan complet ou introuvable", "warning");
-      }
-    });
-  });
-  
-  document.querySelectorAll('.leave-clan').forEach(btn => {
-    btn.addEventListener('click', async function() {
-      const clanId = this.getAttribute('data-clan');
-      const clan = clans.find(c => c.id === clanId);
-      
-      if (clan) {
-        // Retirer l'utilisateur du clan
-        const clanRef = ref(db, `clans/${clanId}`);
-        const updatedMembers = clan.members.filter(memberId => memberId !== getUserId());
-        
-        await update(clanRef, {
-          members: updatedMembers
-        });
-        
-        // Mettre à jour l'utilisateur
-        await updateUserData({
-          clanId: null
-        });
-        
-        // Arrêter l'écoute du chat
-        if (clanChatListener) {
-          off(clanChatListener);
-        }
-        
-        showNotification(`Vous avez quitté le clan ${clan.name}`, "info");
-        loadClan();
-      }
-    });
-  });
-  
-  // Événement pour créer une guerre de clan
-  document.getElementById('btn-create-clan-war')?.addEventListener('click', showClanWarModal);
-}
-
-// NOUVEAU: Initialiser le chat du clan
-function initializeClanChat(clanId) {
-  const chatMessages = document.getElementById('clan-chat-messages');
-  const chatInput = document.getElementById('clan-chat-input');
-  const chatSend = document.getElementById('clan-chat-send');
-  
-  if (!chatMessages || !chatInput || !chatSend) return;
-  
-  // Nettoyer l'écouteur précédent
-  if (clanChatListener) {
-    off(clanChatListener);
-  }
-  
-  // Écouter les nouveaux messages
-  const chatRef = ref(db, `clanChats/${clanId}`);
-  clanChatListener = onChildAdded(chatRef, (snapshot) => {
-    const message = snapshot.val();
-    displayChatMessage(message);
-  });
-  
-  // Charger les messages existants
-  get(chatRef).then(snapshot => {
-    if (snapshot.exists()) {
-      const messages = Object.values(snapshot.val());
-      chatMessages.innerHTML = '';
-      messages.forEach(message => displayChatMessage(message));
-    }
-  });
-  
-  // Événement pour envoyer un message
-  chatSend.addEventListener('click', sendClanMessage);
-  chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      sendClanMessage();
-    }
-  });
-}
-
-// NOUVEAU: Afficher un message de chat
-function displayChatMessage(message) {
-  const chatMessages = document.getElementById('clan-chat-messages');
-  if (!chatMessages) return;
-  
-  const messageEl = document.createElement('div');
-  messageEl.className = 'chat-message';
-  messageEl.innerHTML = `
-    <div class="message-sender">${message.senderName}:</div>
-    <div class="message-text">${message.text}</div>
-    <div class="message-time">${new Date(message.timestamp).toLocaleTimeString()}</div>
-  `;
-  
-  chatMessages.appendChild(messageEl);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-// NOUVEAU: Envoyer un message de chat
-async function sendClanMessage() {
-  const chatInput = document.getElementById('clan-chat-input');
-  const messageText = chatInput.value.trim();
-  
-  if (!messageText || !currentUserData) return;
-  
-  const userClanData = clans.find(c => c.members?.includes(getUserId()));
-  if (!userClanData) return;
-  
-  const message = {
-    senderId: getUserId(),
-    senderName: currentUserData.displayName || 'Joueur',
-    text: messageText,
-    timestamp: new Date().toISOString()
-  };
-  
-  const chatRef = ref(db, `clanChats/${userClanData.id}`);
-  await push(chatRef, message);
-  
-  chatInput.value = '';
-}
-
-// NOUVEAU: Charger les guerres de clan
-async function loadClanWars() {
-  const warsRef = ref(db, 'clanWars');
-  const snapshot = await get(warsRef);
+  const userRef = getUserRef(userId);
+  const snapshot = await get(userRef);
   
   if (snapshot.exists()) {
-    const warsData = snapshot.val();
-    clanWars = Object.values(warsData).filter(war => war.status === 'active');
-  } else {
-    clanWars = [];
-  }
-}
-
-// NOUVEAU: Charger l'arbre de talents du clan
-async function loadClanTechTree() {
-  // Pour l'instant, initialiser avec des données par défaut
-  clanTechTree = CLAN_TECH_TREE;
-}
-
-// NOUVEAU: Obtenir le texte du statut d'une guerre
-function getWarStatusText(status) {
-  const statusTexts = {
-    'active': 'En cours',
-    'pending': 'En attente',
-    'finished': 'Terminée',
-    'cancelled': 'Annulée'
-  };
-  
-  return statusTexts[status] || status;
-}
-
-// NOUVEAU: Améliorer une technologie de clan
-async function upgradeClanTech(event) {
-  const techId = event.target.getAttribute('data-tech');
-  const userClanData = clans.find(c => c.members?.includes(getUserId()));
-  
-  if (!userClanData) return;
-  
-  const techData = CLAN_TECH_TREE.find(t => t.id === techId);
-  const currentTech = userClanData.techTree?.find(t => t.id === techId) || { id: techId, level: 0 };
-  
-  if (currentTech.level >= techData.maxLevel) {
-    showNotification("Niveau maximum atteint", "warning");
-    return;
-  }
-  
-  if ((userClanData.resources || 0) < techData.cost) {
-    showNotification("Pas assez de ressources dans le clan", "warning");
-    return;
-  }
-  
-  // Mettre à jour la technologie
-  const updatedTechTree = userClanData.techTree ? 
-    userClanData.techTree.map(t => t.id === techId ? { ...t, level: t.level + 1 } : t) :
-    [{ id: techId, level: 1 }];
-  
-  const clanRef = ref(db, `clans/${userClanData.id}`);
-  await update(clanRef, {
-    techTree: updatedTechTree,
-    resources: (userClanData.resources || 0) - techData.cost
-  });
-  
-  showNotification(`${techData.name} amélioré au niveau ${currentTech.level + 1}!`, "success");
-  loadClan();
-}
-
-// NOUVEAU: Afficher le modal pour créer une guerre de clan
-function showClanWarModal() {
-  // Implémentation simplifiée - en production, vous auriez une interface pour sélectionner le clan adverse
-  showNotification("Fonctionnalité en développement", "info");
-}
-
-// NOUVEAU: Système d'entraînement des joueurs
-function showTrainingModal() {
-  const modal = document.getElementById('training-modal');
-  if (!modal) return;
-  
-  modal.classList.add('active');
-  loadTrainingInterface();
-}
-
-// NOUVEAU: Charger l'interface d'entraînement
-function loadTrainingInterface() {
-  const playerSelect = document.getElementById('training-player-select');
-  const trainingStats = document.getElementById('training-stats');
-  const trainingActions = document.getElementById('training-actions');
-  
-  if (!playerSelect || !trainingStats || !trainingActions) return;
-  
-  // Remplir la liste des joueurs
-  playerSelect.innerHTML = '<option value="">Sélectionnez un joueur</option>';
-  Object.values(currentUserData.cards || {}).forEach(card => {
-    const option = document.createElement('option');
-    option.value = card.id;
-    option.textContent = `${card.name} (${card.rarity}) - ⚔️${card.attack} 🛡️${card.defense} ⚡${card.speed}`;
-    playerSelect.appendChild(option);
-  });
-  
-  // Événement pour changer de joueur
-  playerSelect.addEventListener('change', (e) => {
-    const cardId = e.target.value;
-    if (cardId) {
-      displayTrainingStats(cardId);
+    const userData = snapshot.val();
+    const hasLiked = userData.likedBy?.includes(getUserId());
+    let updatedLikes = userData.likes || 0;
+    let updatedLikedBy = [...(userData.likedBy || [])];
+    
+    if (hasLiked) {
+      updatedLikes = Math.max(0, updatedLikes - 1);
+      updatedLikedBy = updatedLikedBy.filter(uid => uid !== getUserId());
+      showNotification("Like retiré", "info");
     } else {
-      trainingStats.innerHTML = '';
-      trainingActions.innerHTML = '';
+      updatedLikes += 1;
+      updatedLikedBy.push(getUserId());
+      showNotification("Joueur liké! 💖", "success");
     }
-  });
+    
+    await update(userRef, {
+      likes: updatedLikes,
+      likedBy: updatedLikedBy
+    });
+    
+    loadDashboard();
+  }
 }
 
-// NOUVEAU: Afficher les stats d'entraînement d'un joueur
-function displayTrainingStats(cardId) {
-  const card = currentUserData.cards[cardId];
-  const trainingStats = document.getElementById('training-stats');
-  const trainingActions = document.getElementById('training-actions');
+// Charger l'équipe
+async function loadTeam() {
+  if (!await ensureUserData()) return;
   
-  if (!card || !trainingStats || !trainingActions) return;
+  const teamContent = document.getElementById('team-content');
+  const subsContent = document.getElementById('subs-content');
   
-  trainingStats.innerHTML = `
-    <div class="training-player-info">
-      <h4>${card.name}</h4>
-      <div class="player-stats">
-        <div class="stat-row">
-          <span>Attaque:</span>
-          <span>${card.attack}</span>
-          <button class="small-btn train-stat" data-stat="attack" data-card="${cardId}">+</button>
-        </div>
-        <div class="stat-row">
-          <span>Défense:</span>
-          <span>${card.defense}</span>
-          <button class="small-btn train-stat" data-stat="defense" data-card="${cardId}">+</button>
-        </div>
-        <div class="stat-row">
-          <span>Vitesse:</span>
-          <span>${card.speed}</span>
-          <button class="small-btn train-stat" data-stat="speed" data-card="${cardId}">+</button>
-        </div>
-      </div>
-      <div class="fatigue-info">
-        Fatigue: ${card.fatigue || 0}%
-        ${card.fatigue >= 80 ? '<span class="warning-text">(Joueur fatigué!)</span>' : ''}
-      </div>
-    </div>
-  `;
-  
-  trainingActions.innerHTML = `
-    <div class="training-cost">
-      <div class="small">Coût par entraînement: 50 pièces</div>
-      <div class="small">Fatigue: +5% par session</div>
-    </div>
-    <button class="small-btn success" id="btn-rest-player" data-card="${cardId}">
-      Reposer le joueur (25 pièces)
-    </button>
-  `;
-  
-  // Événements pour l'entraînement
-  document.querySelectorAll('.train-stat').forEach(btn => {
-    btn.addEventListener('click', trainPlayerStat);
-  });
-  
-  document.getElementById('btn-rest-player')?.addEventListener('click', restPlayer);
-}
-
-// NOUVEAU: Entraîner une statistique de joueur
-async function trainPlayerStat(event) {
-  const stat = event.target.getAttribute('data-stat');
-  const cardId = event.target.getAttribute('data-card');
-  const card = currentUserData.cards[cardId];
-  
-  if (!card) return;
-  
-  // Vérifier le coût
-  if ((currentUserData.coins || 0) < 50) {
-    showNotification("Pas assez de pièces pour l'entraînement", "warning");
-    return;
+  if (teamContent) {
+    teamContent.innerHTML = '';
+    (currentUserData.starters || []).forEach(cardId => {
+      const card = currentUserData.cards?.[cardId];
+      if (card) {
+        const cardEl = document.createElement('div');
+        cardEl.className = `card-item ${card.rarity}`;
+        cardEl.innerHTML = `
+          <div>
+            <div class="card-title">${card.name}</div>
+            <div class="small">${card.position} | ${card.nation}</div>
+          </div>
+          <div class="card-stats">
+            <span>⚔️ ${card.attack + (card.training?.attack || 0)}</span>
+            <span>🛡️ ${card.defense + (card.training?.defense || 0)}</span>
+            <span>⚡ ${card.speed + (card.training?.speed || 0)}</span>
+          </div>
+        `;
+        teamContent.appendChild(cardEl);
+      }
+    });
   }
   
-  // Vérifier la fatigue
-  if ((card.fatigue || 0) >= 100) {
-    showNotification("Le joueur est trop fatigué pour s'entraîner", "warning");
-    return;
+  if (subsContent) {
+    subsContent.innerHTML = '';
+    (currentUserData.subs || []).forEach(cardId => {
+      const card = currentUserData.cards?.[cardId];
+      if (card) {
+        const cardEl = document.createElement('div');
+        cardEl.className = `card-item ${card.rarity}`;
+        cardEl.innerHTML = `
+          <div>
+            <div class="card-title">${card.name}</div>
+            <div class="small">${card.position} | ${card.nation}</div>
+          </div>
+          <div class="card-stats">
+            <span>⚔️ ${card.attack}</span>
+            <span>🛡️ ${card.defense}</span>
+          </div>
+        `;
+        subsContent.appendChild(cardEl);
+      }
+    });
   }
   
-  // Améliorer la statistique
-  const statIncrease = Math.floor(Math.random() * 3) + 1; // 1-3 points
-  const updatedCards = {
-    ...currentUserData.cards,
-    [cardId]: {
-      ...card,
-      [stat]: card[stat] + statIncrease,
-      fatigue: Math.min(100, (card.fatigue || 0) + 5),
-      lastTraining: new Date().toISOString()
-    }
-  };
-  
-  // Déduire le coût
-  const updatedCoins = (currentUserData.coins || 0) - 50;
-  
-  await updateUserData({
-    cards: updatedCards,
-    coins: updatedCoins
-  });
-  
-  // Mettre à jour la progression du défi
-  await updateChallengeProgress('train_players', 1);
-  
-  showNotification(`${card.name} a amélioré son ${getStatName(stat)} de +${statIncrease}!`, "success");
-  displayTrainingStats(cardId);
-  loadDashboard();
+  document.getElementById('btn-auto-best').addEventListener('click', autoSelectBestTeam);
 }
 
-// NOUVEAU: Reposer un joueur
-async function restPlayer(event) {
-  const cardId = event.target.getAttribute('data-card');
-  const card = currentUserData.cards[cardId];
+// Sélection automatique de la meilleure équipe
+function autoSelectBestTeam() {
+  if (!currentUserData || !currentUserData.cards) return;
   
-  if (!card) return;
+  const sortedCards = Object.values(currentUserData.cards)
+    .sort((a, b) => {
+      const scoreA = a.attack + a.defense + a.speed;
+      const scoreB = b.attack + b.defense + b.speed;
+      return scoreB - scoreA;
+    });
   
-  // Vérifier le coût
-  if ((currentUserData.coins || 0) < 25) {
-    showNotification("Pas assez de pièces pour reposer le joueur", "warning");
-    return;
-  }
+  const bestCards = sortedCards.slice(0, 5);
+  const bestCardIds = bestCards.map(card => card.id);
   
-  if ((card.fatigue || 0) <= 0) {
-    showNotification("Le joueur n'est pas fatigué", "warning");
-    return;
-  }
-  
-  const updatedCards = {
-    ...currentUserData.cards,
-    [cardId]: {
-      ...card,
-      fatigue: Math.max(0, (card.fatigue || 0) - 20)
-    }
-  };
-  
-  const updatedCoins = (currentUserData.coins || 0) - 25;
-  
-  await updateUserData({
-    cards: updatedCards,
-    coins: updatedCoins
+  updateUserData({
+    starters: bestCardIds
   });
   
-  showNotification(`${card.name} s'est reposé. Fatigue réduite.`, "success");
-  displayTrainingStats(cardId);
-  loadDashboard();
-}
-
-// NOUVEAU: Obtenir le nom d'une statistique
-function getStatName(stat) {
-  const names = {
-    'attack': 'attaque',
-    'defense': 'défense',
-    'speed': 'vitesse'
-  };
-  
-  return names[stat] || stat;
-}
-
-// NOUVEAU: Système de tactiques d'équipe
-function showTacticsModal() {
-  const modal = document.getElementById('tactics-modal');
-  if (!modal) return;
-  
-  modal.classList.add('active');
-  
-  // Sélectionner la tactique actuelle
-  const currentTactic = currentUserData.currentTactic || 'balanced';
-  document.querySelectorAll('.tactic-option').forEach(option => {
-    if (option.getAttribute('data-tactic') === currentTactic) {
-      option.classList.add('selected');
-    } else {
-      option.classList.remove('selected');
-    }
-  });
-  
-  // Événements pour sélectionner une tactique
-  document.querySelectorAll('.tactic-option').forEach(option => {
-    option.addEventListener('click', selectTactic);
-  });
-}
-
-// NOUVEAU: Sélectionner une tactique
-async function selectTactic(event) {
-  const tactic = event.currentTarget.getAttribute('data-tactic');
-  
-  await updateUserData({
-    currentTactic: tactic
-  });
-  
-  showNotification(`Tactique changée: ${getTacticName(tactic)}`, "success");
-  
-  // Fermer le modal
-  const modal = document.getElementById('tactics-modal');
-  if (modal) {
-    modal.classList.remove('active');
-  }
-  
-  // Recharger l'équipe pour afficher la nouvelle tactique
+  showNotification("Équipe optimisée automatiquement!", "success");
   loadTeam();
 }
 
-// NOUVEAU: Obtenir le nom d'une tactique
-function getTacticName(tactic) {
-  const names = {
-    'offensive': 'Offensive',
-    'defensive': 'Défensive',
-    'balanced': 'Équilibrée'
-  };
+// NOUVEAU: Charger les matchs
+async function loadMatch() {
+  if (!await ensureUserData()) return;
   
-  return names[tactic] || tactic;
+  await loadAllUsers();
+  
+  const matchOpponent = document.getElementById('match-opponent');
+  const matchResult = document.getElementById('match-result');
+  
+  if (matchOpponent) matchOpponent.style.display = 'none';
+  if (matchResult) matchResult.style.display = 'none';
+  
+  loadMatchHistory();
 }
 
-// NOUVEAU: Appliquer les bonus de tactique
-function applyTacticBonus(baseStats, tactic) {
-  const bonuses = {
-    'offensive': { attack: 1.15, defense: 0.9 },
-    'defensive': { attack: 0.9, defense: 1.15 },
-    'balanced': { attack: 1.05, defense: 1.05 }
-  };
+// Trouver un adversaire
+async function findOpponent() {
+  if (!await ensureUserData()) return;
   
-  const bonus = bonuses[tactic] || bonuses.balanced;
-  
-  return {
-    attack: Math.floor(baseStats.attack * bonus.attack),
-    defense: Math.floor(baseStats.defense * bonus.defense),
-    speed: baseStats.speed
-  };
-}
-
-// NOUVEAU: Gestion des contrats et de la fatigue
-function updateContractsAndFatigue() {
-  if (!currentUserData || !currentUserData.cards) return;
-  
-  let updatedCards = { ...currentUserData.cards };
-  let needsUpdate = false;
-  
-  Object.keys(updatedCards).forEach(cardId => {
-    const card = updatedCards[cardId];
-    
-    // Réduire la fatigue avec le temps (1% par heure)
-    if (card.fatigue > 0) {
-      const lastUpdate = card.lastFatigueUpdate ? new Date(card.lastFatigueUpdate) : new Date();
-      const now = new Date();
-      const hoursPassed = (now - lastUpdate) / (1000 * 60 * 60);
-      
-      if (hoursPassed >= 1) {
-        card.fatigue = Math.max(0, card.fatigue - Math.floor(hoursPassed));
-        card.lastFatigueUpdate = now.toISOString();
-        needsUpdate = true;
-      }
-    }
-    
-    // Gérer l'expiration des contrats
-    if (card.contract !== undefined && card.contract <= 0) {
-      // Contrat expiré - le joueur ne peut plus être utilisé
-      card.contractExpired = true;
-      needsUpdate = true;
-    }
-  });
-  
-  if (needsUpdate) {
-    updateUserData({ cards: updatedCards });
-  }
-}
-
-// NOUVEAU: Renouveler un contrat
-async function renewContract(cardId, cost) {
-  const card = currentUserData.cards[cardId];
-  if (!card) return;
-  
-  if ((currentUserData.coins || 0) < cost) {
-    showNotification("Pas assez de pièces pour renouveler le contrat", "warning");
+  if ((currentUserData.energy || 0) < 5) {
+    showNotification("Pas assez d'énergie! Achetez-en ou attendez.", "warning");
     return;
   }
   
-  const updatedCards = {
-    ...currentUserData.cards,
-    [cardId]: {
-      ...card,
-      contract: 30, // Renouveler pour 30 matchs
-      contractExpired: false
+  const btnFindOpponent = document.getElementById('btn-find-opponent');
+  const matchmakingStatus = document.getElementById('matchmaking-status');
+  
+  if (btnFindOpponent) btnFindOpponent.disabled = true;
+  if (matchmakingStatus) matchmakingStatus.style.display = 'block';
+  
+  let searchTime = 0;
+  const searchInterval = setInterval(() => {
+    searchTime += 1;
+    
+    if (matchmakingStatus) {
+      const dots = '.'.repeat((searchTime % 3) + 1);
+      matchmakingStatus.innerHTML = `
+        <div class="loading"></div>
+        <div>Recherche d'adversaire en cours${dots}</div>
+      `;
     }
-  };
+    
+    if (searchTime >= 2 && Math.random() > 0.5) {
+      clearInterval(searchInterval);
+      finishMatchmaking();
+    }
+    
+    if (searchTime >= 10) {
+      clearInterval(searchInterval);
+      finishMatchmaking(true);
+    }
+  }, 1000);
   
-  const updatedCoins = (currentUserData.coins || 0) - cost;
-  
-  await updateUserData({
-    cards: updatedCards,
-    coins: updatedCoins
-  });
-  
-  showNotification(`Contrat de ${card.name} renouvelé pour 30 matchs`, "success");
+  matchmakingInterval = searchInterval;
 }
 
-// Suite des fonctions existantes avec intégration des nouvelles fonctionnalités...
-// [Le reste du code reste similaire mais avec l'intégration des nouvelles fonctionnalités]
+// Terminer la recherche d'adversaire
+function finishMatchmaking(timeout = false) {
+  const btnFindOpponent = document.getElementById('btn-find-opponent');
+  const matchmakingStatus = document.getElementById('matchmaking-status');
+  
+  if (btnFindOpponent) btnFindOpponent.disabled = false;
+  if (matchmakingStatus) matchmakingStatus.style.display = 'none';
+  
+  if (timeout) {
+    showNotification("Aucun adversaire trouvé. Réessayez plus tard.", "warning");
+    return;
+  }
+  
+  const availableOpponents = globalUsers.filter(user => 
+    user.uid !== getUserId()
+  );
+  
+  if (availableOpponents.length === 0) {
+    showNotification("Aucun adversaire trouvé. Réessayez plus tard.", "warning");
+    return;
+  }
+  
+  currentOpponent = availableOpponents[Math.floor(Math.random() * availableOpponents.length)];
+  
+  const matchOpponent = document.getElementById('match-opponent');
+  const opponentInfo = document.getElementById('opponent-info');
+  
+  if (matchOpponent && opponentInfo) {
+    opponentInfo.innerHTML = `
+      <div class="leaderboard-item opponent-found">
+        <div class="friend-avatar ${currentOpponent.vip ? 'vip' : ''}">
+          ${currentOpponent.vip ? '👑' : '👤'}
+        </div>
+        <div>
+          <div>${currentOpponent.displayName || 'Joueur'}</div>
+          <div class="small">Niveau ${currentOpponent.level || 1} • ${currentOpponent.wins || 0} victoires</div>
+        </div>
+      </div>
+    `;
+    matchOpponent.style.display = 'block';
+  }
+  
+  showNotification(`Adversaire trouvé: ${currentOpponent.displayName || 'Joueur'}`, "success");
+}
+
+// Jouer un match
+async function playMatch() {
+  if (!currentUserData || !currentOpponent) return;
+  
+  const updatedEnergy = (currentUserData.energy || 0) - 5;
+  await updateUserData({ energy: updatedEnergy });
+  
+  // Calculer la force avec tactiques
+  const userStrength = calculateTeamStrengthWithTactics(currentUserData).strength;
+  const opponentStrength = calculateTeamStrengthWithTactics(currentOpponent).strength;
+  
+  const userRandomFactor = 0.8 + Math.random() * 0.4;
+  const opponentRandomFactor = 0.8 + Math.random() * 0.4;
+  
+  const userFinalStrength = userStrength * userRandomFactor;
+  const opponentFinalStrength = opponentStrength * opponentRandomFactor;
+  
+  let userGoals = Math.floor(userFinalStrength / 20);
+  let opponentGoals = Math.floor(opponentFinalStrength / 20);
+  
+  userGoals = Math.max(0, userGoals);
+  opponentGoals = Math.max(0, opponentGoals);
+  
+  let result = '';
+  let userWon = false;
+  
+  if (userGoals > opponentGoals) {
+    result = 'Victoire';
+    userWon = true;
+  } else if (userGoals < opponentGoals) {
+    result = 'Défaite';
+    userWon = false;
+  } else {
+    result = 'Match nul';
+  }
+  
+  const updatedWins = (currentUserData.wins || 0) + (userWon ? 1 : 0);
+  const updatedLosses = (currentUserData.losses || 0) + (!userWon && result !== 'Match nul' ? 1 : 0);
+  const updatedDraws = (currentUserData.draws || 0) + (result === 'Match nul' ? 1 : 0);
+  const updatedTotalMatches = (currentUserData.totalMatches || 0) + 1;
+  const updatedWinRate = Math.round((updatedWins / updatedTotalMatches) * 100);
+  const updatedTotalGoals = (currentUserData.totalGoals || 0) + userGoals;
+  
+  let coinsReward = 50;
+  let xpReward = 25;
+  
+  if (userWon) {
+    coinsReward = 100;
+    xpReward = 50;
+  } else if (result === 'Match nul') {
+    coinsReward = 75;
+    xpReward = 35;
+  }
+  
+  const updatedCoins = (currentUserData.coins || 0) + coinsReward;
+  const updatedXp = (currentUserData.xp || 0) + xpReward;
+  
+  let updatedLevel = currentUserData.level || 1;
+  let updatedXpToNextLevel = currentUserData.xpToNextLevel || 100;
+  
+  if (updatedXp >= updatedXpToNextLevel) {
+    updatedLevel += 1;
+    updatedXp = updatedXp - updatedXpToNextLevel;
+    updatedXpToNextLevel = Math.floor(updatedXpToNextLevel * 1.5);
+    showNotification(`Félicitations! Vous êtes maintenant niveau ${updatedLevel}!`, "success");
+  }
+  
+  await updateUserData({
+    wins: updatedWins,
+    losses: updatedLosses,
+    draws: updatedDraws,
+    totalMatches: updatedTotalMatches,
+    winRate: updatedWinRate,
+    totalGoals: updatedTotalGoals,
+    coins: updatedCoins,
+    xp: updatedXp,
+    level: updatedLevel,
+    xpToNextLevel: updatedXpToNextLevel
+  });
+  
+  const matchEntry = {
+    opponent: currentOpponent.displayName || 'Joueur',
+    result: result,
+    score: `${userGoals}-${opponentGoals}`,
+    date: new Date().toISOString(),
+    coins: coinsReward,
+    xp: xpReward
+  };
+  
+  matchHistory.unshift(matchEntry);
+  if (matchHistory.length > 10) matchHistory = matchHistory.slice(0, 10);
+  
+  const matchResult = document.getElementById('match-result');
+  const matchResultContent = document.getElementById('match-result-content');
+  
+  if (matchResult && matchResultContent) {
+    matchResultContent.innerHTML = `
+      <div class="match-result">
+        <h3>${result}</h3>
+        <div class="match-score">${userGoals} - ${opponentGoals}</div>
+        <div class="team-lineup">
+          <div class="team">
+            <div>${currentUserData.displayName || 'Vous'}</div>
+            <div class="small">Force: ${Math.round(userStrength)}</div>
+          </div>
+          <div class="vs">VS</div>
+          <div class="team">
+            <div>${currentOpponent.displayName || 'Adversaire'}</div>
+            <div class="small">Force: ${Math.round(opponentStrength)}</div>
+          </div>
+        </div>
+        <div class="rewards">
+          <div class="small">Récompenses:</div>
+          <div>+${coinsReward} 🪙</div>
+          <div>+${xpReward} ⭐ XP</div>
+        </div>
+      </div>
+    `;
+    matchResult.style.display = 'block';
+  }
+  
+  const matchOpponent = document.getElementById('match-opponent');
+  if (matchOpponent) matchOpponent.style.display = 'none';
+  
+  loadMatchHistory();
+  
+  showNotification(`Match terminé: ${result} ${userGoals}-${opponentGoals}`, "success");
+}
+
+// Charger l'historique des matchs
+function loadMatchHistory() {
+  const matchHistoryElement = document.getElementById('match-history');
+  if (!matchHistoryElement) return;
+  
+  if (matchHistory.length === 0) {
+    matchHistoryElement.innerHTML = '<div class="small">Aucun match joué</div>';
+  } else {
+    matchHistoryElement.innerHTML = matchHistory.map(match => `
+      <div class="leaderboard-item">
+        <div>
+          <div>${match.opponent}</div>
+          <div class="small">${match.score} • ${new Date(match.date).toLocaleDateString()}</div>
+        </div>
+        <div style="margin-left: auto; text-align: right;">
+          <div>${match.result}</div>
+          <div class="small">+${match.coins}🪙 +${match.xp}⭐</div>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// Charger la boutique
+async function loadStore() {
+  if (!await ensureUserData()) return;
+  
+  displayVipStatus();
+}
+
+// Acheter des packs
+async function buyPack(packType, cost, currency) {
+  if (!await ensureUserData()) return;
+  
+  if ((currentUserData[currency] || 0) < cost) {
+    showNotification(`Pas assez de ${currency === 'gems' ? 'Gems' : 'Pièces'}!`, "warning");
+    return;
+  }
+  
+  const updatedCurrency = (currentUserData[currency] || 0) - cost;
+  
+  const cardCount = packType === 'silver' ? 4 : packType === 'vip' ? 5 : 3;
+  const newCards = {};
+  
+  for (let i = 0; i < cardCount; i++) {
+    const id = 'card' + Date.now() + Math.random().toString(36).substr(2, 5);
+    let rarity;
+    
+    switch(packType) {
+      case 'bronze':
+        rarity = Math.random() < 0.7 ? 'bronze' : 'silver';
+        break;
+      case 'silver':
+        rarity = Math.random() < 0.6 ? 'silver' : Math.random() < 0.8 ? 'gold' : 'bronze';
+        break;
+      case 'gold':
+        rarity = Math.random() < 0.5 ? 'gold' : Math.random() < 0.8 ? 'legendary' : 'silver';
+        break;
+      case 'vip':
+        rarity = Math.random() < 0.4 ? 'legendary' : Math.random() < 0.7 ? 'gold' : 'silver';
+        break;
+    }
+    
+    const name = extendedCardNames[Math.floor(Math.random() * extendedCardNames.length)];
+    
+    newCards[id] = {
+      id,
+      name: `${name} ${Math.floor(Math.random() * 100)}`,
+      rarity,
+      attack: 5 + Math.floor(Math.random() * 20),
+      defense: 3 + Math.floor(Math.random() * 15),
+      speed: 1 + Math.floor(Math.random() * 10),
+      level: 1,
+      training: {
+        attack: 0,
+        defense: 0,
+        speed: 0
+      },
+      nation: getRandomNation(),
+      position: getRandomPosition()
+    };
+  }
+  
+  const updatedCards = { ...currentUserData.cards, ...newCards };
+  const updatedSubs = [...(currentUserData.subs || [])];
+  
+  Object.keys(newCards).forEach(cardId => {
+    if (updatedSubs.length < 10) {
+      updatedSubs.push(cardId);
+    }
+  });
+  
+  showNotification(`Pack ${packType} acheté! ${cardCount} nouvelles cartes ajoutées.`, "success");
+  
+  const updates = {
+    cards: updatedCards,
+    subs: updatedSubs
+  };
+  updates[currency] = updatedCurrency;
+  
+  await updateUserData(updates);
+  loadDashboard();
+}
+
+// Acheter de l'énergie
+async function buyEnergy(amount, cost, currency) {
+  if (!await ensureUserData()) return;
+  
+  if ((currentUserData[currency] || 0) < cost) {
+    showNotification(`Pas assez de ${currency === 'gems' ? 'Gems' : 'Pièces'}!`, "warning");
+    return;
+  }
+  
+  const updatedCurrency = (currentUserData[currency] || 0) - cost;
+  const updatedEnergy = Math.min(currentUserData.maxEnergy || 20, (currentUserData.energy || 0) + amount);
+  
+  const updates = {
+    energy: updatedEnergy
+  };
+  updates[currency] = updatedCurrency;
+  
+  await updateUserData(updates);
+  
+  showNotification(`+${amount} Énergie ajoutée!`, "success");
+  loadDashboard();
+}
+
+// Charger le profil
+async function loadProfile() {
+  if (!await ensureUserData()) return;
+  
+  const profileContent = document.getElementById('profile-content');
+  if (!profileContent) return;
+  
+  const vipStatus = currentUserData.vip ? '👑 VIP' : '👤 Standard';
+  
+  profileContent.innerHTML = `
+    <div class="profile-header">
+      <div class="profile-avatar ${currentUserData.vip ? 'vip' : ''}">
+        ${currentUserData.vip ? '👑' : '👤'}
+      </div>
+      <h3>${currentUserData.displayName || 'Joueur'}</h3>
+      <div class="badges" style="justify-content: center; margin: 8px 0;">
+        <div class="badge ${currentUserData.vip ? 'vip-badge' : ''}">
+          ${vipStatus}
+        </div>
+        <div class="badge"><i class="fas fa-heart"></i> ${currentUserData.likes || 0} Likes</div>
+      </div>
+    </div>
+    
+    <div class="stat">
+      <div class="icon">👤</div>
+      <div>
+        <div class="small">Nom</div>
+        <div>${currentUserData.displayName || 'Joueur'}</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="icon">📧</div>
+      <div>
+        <div class="small">Email</div>
+        <div>${currentUserData.email || 'Non défini'}</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="icon">🏆</div>
+      <div>
+        <div class="small">Victoires/Défaites</div>
+        <div>${currentUserData.wins || 0}V / ${currentUserData.losses || 0}D</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="icon">📊</div>
+      <div>
+        <div class="small">Taux de victoire</div>
+        <div>${currentUserData.winRate || 0}%</div>
+      </div>
+    </div>
+    
+    <div class="panel">
+      <div class="small" style="margin-bottom: 8px;">Badges Obtenus</div>
+      <div class="badges">
+        ${(currentUserData.badges || []).map(badge => `
+          <div class="badge"><i class="fas fa-medal"></i> ${badge}</div>
+        `).join('')}
+        ${(currentUserData.badges || []).length === 0 ? '<div class="small">Aucun badge</div>' : ''}
+      </div>
+    </div>
+    
+    <button id="btn-signout" class="danger small-btn" style="margin-top: 16px; width: 100%;">
+      <i class="fas fa-sign-out-alt"></i> Déconnexion
+    </button>
+  `;
+  
+  document.getElementById('btn-signout')?.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+      showNotification("Déconnexion réussie", "success");
+    } catch (error) {
+      console.error("Erreur de déconnexion:", error);
+      showNotification("Erreur de déconnexion", "danger");
+    }
+  });
+}
+
+// NOUVEAU: Initialisation complète des événements
+document.addEventListener('DOMContentLoaded', function() {
+  // Événements de connexion
+  document.getElementById('btn-login')?.addEventListener('click', async () => {
+    const email = document.getElementById('login-email')?.value;
+    const password = document.getElementById('login-pass')?.value;
+    
+    if (!email || !password) {
+      showNotification("Veuillez remplir tous les champs", "warning");
+      return;
+    }
+    
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error("Erreur de connexion:", error);
+      showNotification("Erreur de connexion: " + error.message, "danger");
+    }
+  });
+  
+  document.getElementById('btn-go-register')?.addEventListener('click', () => {
+    showScreen('register');
+  });
+  
+  document.getElementById('btn-cancel-register')?.addEventListener('click', () => {
+    showScreen('login');
+  });
+  
+  document.getElementById('btn-register')?.addEventListener('click', async () => {
+    const username = document.getElementById('reg-name')?.value;
+    const email = document.getElementById('reg-email')?.value;
+    const password = document.getElementById('reg-pass')?.value;
+    
+    if (!username || !email || !password) {
+      showNotification("Veuillez remplir tous les champs", "warning");
+      return;
+    }
+    
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      await updateProfile(user, {
+        displayName: username
+      });
+      
+      await ensureUserProfile(user.uid, username, email);
+    } catch (error) {
+      console.error("Erreur d'inscription:", error);
+      showNotification("Erreur d'inscription: " + error.message, "danger");
+    }
+  });
+  
+  // Navigation dashboard
+  const navButtons = {
+    'nav-team': 'team',
+    'nav-store': 'store',
+    'nav-match': 'match',
+    'nav-friends': 'friends',
+    'nav-fusion': 'fusion',
+    'nav-admin': 'admin',
+    'nav-clan': 'clan',
+    'nav-market': 'market',
+    'nav-badges': 'badges',
+    'nav-season': 'season',
+    'nav-training': 'training',
+    'nav-tactics': 'tactics',
+    'nav-events': 'match'
+  };
+  
+  Object.entries(navButtons).forEach(([buttonId, screenName]) => {
+    const button = document.getElementById(buttonId);
+    if (button) {
+      button.addEventListener('click', () => showScreen(screenName));
+    }
+  });
+  
+  // Boutons retour
+  const backButtons = {
+    'team-back': 'dashboard',
+    'match-back': 'dashboard',
+    'store-back': 'dashboard',
+    'profile-back': 'dashboard',
+    'friends-back': 'dashboard',
+    'fusion-back': 'dashboard',
+    'admin-back': 'dashboard',
+    'profile-view-back': 'friends',
+    'clan-back': 'dashboard',
+    'market-back': 'dashboard',
+    'badges-back': 'dashboard',
+    'season-back': 'dashboard',
+    'training-back': 'dashboard',
+    'tactics-back': 'team'
+  };
+  
+  Object.entries(backButtons).forEach(([buttonId, screenName]) => {
+    const button = document.getElementById(buttonId);
+    if (button) {
+      button.addEventListener('click', () => showScreen(screenName));
+    }
+  });
+  
+  // Footer navigation
+  const footerButtons = {
+    'ft-home': 'dashboard',
+    'ft-team': 'team',
+    'ft-match': 'match',
+    'ft-store': 'store',
+    'ft-profile': 'profile'
+  };
+  
+  Object.entries(footerButtons).forEach(([buttonId, screenName]) => {
+    const button = document.getElementById(buttonId);
+    if (button) {
+      button.addEventListener('click', () => showScreen(screenName));
+    }
+  });
+  
+  // Boutons d'achat
+  document.querySelectorAll('.buy-pack').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const packType = btn.dataset.pack;
+      const cost = parseInt(btn.dataset.cost);
+      const currency = btn.dataset.currency;
+      buyPack(packType, cost, currency);
+    });
+  });
+  
+  document.querySelectorAll('.buy-energy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const amount = parseInt(btn.dataset.amount);
+      const cost = parseInt(btn.dataset.cost);
+      const currency = btn.dataset.currency;
+      buyEnergy(amount, cost, currency);
+    });
+  });
+  
+  // Bouton VIP
+  document.getElementById('btn-buy-vip')?.addEventListener('click', buyVip);
+  
+  // Boutons de match
+  document.getElementById('btn-find-opponent')?.addEventListener('click', findOpponent);
+  document.getElementById('btn-play-match')?.addEventListener('click', playMatch);
+  document.getElementById('btn-join-tournament')?.addEventListener('click', () => {
+    showNotification("Tournoi rejoint! Le tournoi commencera bientôt.", "success");
+  });
+  
+  // Récompense quotidienne
+  document.getElementById('btn-daily-reward')?.addEventListener('click', () => {
+    if (document.getElementById('btn-daily-reward').disabled) {
+      showNotification("Récompense déjà récupérée aujourd'hui", "warning");
+      return;
+    }
+    
+    if (dailyReward) dailyReward.classList.add('active');
+  });
+  
+  document.getElementById('claim-reward')?.addEventListener('click', async () => {
+    if (!currentUserData) {
+      await loadUserData();
+    }
+    
+    if (!currentUserData) return;
+    
+    const updatedGems = (currentUserData.gems || 0) + 2;
+    const updatedCoins = (currentUserData.coins || 0) + 200;
+    const now = new Date().toISOString();
+    
+    await updateUserData({
+      gems: updatedGems,
+      coins: updatedCoins,
+      lastDailyReward: now
+    });
+    
+    if (dailyReward) dailyReward.classList.remove('active');
+    showNotification("Récompense quotidienne récupérée!", "success");
+    loadDashboard();
+  });
+  
+  // Fusion
+  document.getElementById('btn-fusion')?.addEventListener('click', executeFusion);
+  
+  // Créer un clan
+  document.getElementById('btn-create-clan')?.addEventListener('click', async () => {
+    const clanName = document.getElementById('clan-name')?.value;
+    if (!clanName) {
+      showNotification("Veuillez entrer un nom de clan", "warning");
+      return;
+    }
+    
+    const success = await createClan(clanName);
+    if (success) {
+      document.getElementById('clan-name').value = '';
+      loadClan();
+    }
+  });
+  
+  // Tournoi
+  document.getElementById('btn-join-war')?.addEventListener('click', () => {
+    showNotification("Participation enregistrée pour la prochaine guerre de clans!", "success");
+  });
+  
+  // Battle Pass
+  document.getElementById('btn-upgrade-pass')?.addEventListener('click', async () => {
+    if (!currentUserData) return;
+    
+    const vipCost = 500;
+    if ((currentUserData.gems || 0) < vipCost) {
+      showNotification(`Pas assez de gems (${vipCost} requis)`, "warning");
+      return;
+    }
+    
+    const updatedGems = (currentUserData.gems || 0) - vipCost;
+    await updateUserData({
+      gems: updatedGems,
+      battlePass: {
+        ...(currentUserData.battlePass || {}),
+        isVIP: true
+      }
+    });
+    
+    showNotification("Battle Pass VIP activé!", "success");
+    loadSeason();
+  });
+  
+  // Masquer le footer au chargement initial
+  if (footer) footer.classList.remove('visible');
+});
 
 // Gestionnaire d'état d'authentification
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    // Utilisateur connecté
     currentUserData = await ensureUserProfile(user.uid, user.displayName || 'Joueur', user.email);
     const hdrUser = document.getElementById('hdr-user');
     if (hdrUser) hdrUser.textContent = currentUserData.displayName || 'Joueur';
-    
-    // Initialiser les systèmes avancés
-    await initializeSeasonSystem();
-    await loadDailyChallenges();
-    updateContractsAndFatigue();
-    
     showScreen('dashboard');
     showNotification(`Bienvenue ${currentUserData.displayName || 'Joueur'}!`, "success");
   } else {
-    // Utilisateur déconnecté
     currentUserData = null;
     showScreen('login');
     const hdrUser = document.getElementById('hdr-user');
@@ -1966,194 +2050,598 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// CORRECTION: Initialisation complète des événements
-document.addEventListener('DOMContentLoaded', function() {
-  // Événements de connexion
-  const btnLogin = document.getElementById('btn-login');
-  if (btnLogin) {
-    btnLogin.addEventListener('click', async () => {
-      const email = document.getElementById('login-email')?.value;
-      const password = document.getElementById('login-pass')?.value;
+// NOUVEAU: Fusion améliorée
+async function loadFusion() {
+  if (!await ensureUserData()) return;
+  
+  const fusionCards = document.getElementById('fusion-cards');
+  if (!fusionCards) return;
+  
+  fusionCards.innerHTML = '';
+  Object.values(currentUserData.cards || {}).forEach(card => {
+    const cardEl = document.createElement('div');
+    cardEl.className = `card-item ${card.rarity} fusion-card`;
+    cardEl.setAttribute('data-card', card.id);
+    cardEl.innerHTML = `
+      <div>
+        <div class="card-title">${card.name}</div>
+        <div class="small">${card.position} | ${card.nation}</div>
+      </div>
+      <div class="card-stats">
+        <span>⚔️ ${card.attack}</span>
+        <span>🛡️ ${card.defense}</span>
+        <span>⚡ ${card.speed}</span>
+      </div>
+    `;
+    fusionCards.appendChild(cardEl);
+  });
+  
+  selectedCardsForFusion = [];
+  document.querySelectorAll('.fusion-slot').forEach(slot => {
+    slot.innerHTML = '<div class="small">Emplacement vide</div>';
+    slot.classList.remove('filled');
+  });
+  
+  document.getElementById('btn-fusion').disabled = true;
+  document.getElementById('fusion-result').style.display = 'none';
+  
+  document.querySelectorAll('.fusion-card').forEach(cardEl => {
+    cardEl.addEventListener('click', function() {
+      const cardId = this.getAttribute('data-card');
       
-      if (!email || !password) {
-        showNotification("Veuillez remplir tous les champs", "warning");
-        return;
+      if (selectedCardsForFusion.includes(cardId)) {
+        const index = selectedCardsForFusion.indexOf(cardId);
+        selectedCardsForFusion.splice(index, 1);
+        this.classList.remove('fusion-selected');
+        updateFusionSlot(index, null);
+      } else if (selectedCardsForFusion.length < 3) {
+        selectedCardsForFusion.push(cardId);
+        this.classList.add('fusion-selected');
+        updateFusionSlot(selectedCardsForFusion.length - 1, cardId);
       }
       
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (error) {
-        console.error("Erreur de connexion:", error);
-        showNotification("Erreur de connexion: " + error.message, "danger");
-      }
+      updateFusionButton();
     });
+  });
+}
+
+function updateFusionSlot(index, cardId) {
+  const slot = document.getElementById(`fusion-slot-${index + 1}`);
+  if (!slot) return;
+  
+  if (!cardId) {
+    slot.innerHTML = '<div class="small">Emplacement vide</div>';
+    slot.classList.remove('filled');
+  } else {
+    const card = currentUserData.cards[cardId];
+    slot.innerHTML = `
+      <div>
+        <div class="card-title">${card.name}</div>
+        <div class="small">${card.rarity}</div>
+      </div>
+    `;
+    slot.classList.add('filled');
+  }
+}
+
+function updateFusionButton() {
+  const btnFusion = document.getElementById('btn-fusion');
+  if (btnFusion) {
+    btnFusion.disabled = selectedCardsForFusion.length !== 3;
+    btnFusion.textContent = `Fusionner (${selectedCardsForFusion.length}/3) - 100🪙`;
+  }
+}
+
+async function executeFusion() {
+  if (selectedCardsForFusion.length !== 3) return;
+  
+  if ((currentUserData.coins || 0) < 100) {
+    showNotification("Pas assez de pièces pour la fusion! (100 pièces requises)", "warning");
+    return;
   }
   
-  const btnGoRegister = document.getElementById('btn-go-register');
-  if (btnGoRegister) {
-    btnGoRegister.addEventListener('click', () => {
-      showScreen('register');
-    });
+  const cards = selectedCardsForFusion.map(id => currentUserData.cards[id]);
+  const totalAttack = cards.reduce((sum, card) => sum + card.attack, 0);
+  const totalDefense = cards.reduce((sum, card) => sum + card.defense, 0);
+  const totalSpeed = cards.reduce((sum, card) => sum + card.speed, 0);
+  
+  const rarityScore = cards.reduce((score, card) => {
+    if (card.rarity === 'bronze') return score + 1;
+    if (card.rarity === 'silver') return score + 2;
+    if (card.rarity === 'gold') return score + 3;
+    if (card.rarity === 'legendary') return score + 4;
+    return score;
+  }, 0);
+  
+  let newRarity = 'bronze';
+  if (rarityScore >= 10) newRarity = 'legendary';
+  else if (rarityScore >= 7) newRarity = 'gold';
+  else if (rarityScore >= 4) newRarity = 'silver';
+  
+  const newCardId = 'card' + Date.now();
+  const newCard = {
+    id: newCardId,
+    name: `Fusion ${extendedCardNames[Math.floor(Math.random() * extendedCardNames.length)]}`,
+    rarity: newRarity,
+    attack: Math.floor(totalAttack / 3) + 5,
+    defense: Math.floor(totalDefense / 3) + 3,
+    speed: Math.floor(totalSpeed / 3) + 2,
+    level: 1,
+    training: {
+      attack: 0,
+      defense: 0,
+      speed: 0
+    },
+    nation: getRandomNation(),
+    position: getRandomPosition()
+  };
+  
+  const updatedCards = { ...currentUserData.cards };
+  
+  selectedCardsForFusion.forEach(cardId => {
+    delete updatedCards[cardId];
+  });
+  
+  updatedCards[newCardId] = newCard;
+  
+  const updatedSubs = [...(currentUserData.subs || [])];
+  updatedSubs.push(newCardId);
+  
+  const updatedCoins = (currentUserData.coins || 0) - 100;
+  
+  await updateUserData({
+    cards: updatedCards,
+    subs: updatedSubs,
+    coins: updatedCoins
+  });
+  
+  const fusionResult = document.getElementById('fusion-result');
+  if (fusionResult) {
+    fusionResult.innerHTML = `
+      <div class="fusion-success">
+        <div class="reward-icon">✨</div>
+        <h3>Fusion Réussie!</h3>
+        <div class="card-item ${newCard.rarity}">
+          <div>
+            <div class="card-title">${newCard.name}</div>
+            <div class="small">${newCard.position} | ${newCard.nation}</div>
+          </div>
+          <div class="card-stats">
+            <span>⚔️ ${newCard.attack}</span>
+            <span>🛡️ ${newCard.defense}</span>
+            <span>⚡ ${newCard.speed}</span>
+          </div>
+        </div>
+      </div>
+    `;
+    fusionResult.style.display = 'block';
+    fusionResult.classList.add('fusion-success');
   }
   
-  const btnCancelRegister = document.getElementById('btn-cancel-register');
-  if (btnCancelRegister) {
-    btnCancelRegister.addEventListener('click', () => {
-      showScreen('login');
+  showNotification("Fusion réussie! Nouvelle carte créée.", "success");
+  
+  setTimeout(() => {
+    loadFusion();
+  }, 3000);
+}
+
+// NOUVEAU: Vue de profil
+async function viewUserProfile(userId) {
+  const userRef = getUserRef(userId);
+  const snapshot = await get(userRef);
+  
+  if (snapshot.exists()) {
+    currentlyViewedUser = { uid: userId, ...snapshot.val() };
+    showScreen('profile-view');
+    loadProfileView();
+  } else {
+    showNotification("Profil non trouvé", "warning");
+  }
+}
+
+async function loadProfileView() {
+  if (!currentlyViewedUser) return;
+  
+  const viewedUserName = document.getElementById('viewed-user-name');
+  const profileViewContent = document.getElementById('profile-view-content');
+  
+  if (viewedUserName) viewedUserName.textContent = currentlyViewedUser.displayName || 'Joueur';
+  if (!profileViewContent) return;
+  
+  const isOwnProfile = currentlyViewedUser.uid === getUserId();
+  const hasLiked = currentUserData?.likedBy?.includes(currentlyViewedUser.uid);
+  
+  profileViewContent.innerHTML = `
+    <div class="profile-header">
+      <div class="profile-avatar ${currentlyViewedUser.vip ? 'vip' : ''}">
+        ${currentlyViewedUser.vip ? '👑' : '👤'}
+      </div>
+      <h3>${currentlyViewedUser.displayName || 'Joueur'}</h3>
+      <div class="badges" style="justify-content: center; margin: 8px 0;">
+        ${currentlyViewedUser.vip ? '<div class="badge vip-badge"><i class="fas fa-crown"></i> VIP</div>' : ''}
+        <div class="badge"><i class="fas fa-trophy"></i> Niv. ${currentlyViewedUser.level || 1}</div>
+        <div class="badge"><i class="fas fa-heart"></i> ${currentlyViewedUser.likes || 0} Likes</div>
+      </div>
+    </div>
+    
+    <div class="stats">
+      <div class="stat">
+        <div class="icon">🏆</div>
+        <div>
+          <div class="small">Victoires</div>
+          <div>${currentlyViewedUser.wins || 0}</div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="icon">📊</div>
+        <div>
+          <div class="small">Matchs</div>
+          <div>${currentlyViewedUser.totalMatches || 0}</div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="icon">⚡</div>
+        <div>
+          <div class="small">Taux Victoire</div>
+          <div>${currentlyViewedUser.winRate || 0}%</div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="icon">⭐</div>
+        <div>
+          <div class="small">Badges</div>
+          <div>${(currentlyViewedUser.badges || []).length}</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="panel">
+      <div class="small" style="margin-bottom: 8px;">Badges Obtenus</div>
+      <div class="badges">
+        ${(currentlyViewedUser.badges || []).map(badge => `
+          <div class="badge"><i class="fas fa-medal"></i> ${badge}</div>
+        `).join('')}
+        ${(currentlyViewedUser.badges || []).length === 0 ? '<div class="small">Aucun badge</div>' : ''}
+      </div>
+    </div>
+    
+    ${!isOwnProfile ? `
+      <div class="panel">
+        <div class="row" style="justify-content: center; gap: 12px;">
+          <button id="btn-like-profile" class="${hasLiked ? 'liked' : ''} like-btn">
+            <i class="fas fa-heart"></i> ${hasLiked ? 'Unlike' : 'Like'} (${currentlyViewedUser.likes || 0})
+          </button>
+          <button id="btn-challenge-user" class="small-btn">
+            <i class="fas fa-trophy"></i> Défier
+          </button>
+        </div>
+      </div>
+    ` : ''}
+    
+    <div class="panel">
+      <div class="small" style="margin-bottom: 8px;">Statistiques Détaillées</div>
+      <div class="row">
+        <div style="flex: 1;">
+          <div class="small">Cartes Possédées</div>
+          <div>${Object.keys(currentlyViewedUser.cards || {}).length}</div>
+        </div>
+        <div style="flex: 1;">
+          <div class="small">Amis</div>
+          <div>${(currentlyViewedUser.friends || []).length}</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top: 8px;">
+        <div style="flex: 1;">
+          <div class="small">Membre depuis</div>
+          <div>${new Date(currentlyViewedUser.registrationDate || Date.now()).toLocaleDateString()}</div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  if (!isOwnProfile) {
+    document.getElementById('btn-like-profile')?.addEventListener('click', likeUserProfile);
+    document.getElementById('btn-challenge-user')?.addEventListener('click', () => {
+      showNotification(`Défi envoyé à ${currentlyViewedUser.displayName || 'Joueur'}!`, "info");
     });
   }
+}
+
+async function likeUserProfile() {
+  if (!currentlyViewedUser || !currentUserData) return;
   
-  const btnRegister = document.getElementById('btn-register');
-  if (btnRegister) {
-    btnRegister.addEventListener('click', async () => {
-      const username = document.getElementById('reg-name')?.value;
-      const email = document.getElementById('reg-email')?.value;
-      const password = document.getElementById('reg-pass')?.value;
+  const viewedUserRef = getUserRef(currentlyViewedUser.uid);
+  const currentUserId = getUserId();
+  
+  const hasLiked = currentUserData.likedBy?.includes(currentlyViewedUser.uid);
+  let updatedLikes = currentlyViewedUser.likes || 0;
+  let updatedLikedBy = [...(currentUserData.likedBy || [])];
+  
+  if (hasLiked) {
+    updatedLikes = Math.max(0, updatedLikes - 1);
+    updatedLikedBy = updatedLikedBy.filter(uid => uid !== currentlyViewedUser.uid);
+    showNotification("Like retiré", "info");
+  } else {
+    updatedLikes += 1;
+    updatedLikedBy.push(currentlyViewedUser.uid);
+    showNotification("Profil liké! 💖", "success");
+  }
+  
+  await update(viewedUserRef, {
+    likes: updatedLikes
+  });
+  
+  await updateUserData({
+    likedBy: updatedLikedBy
+  });
+  
+  currentlyViewedUser.likes = updatedLikes;
+  loadProfileView();
+}
+
+// NOUVEAU: Amis
+async function loadFriends() {
+  if (!await ensureUserData()) return;
+  
+  await loadAllUsers();
+  
+  const friendsList = document.getElementById('friends-list');
+  const friendRequests = document.getElementById('friend-requests');
+  const suggestedFriends = document.getElementById('suggested-friends');
+  
+  if (friendsList) {
+    friendsList.innerHTML = '';
+    const friends = currentUserData.friends || [];
+    
+    if (friends.length === 0) {
+      friendsList.innerHTML = '<div class="small">Aucun ami</div>';
+    } else {
+      friends.forEach(friendId => {
+        const friend = globalUsers.find(u => u.uid === friendId);
+        if (friend) {
+          const friendEl = document.createElement('div');
+          friendEl.className = 'friend-item';
+          friendEl.innerHTML = `
+            <div class="friend-avatar ${friend.vip ? 'vip' : ''}">
+              ${friend.vip ? '👑' : '👤'}
+            </div>
+            <div class="small">${friend.displayName || 'Joueur'}</div>
+            <div class="quick" style="width: 100%;">
+              <button class="ghost small-btn view-profile" data-user="${friend.uid}">
+                <i class="fas fa-eye"></i> Voir
+              </button>
+            </div>
+          `;
+          friendsList.appendChild(friendEl);
+        }
+      });
+    }
+  }
+  
+  if (friendRequests) {
+    friendRequests.innerHTML = '';
+    const requests = currentUserData.friendRequests || [];
+    
+    if (requests.length === 0) {
+      friendRequests.innerHTML = '<div class="small">Aucune demande d\'ami</div>';
+    } else {
+      requests.forEach(requestId => {
+        const requester = globalUsers.find(u => u.uid === requestId);
+        if (requester && requester.uid !== getUserId()) {
+          const requestEl = document.createElement('div');
+          requestEl.className = 'leaderboard-item';
+          requestEl.innerHTML = `
+            <div>${requester.displayName || 'Joueur'}</div>
+            <div class="user-actions">
+              <button class="success small-btn accept-request" data-user="${requester.uid}"><i class="fas fa-check"></i></button>
+              <button class="danger small-btn decline-request" data-user="${requester.uid}"><i class="fas fa-times"></i></button>
+            </div>
+          `;
+          friendRequests.appendChild(requestEl);
+        }
+      });
+    }
+  }
+  
+  if (suggestedFriends) {
+    suggestedFriends.innerHTML = '';
+    const currentFriends = currentUserData.friends || [];
+    const currentRequests = currentUserData.friendRequests || [];
+    
+    const suggestions = globalUsers
+      .filter(user => 
+        user.uid !== getUserId() && 
+        !currentFriends.includes(user.uid) &&
+        !currentRequests.includes(user.uid)
+      )
+      .slice(0, 4);
+    
+    if (suggestions.length === 0) {
+      suggestedFriends.innerHTML = '<div class="small">Aucune suggestion</div>';
+    } else {
+      suggestions.forEach(user => {
+        const suggestionEl = document.createElement('div');
+        suggestionEl.className = 'friend-item';
+        suggestionEl.innerHTML = `
+          <div class="friend-avatar ${user.vip ? 'vip' : ''}">
+            ${user.vip ? '👑' : '👤'}
+          </div>
+          <div class="small">${user.displayName || 'Joueur'}</div>
+          <button class="small-btn add-friend" data-user="${user.uid}"><i class="fas fa-user-plus"></i> Ajouter</button>
+        `;
+        suggestedFriends.appendChild(suggestionEl);
+      });
+    }
+  }
+  
+  // Événements pour les amis
+  document.querySelectorAll('.add-friend').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const userId = this.getAttribute('data-user');
+      if (!userId) return;
       
-      if (!username || !email || !password) {
-        showNotification("Veuillez remplir tous les champs", "warning");
-        return;
-      }
+      const userRef = getUserRef(userId);
+      const userSnapshot = await get(userRef);
       
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+      if (userSnapshot.exists()) {
+        const userData = userSnapshot.val();
+        const updatedRequests = [...(userData.friendRequests || []), getUserId()];
         
-        await updateProfile(user, {
-          displayName: username
+        await update(userRef, {
+          friendRequests: updatedRequests
         });
         
-        await ensureUserProfile(user.uid, username, email);
-      } catch (error) {
-        console.error("Erreur d'inscription:", error);
-        showNotification("Erreur d'inscription: " + error.message, "danger");
+        showNotification(`Demande d'ami envoyée à ${userData.displayName || 'Joueur'}`, "success");
       }
     });
-  }
+  });
   
-  // Navigation dashboard
-  const navTeam = document.getElementById('nav-team');
-  if (navTeam) navTeam.addEventListener('click', () => showScreen('team'));
+  document.querySelectorAll('.accept-request').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const userId = this.getAttribute('data-user');
+      if (!userId) return;
+      
+      const currentFriends = [...(currentUserData.friends || []), userId];
+      const updatedRequests = (currentUserData.friendRequests || []).filter(id => id !== userId);
+      
+      await updateUserData({
+        friends: currentFriends,
+        friendRequests: updatedRequests
+      });
+      
+      const friendRef = getUserRef(userId);
+      const friendSnapshot = await get(friendRef);
+      
+      if (friendSnapshot.exists()) {
+        const friendData = friendSnapshot.val();
+        const friendFriends = [...(friendData.friends || []), getUserId()];
+        
+        await update(friendRef, {
+          friends: friendFriends
+        });
+      }
+      
+      showNotification("Demande d'ami acceptée!", "success");
+      loadFriends();
+    });
+  });
   
-  const navStore = document.getElementById('nav-store');
-  if (navStore) navStore.addEventListener('click', () => showScreen('store'));
-  
-  const navMatch = document.getElementById('nav-match');
-  if (navMatch) navMatch.addEventListener('click', () => showScreen('match'));
-  
-  const navFriends = document.getElementById('nav-friends');
-  if (navFriends) navFriends.addEventListener('click', () => showScreen('friends'));
-  
-  const navFusion = document.getElementById('nav-fusion');
-  if (navFusion) navFusion.addEventListener('click', () => showScreen('fusion'));
-  
-  const navAdmin = document.getElementById('nav-admin');
-  if (navAdmin) navAdmin.addEventListener('click', () => showScreen('admin'));
-  
-  const navClan = document.getElementById('nav-clan');
-  if (navClan) navClan.addEventListener('click', () => showScreen('clan'));
-  
-  const navMarket = document.getElementById('nav-market');
-  if (navMarket) navMarket.addEventListener('click', () => showScreen('market'));
-  
-  const navBadges = document.getElementById('nav-badges');
-  if (navBadges) navBadges.addEventListener('click', () => showScreen('badges'));
-  
-  const navEvents = document.getElementById('nav-events');
-  if (navEvents) navEvents.addEventListener('click', () => showScreen('events'));
-  
-  // Boutons retour
-  const teamBack = document.getElementById('team-back');
-  if (teamBack) teamBack.addEventListener('click', () => showScreen('dashboard'));
-  
-  const matchBack = document.getElementById('match-back');
-  if (matchBack) matchBack.addEventListener('click', () => showScreen('dashboard'));
-  
-  const storeBack = document.getElementById('store-back');
-  if (storeBack) storeBack.addEventListener('click', () => showScreen('dashboard'));
-  
-  const profileBack = document.getElementById('profile-back');
-  if (profileBack) profileBack.addEventListener('click', () => showScreen('dashboard'));
-  
-  const friendsBack = document.getElementById('friends-back');
-  if (friendsBack) friendsBack.addEventListener('click', () => showScreen('dashboard'));
-  
-  const fusionBack = document.getElementById('fusion-back');
-  if (fusionBack) fusionBack.addEventListener('click', () => showScreen('dashboard'));
-  
-  const adminBack = document.getElementById('admin-back');
-  if (adminBack) adminBack.addEventListener('click', () => showScreen('dashboard'));
-  
-  const profileViewBack = document.getElementById('profile-view-back');
-  if (profileViewBack) profileViewBack.addEventListener('click', () => showScreen('friends'));
-  
-  const clanBack = document.getElementById('clan-back');
-  if (clanBack) clanBack.addEventListener('click', () => showScreen('dashboard'));
-  
-  const marketBack = document.getElementById('market-back');
-  if (marketBack) marketBack.addEventListener('click', () => showScreen('dashboard'));
-  
-  const badgesBack = document.getElementById('badges-back');
-  if (badgesBack) badgesBack.addEventListener('click', () => showScreen('dashboard'));
-  
-  const eventsBack = document.getElementById('events-back');
-  if (eventsBack) eventsBack.addEventListener('click', () => showScreen('dashboard'));
-  
-  // Footer navigation
-  const ftHome = document.getElementById('ft-home');
-  if (ftHome) ftHome.addEventListener('click', () => showScreen('dashboard'));
-  
-  const ftTeam = document.getElementById('ft-team');
-  if (ftTeam) ftTeam.addEventListener('click', () => showScreen('team'));
-  
-  const ftMatch = document.getElementById('ft-match');
-  if (ftMatch) ftMatch.addEventListener('click', () => showScreen('match'));
-  
-  const ftStore = document.getElementById('ft-store');
-  if (ftStore) ftStore.addEventListener('click', () => showScreen('store'));
-  
-  const ftEvents = document.getElementById('ft-events');
-  if (ftEvents) ftEvents.addEventListener('click', () => showScreen('events'));
-  
-  // NOUVEAUX ÉVÉNEMENTS POUR LES FONCTIONNALITÉS AVANCÉES
-  const btnViewBattlePass = document.getElementById('btn-view-battle-pass');
-  if (btnViewBattlePass) {
-    btnViewBattlePass.addEventListener('click', showBattlePassModal);
-  }
-  
-  const buyBattlePassBtn = document.getElementById('buy-battle-pass');
-  if (buyBattlePassBtn) {
-    buyBattlePassBtn.addEventListener('click', buyBattlePass);
-  }
-  
-  const btnOpenTraining = document.getElementById('btn-open-training');
-  if (btnOpenTraining) {
-    btnOpenTraining.addEventListener('click', showTrainingModal);
-  }
-  
-  const btnChangeTactic = document.getElementById('btn-change-tactic');
-  if (btnChangeTactic) {
-    btnChangeTactic.addEventListener('click', showTacticsModal);
-  }
-  
-  // Fermer les modals
-  document.querySelectorAll('.close-modal').forEach(btn => {
+  document.querySelectorAll('.view-profile').forEach(btn => {
     btn.addEventListener('click', function() {
-      this.closest('.modal').classList.remove('active');
+      const userId = this.getAttribute('data-user');
+      if (!userId) return;
+      
+      viewUserProfile(userId);
     });
   });
-  
-  // Fermer les modals en cliquant à l'extérieur
-  document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('click', function(e) {
-      if (e.target === this) {
-        this.classList.remove('active');
-      }
-    });
-  });
-  
-  // [Le reste des événements existants...]
-});
+}
 
-// CORRECTION: Masquer le footer au chargement initial
-if (footer) footer.classList.remove('visible');
+// NOUVEAU: Dashboard admin
+async function loadAdminDashboard() {
+  if (!isAdmin) {
+    showNotification("Accès refusé", "danger");
+    showScreen('dashboard');
+    return;
+  }
+  
+  await loadAllUsers();
+  
+  const totalUsers = globalUsers.length;
+  const totalMatches = globalUsers.reduce((sum, user) => sum + (user.totalMatches || 0), 0);
+  const totalGems = globalUsers.reduce((sum, user) => sum + (user.gems || 0), 0);
+  const totalCoins = globalUsers.reduce((sum, user) => sum + (user.coins || 0), 0);
+  
+  const adminTotalUsers = document.getElementById('admin-total-users');
+  const adminTotalMatches = document.getElementById('admin-total-matches');
+  const adminTotalGems = document.getElementById('admin-total-gems');
+  const adminTotalCoins = document.getElementById('admin-total-coins');
+  
+  if (adminTotalUsers) adminTotalUsers.textContent = totalUsers;
+  if (adminTotalMatches) adminTotalMatches.textContent = totalMatches;
+  if (adminTotalGems) adminTotalGems.textContent = totalGems;
+  if (adminTotalCoins) adminTotalCoins.textContent = totalCoins;
+  
+  const adminLeaderboard = document.getElementById('admin-leaderboard');
+  if (adminLeaderboard) {
+    adminLeaderboard.innerHTML = '';
+    
+    const topUsers = [...globalUsers]
+      .sort((a, b) => (b.likes || 0) - (a.likes || 0) || (b.level || 1) - (a.level || 1))
+      .slice(0, 10);
+    
+    topUsers.forEach((user, index) => {
+      const rankClass = index < 3 ? `rank-${index+1}` : '';
+      const item = document.createElement('div');
+      item.className = 'leaderboard-item';
+      item.innerHTML = `
+        <div class="rank ${rankClass}">${index+1}</div>
+        <div>
+          <div>${user.displayName || 'Joueur'}</div>
+          <div class="small">Niv. ${user.level || 1}</div>
+        </div>
+        <div style="margin-left: auto; text-align: right;">
+          <div>${user.likes || 0} ❤️</div>
+          <div class="small">${user.wins || 0}V ${user.losses || 0}D</div>
+        </div>
+      `;
+      adminLeaderboard.appendChild(item);
+    });
+  }
+  
+  document.querySelectorAll('.admin-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      const tabId = this.getAttribute('data-tab');
+      
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      document.querySelectorAll('.admin-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(`admin-${tabId}-section`).classList.add('active');
+    });
+  });
+  
+  // Actions admin
+  document.getElementById('admin-send-notif')?.addEventListener('click', function() {
+    const message = document.getElementById('admin-notif-message')?.value;
+    if (!message) {
+      showNotification("Veuillez entrer un message", "warning");
+      return;
+    }
+    
+    showNotification("Notification envoyée à tous les utilisateurs", "success");
+  });
+  
+  document.getElementById('admin-add-gems')?.addEventListener('click', async function() {
+    for (const user of globalUsers) {
+      const userRef = getUserRef(user.uid);
+      await update(userRef, {
+        gems: (user.gems || 0) + 10
+      });
+    }
+    
+    showNotification("10 gems ajoutés à tous les utilisateurs", "success");
+    loadAdminDashboard();
+  });
+}
+
+// Corriger la navigation sur mobile
+function fixMobileNavigation() {
+  // Forcer la visibilité du footer sur mobile
+  if (footer) {
+    footer.classList.add('visible');
+    footer.style.display = 'flex';
+  }
+  
+  // Assurer que les boutons sont cliquables
+  document.querySelectorAll('button').forEach(btn => {
+    btn.style.cursor = 'pointer';
+    btn.style.minHeight = '44px'; // Taille minimum pour mobile
+  });
+}
+
+// Lancer les correctifs au chargement
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(fixMobileNavigation, 1000);
+});

@@ -29,44 +29,34 @@
       </div>
     </div>
     
-    <header>
-      <div class="title">Manager Cards</div>
-      <div class="user-info">
-        <div class="currency">
-          <span class="coin">🪙 <span id="header-coins">0</span></span>
-          <span class="gem">💎 <span id="header-gems">0</span></span>
-        </div>
-        <div class="small" id="hdr-user">Non connecté</div>
-      </div>
-    </header>
-
-    <!-- Barre de navigation FIXED pour mobile -->
-    <nav class="bottom-nav" id="bottom-nav">
-      <button class="nav-btn active" data-screen="screen-home">
+    <!-- Navigation fixe pour mobile -->
+    <nav class="mobile-nav" id="mobile-nav">
+      <button class="nav-btn active" data-screen="home">
         <i class="fas fa-home"></i>
         <span>Accueil</span>
       </button>
-      <button class="nav-btn" data-screen="screen-team">
-        <i class="fas fa-users"></i>
-        <span>Équipe</span>
+      <button class="nav-btn" data-screen="collection">
+        <i class="fas fa-layer-group"></i>
+        <span>Collection</span>
       </button>
-      <button class="nav-btn" data-screen="screen-market">
+      <button class="nav-btn" data-screen="market">
         <i class="fas fa-store"></i>
         <span>Marché</span>
       </button>
-      <button class="nav-btn" data-screen="screen-club">
+      <button class="nav-btn" data-screen="season">
         <i class="fas fa-trophy"></i>
-        <span>Club</span>
-      </button>
-      <button class="nav-btn" data-screen="screen-season">
-        <i class="fas fa-calendar-alt"></i>
         <span>Saison</span>
       </button>
-      <button class="nav-btn" data-screen="screen-profile">
-        <i class="fas fa-user"></i>
-        <span>Profil</span>
+      <button class="nav-btn" data-screen="club">
+        <i class="fas fa-users"></i>
+        <span>Club</span>
       </button>
     </nav>
+    
+    <header>
+      <div class="title">Manager Cards</div>
+      <div class="small" id="hdr-user">Non connecté</div>
+    </header>
 
     <main>
       <!-- LOGIN -->
@@ -92,361 +82,329 @@
       <!-- REGISTER -->
       <section id="screen-register" class="screen">
         <div class="panel col">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <div style="font-size: 48px; margin-bottom: 16px;">📝</div>
-            <h1 style="margin-bottom: 8px; font-size: 28px;">Créer un compte</h1>
+          <h1 style="text-align: center; margin-bottom: 24px;"><i class="fas fa-user-plus"></i> Créer un compte</h1>
+          <input id="reg-name" placeholder="Nom du manager"/>
+          <input id="reg-email" placeholder="Email" type="email"/>
+          <input id="reg-pass" placeholder="Mot de passe" type="password"/>
+          <input id="reg-pass2" placeholder="Confirmer le mot de passe" type="password"/>
+          <div class="row">
+            <button id="btn-register" class="full-screen-btn" style="flex: 2;"><i class="fas fa-check"></i> S'inscrire</button>
+            <button id="btn-cancel-register" class="ghost full-screen-btn" style="flex: 1;">Annuler</button>
           </div>
-          <input id="register-username" placeholder="Nom d'utilisateur"/>
-          <input id="register-email" placeholder="Email" type="email"/>
-          <input id="register-pass" placeholder="Mot de passe" type="password"/>
-          <input id="register-pass-confirm" placeholder="Confirmer mot de passe" type="password"/>
-          <button id="btn-register" class="full-screen-btn"><i class="fas fa-user-plus"></i> S'inscrire</button>
-          <button id="btn-go-login" class="ghost full-screen-btn"><i class="fas fa-arrow-left"></i> Retour à la connexion</button>
         </div>
       </section>
 
-      <!-- ACCUEIL PRINCIPAL -->
+      <!-- HOME (Main screen after login) -->
       <section id="screen-home" class="screen">
         <div class="panel">
-          <h2>Tableau de Bord</h2>
-          <div class="stats-grid">
+          <h1><i class="fas fa-home"></i> Tableau de Bord</h1>
+          <div class="small">Bienvenue, <span id="home-user">Manager</span>!</div>
+          
+          <div class="stats-row">
             <div class="stat-card">
-              <div class="stat-icon">🪙</div>
-              <div class="stat-value" id="home-coins">0</div>
+              <div class="stat-icon">💰</div>
+              <div class="stat-value" id="stat-coins">500</div>
               <div class="stat-label">Pièces</div>
             </div>
             <div class="stat-card">
               <div class="stat-icon">💎</div>
-              <div class="stat-value" id="home-gems">0</div>
+              <div class="stat-value" id="stat-gems">10</div>
               <div class="stat-label">Gems</div>
             </div>
             <div class="stat-card">
               <div class="stat-icon">👥</div>
-              <div class="stat-value" id="home-players">0</div>
+              <div class="stat-value" id="stat-players">5</div>
               <div class="stat-label">Joueurs</div>
             </div>
-            <div class="stat-card">
-              <div class="stat-icon">🏆</div>
-              <div class="stat-value" id="home-wins">0</div>
-              <div class="stat-label">Victoires</div>
+          </div>
+          
+          <!-- Saison Actuelle -->
+          <div class="section">
+            <h2><i class="fas fa-trophy"></i> Saison Actuelle</h2>
+            <div class="season-info">
+              <div class="season-progress">
+                <div class="progress-label">
+                  <span>Saison 1 - Niveau 3</span>
+                  <span>250/1000 XP</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: 25%"></div>
+                </div>
+              </div>
+              <button id="btn-season-pass" class="full-screen-btn" style="margin-top: 12px;">
+                <i class="fas fa-crown"></i> Voir le Passe de Combat
+              </button>
             </div>
           </div>
           
-          <div class="section-title">Actions Rapides</div>
-          <div class="quick-actions">
-            <button class="quick-btn" data-action="open-pack">
-              <i class="fas fa-gift"></i>
-              <span>Ouvrir un Pack</span>
-            </button>
-            <button class="quick-btn" data-action="play-match">
-              <i class="fas fa-futbol"></i>
-              <span>Jouer un Match</span>
-            </button>
-            <button class="quick-btn" data-action="daily-reward">
-              <i class="fas fa-calendar-check"></i>
-              <span>Récompense</span>
-            </button>
-            <button class="quick-btn" data-action="train-players">
-              <i class="fas fa-dumbbell"></i>
-              <span>Entraîner</span>
-            </button>
+          <!-- Actions Rapides -->
+          <div class="section">
+            <h2><i class="fas fa-bolt"></i> Actions Rapides</h2>
+            <div class="quick-actions">
+              <button id="btn-open-packs" class="action-btn">
+                <i class="fas fa-gift"></i>
+                <span>Ouvrir un Pack</span>
+              </button>
+              <button id="btn-play-match" class="action-btn">
+                <i class="fas fa-play-circle"></i>
+                <span>Jouer un Match</span>
+              </button>
+              <button id="btn-daily-challenge" class="action-btn">
+                <i class="fas fa-calendar-day"></i>
+                <span>Défi Quotidien</span>
+              </button>
+              <button id="btn-club" class="action-btn">
+                <i class="fas fa-users"></i>
+                <span>Mon Club</span>
+              </button>
+            </div>
           </div>
           
-          <div class="section-title">Événements en cours</div>
-          <div class="events-list" id="home-events">
-            <div class="event-item">
+          <!-- Événements en Cours -->
+          <div class="section">
+            <h2><i class="fas fa-calendar-alt"></i> Événements en Cours</h2>
+            <div class="event-card">
               <div class="event-icon">⚽</div>
               <div class="event-details">
-                <div class="event-title">Tournoi du Week-end</div>
-                <div class="event-time">2 jours restants</div>
+                <div class="event-title">Tournoi du Weekend</div>
+                <div class="event-desc">Participez et gagnez des récompenses exclusives!</div>
+                <div class="event-time">Se termine dans: 2j 5h</div>
               </div>
-              <button class="small-btn">Participer</button>
+              <button class="event-btn">Participer</button>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ÉQUIPE -->
-      <section id="screen-team" class="screen">
+      <!-- COLLECTION -->
+      <section id="screen-collection" class="screen">
         <div class="panel">
-          <h2>Mon Équipe</h2>
-          <div class="team-stats">
-            <div class="team-stat">
-              <span>Force Totale:</span>
-              <span id="team-total-strength">0</span>
-            </div>
-            <div class="team-stat">
-              <span>Moral:</span>
-              <span id="team-morale">100%</span>
-            </div>
-            <div class="team-stat">
-              <span>Fatigue:</span>
-              <span id="team-fatigue">0%</span>
-            </div>
-          </div>
+          <h1><i class="fas fa-layer-group"></i> Ma Collection</h1>
+          <div class="small" id="collection-count">5 joueurs dans votre collection</div>
           
-          <div class="tactic-selector">
-            <label>Mentalité de l'équipe:</label>
-            <select id="team-mentality">
-              <option value="balanced">Équilibrée</option>
-              <option value="offensive">Offensive</option>
-              <option value="defensive">Défensive</option>
-            </select>
-          </div>
-          
-          <div class="section-title">Mes Joueurs</div>
-          <div class="players-list" id="team-players-list">
-            <!-- Les joueurs seront ajoutés ici par JavaScript -->
-          </div>
-          
-          <button id="btn-train-team" class="full-screen-btn" style="margin-top: 20px;">
-            <i class="fas fa-dumbbell"></i> Entraîner l'équipe
-          </button>
-        </div>
-      </section>
-
-      <!-- MARCHÉ -->
-      <section id="screen-market" class="screen">
-        <div class="panel">
-          <h2>Marché des Joueurs</h2>
-          <div class="market-filters">
+          <!-- Filtres -->
+          <div class="filters">
             <button class="filter-btn active">Tous</button>
             <button class="filter-btn">Attaquants</button>
-            <button class="filter-btn">Milieux</button>
             <button class="filter-btn">Défenseurs</button>
-            <button class="filter-btn">Gardiens</button>
+            <button class="filter-btn">Rares</button>
           </div>
           
-          <div class="market-list" id="market-players">
-            <!-- Les joueurs du marché seront ajoutés ici -->
-          </div>
-          
-          <div class="section-title">Mes Offres</div>
-          <div class="my-offers" id="my-offers">
-            <!-- Les offres seront ajoutées ici -->
+          <!-- Liste des joueurs -->
+          <div class="players-grid" id="players-list">
+            <!-- Les joueurs seront ajoutés dynamiquement -->
           </div>
         </div>
       </section>
 
-      <!-- CLUB/CLANS -->
-      <section id="screen-club" class="screen">
+      <!-- MARKET -->
+      <section id="screen-market" class="screen">
         <div class="panel">
-          <h2>Mon Club</h2>
+          <h1><i class="fas fa-store"></i> Marché des Joueurs</h1>
+          <div class="market-tabs">
+            <button class="market-tab active" data-tab="buy">Acheter</button>
+            <button class="market-tab" data-tab="sell">Vendre</button>
+            <button class="market-tab" data-tab="offers">Mes Offres</button>
+          </div>
           
-          <div class="club-info" id="club-info">
-            <div class="club-header">
-              <div class="club-icon">🛡️</div>
-              <div class="club-details">
-                <div class="club-name">Aucun club</div>
-                <div class="club-members">Rejoignez ou créez un club</div>
-              </div>
+          <div class="market-content" id="market-buy">
+            <h3>Joueurs disponibles</h3>
+            <div class="market-list">
+              <!-- Offres du marché -->
             </div>
           </div>
           
-          <div class="club-actions">
-            <button id="btn-create-club" class="full-screen-btn">
-              <i class="fas fa-plus"></i> Créer un Club
-            </button>
-            <button id="btn-join-club" class="ghost full-screen-btn">
-              <i class="fas fa-search"></i> Chercher un Club
-            </button>
+          <div class="market-content" id="market-sell" style="display: none;">
+            <h3>Vendre un joueur</h3>
+            <select id="sell-player-select">
+              <option>Sélectionnez un joueur à vendre</option>
+            </select>
+            <input id="sell-price" placeholder="Prix de vente" type="number"/>
+            <button id="btn-list-player" class="full-screen-btn">Mettre en vente</button>
           </div>
           
-          <div class="section-title">Guerres de Clans</div>
-          <div class="clan-wars" id="clan-wars">
-            <div class="war-item">
-              <div class="war-teams">
-                <span class="war-team">Dragons FC</span>
-                <span class="war-vs">VS</span>
-                <span class="war-team">Tigres United</span>
-              </div>
-              <div class="war-time">Commence dans 2h</div>
-              <button class="small-btn">Observer</button>
-            </div>
-          </div>
-          
-          <div class="section-title">Arbre des Talents</div>
-          <div class="talent-tree" id="talent-tree">
-            <div class="talent-node locked">
-              <div class="talent-icon">💰</div>
-              <div class="talent-name">Bonus de Récompenses</div>
-              <div class="talent-cost">500 Points</div>
-            </div>
-            <div class="talent-node locked">
-              <div class="talent-icon">⚡</div>
-              <div class="talent-name">Entraînement Accéléré</div>
-              <div class="talent-cost">800 Points</div>
+          <div class="market-content" id="market-offers" style="display: none;">
+            <h3>Mes offres en cours</h3>
+            <div class="offers-list">
+              <!-- Offres de l'utilisateur -->
             </div>
           </div>
         </div>
       </section>
 
-      <!-- SAISON & PASSES DE COMBAT -->
+      <!-- SEASON & BATTLE PASS -->
       <section id="screen-season" class="screen">
         <div class="panel">
-          <h2>Saison Actuelle</h2>
+          <h1><i class="fas fa-trophy"></i> Saison et Passe de Combat</h1>
           
-          <div class="season-info">
-            <div class="season-progress">
-              <div class="season-title">Saison 1 - Printemps 2024</div>
-              <div class="season-time">35 jours restants</div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 30%;"></div>
-              </div>
-              <div class="season-level">Niveau 12/50</div>
-            </div>
+          <!-- Info Saison -->
+          <div class="season-header">
+            <div class="season-title">Saison 1 - L'Ère des Champions</div>
+            <div class="season-timer">Se termine dans: 28 jours</div>
           </div>
           
+          <!-- Niveaux du Passe -->
           <div class="battle-pass">
-            <div class="pass-tabs">
-              <button class="pass-tab active">Gratuit</button>
-              <button class="pass-tab">VIP</button>
+            <div class="bp-levels">
+              <!-- Niveaux seront ajoutés dynamiquement -->
             </div>
             
-            <div class="pass-rewards">
-              <div class="reward-tier">
-                <div class="tier-level">Niv. 1</div>
-                <div class="tier-reward">🎴 Carte Commune</div>
+            <!-- Récompenses Gratuites vs VIP -->
+            <div class="bp-tiers">
+              <div class="bp-tier free">
+                <h3>Passe Gratuit</h3>
+                <ul class="bp-rewards">
+                  <li>🎁 Pack Bronze à chaque niveau</li>
+                  <li>💰 100 Pièces par niveau</li>
+                  <li>👕 Maillot Exclusif (Niv. 10)</li>
+                </ul>
               </div>
-              <div class="reward-tier">
-                <div class="tier-level">Niv. 5</div>
-                <div class="tier-reward">💎 5 Gems</div>
+              
+              <div class="bp-tier vip">
+                <h3>Passe VIP <span class="badge">Recommandé</span></h3>
+                <ul class="bp-rewards">
+                  <li>💎 5 Gems à chaque niveau</li>
+                  <li>⭐ Joueur Rare (Niv. 5)</li>
+                  <li>👑 Badge Exclusif (Niv. 15)</li>
+                  <li>⚡ +50% XP Bonus</li>
+                </ul>
+                <button class="success full-screen-btn" style="margin-top: 15px;">
+                  <i class="fas fa-crown"></i> Acheter Passe VIP - 500 Gems
+                </button>
               </div>
-              <div class="reward-tier">
-                <div class="tier-level">Niv. 10</div>
-                <div class="tier-reward">🛡️ Badge Exclusif</div>
-              </div>
-            </div>
-            
-            <button id="btn-upgrade-pass" class="success full-screen-btn">
-              <i class="fas fa-crown"></i> Améliorer au Pass VIP
-            </button>
-          </div>
-          
-          <div class="section-title">Défis Quotidiens</div>
-          <div class="daily-challenges" id="daily-challenges">
-            <div class="challenge-item">
-              <div class="challenge-desc">Jouer 3 matchs</div>
-              <div class="challenge-progress">1/3</div>
-              <button class="small-btn">+50 XP</button>
             </div>
           </div>
           
-          <div class="section-title">Événements Spéciaux</div>
-          <div class="special-events" id="special-events">
-            <div class="event-card">
-              <div class="event-icon">🎯</div>
-              <div class="event-content">
-                <div class="event-title">Tournoi "Équipe Bronze"</div>
-                <div class="event-desc">Seuls les joueurs Bronze sont autorisés</div>
-                <div class="event-time">24h restantes</div>
+          <!-- Défis Quotidiens -->
+          <div class="section" style="margin-top: 30px;">
+            <h2><i class="fas fa-tasks"></i> Défis Quotidiens</h2>
+            <div class="challenges-list">
+              <div class="challenge-item">
+                <div class="challenge-info">
+                  <div class="challenge-title">Jouer 3 matchs</div>
+                  <div class="challenge-progress">1/3</div>
+                </div>
+                <div class="challenge-reward">+50 XP</div>
+              </div>
+              <div class="challenge-item">
+                <div class="challenge-info">
+                  <div class="challenge-title">Ouvrir 1 pack</div>
+                  <div class="challenge-progress">0/1</div>
+                </div>
+                <div class="challenge-reward">+30 XP</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- PROFIL -->
-      <section id="screen-profile" class="screen">
+      <!-- CLUB -->
+      <section id="screen-club" class="screen">
         <div class="panel">
-          <h2>Mon Profil</h2>
+          <h1><i class="fas fa-users"></i> Mon Club</h1>
           
-          <div class="profile-header">
-            <div class="profile-avatar">
-              <div class="avatar-icon">👤</div>
+          <!-- Info Club -->
+          <div class="club-header">
+            <div class="club-name">Sans Club</div>
+            <button id="btn-create-club" class="full-screen-btn">Créer un Club</button>
+          </div>
+          
+          <!-- Si l'utilisateur a un club -->
+          <div id="club-content" style="display: none;">
+            <div class="club-stats">
+              <div class="club-stat">
+                <div class="club-stat-value">15</div>
+                <div class="club-stat-label">Membres</div>
+              </div>
+              <div class="club-stat">
+                <div class="club-stat-value">3</div>
+                <div class="club-stat-label">Guerres gagnées</div>
+              </div>
+              <div class="club-stat">
+                <div class="club-stat-value">8</div>
+                <div class="club-stat-label">Niveau</div>
+              </div>
             </div>
-            <div class="profile-info">
-              <div class="profile-name" id="profile-username">Invité</div>
-              <div class="profile-rank" id="profile-rank">Novice</div>
-              <div class="profile-level">Niveau <span id="profile-level">1</span></div>
+            
+            <!-- Guerre de Clan -->
+            <div class="section">
+              <h2><i class="fas fa-crosshairs"></i> Guerre de Clan</h2>
+              <div class="war-card">
+                <div class="war-status">En cours</div>
+                <div class="war-teams">
+                  <div class="war-team">
+                    <div class="war-team-name">Votre Club</div>
+                    <div class="war-score">2</div>
+                  </div>
+                  <div class="war-vs">VS</div>
+                  <div class="war-team">
+                    <div class="war-team-name">Adversaire</div>
+                    <div class="war-score">1</div>
+                  </div>
+                </div>
+                <button class="war-btn">Participer</button>
+              </div>
+            </div>
+            
+            <!-- Arbre des Talents -->
+            <div class="section">
+              <h2><i class="fas fa-sitemap"></i> Arbre des Talents</h2>
+              <div class="talent-tree">
+                <div class="talent-node unlocked">
+                  <div class="talent-icon">💰</div>
+                  <div class="talent-name">+5% Pièces</div>
+                </div>
+                <div class="talent-node">
+                  <div class="talent-icon">⚡</div>
+                  <div class="talent-name">Entraînement +10%</div>
+                </div>
+                <div class="talent-node">
+                  <div class="talent-icon">🛡️</div>
+                  <div class="talent-name">Bonus Défense</div>
+                </div>
+              </div>
+              <button class="full-screen-btn" style="margin-top: 15px;">
+                <i class="fas fa-arrow-up"></i> Améliorer Talents (1000 Pièces)
+              </button>
             </div>
           </div>
           
-          <div class="profile-stats">
-            <div class="profile-stat">
-              <span>Matchs joués:</span>
-              <span id="profile-matches">0</span>
+          <!-- Si l'utilisateur n'a pas de club -->
+          <div id="no-club-content">
+            <div class="empty-state">
+              <div class="empty-icon">👥</div>
+              <h3>Pas encore de club</h3>
+              <p>Rejoignez ou créez un club pour participer aux guerres de clan et débloquer des bonus!</p>
+              <div class="row" style="margin-top: 20px; gap: 10px;">
+                <button id="btn-join-club" class="full-screen-btn">Rejoindre un Club</button>
+                <button id="btn-create-club2" class="ghost full-screen-btn">Créer</button>
+              </div>
             </div>
-            <div class="profile-stat">
-              <span>Victoires:</span>
-              <span id="profile-wins">0</span>
-            </div>
-            <div class="profile-stat">
-              <span>Ratio:</span>
-              <span id="profile-ratio">0%</span>
-            </div>
-            <div class="profile-stat">
-              <span>Meilleur classement:</span>
-              <span id="profile-best">-</span>
-            </div>
-          </div>
-          
-          <div class="section-title">Paramètres</div>
-          <div class="settings">
-            <button class="setting-btn" id="btn-settings">
-              <i class="fas fa-cog"></i> Paramètres du jeu
-            </button>
-            <button class="setting-btn" id="btn-help">
-              <i class="fas fa-question-circle"></i> Aide & Tutoriel
-            </button>
-            <button class="setting-btn" id="btn-about">
-              <i class="fas fa-info-circle"></i> À propos
-            </button>
-            <button class="setting-btn logout" id="btn-logout">
-              <i class="fas fa-sign-out-alt"></i> Déconnexion
-            </button>
-          </div>
-          
-          <div class="version-info">
-            Manager Cards v1.0.0
           </div>
         </div>
       </section>
     </main>
-  </div>
-  
-  <!-- Modals -->
-  <div class="modal" id="modal-pack">
-    <div class="modal-content">
-      <h3>Ouvrir un Pack</h3>
-      <div class="pack-options">
-        <div class="pack-option">
-          <div class="pack-icon">🎴</div>
-          <div class="pack-name">Pack de Base</div>
-          <div class="pack-cost">Gratuit (Quotidien)</div>
-          <button class="pack-open">Ouvrir</button>
-        </div>
-        <div class="pack-option">
-          <div class="pack-icon">🎴</div>
-          <div class="pack-name">Pack Premium</div>
-          <div class="pack-cost">💎 50 Gems</div>
-          <button class="pack-open">Ouvrir</button>
-        </div>
-      </div>
-      <button class="modal-close ghost">Fermer</button>
-    </div>
-  </div>
 
-  <div class="modal" id="modal-training">
-    <div class="modal-content">
-      <h3>Entraînement des Joueurs</h3>
-      <div class="training-options">
-        <div class="training-option">
-          <div class="training-icon">⚽</div>
-          <div class="training-name">Attaque</div>
-          <div class="training-desc">+5% d'attaque</div>
-          <div class="training-cost">🪙 1000 Pièces</div>
-          <button class="training-select">Sélectionner</button>
-        </div>
-        <div class="training-option">
-          <div class="training-icon">🛡️</div>
-          <div class="training-name">Défense</div>
-          <div class="training-desc">+5% de défense</div>
-          <div class="training-cost">🪙 1000 Pièces</div>
-          <button class="training-select">Sélectionner</button>
-        </div>
-      </div>
-      <button class="modal-close ghost">Fermer</button>
+    <!-- Menu supérieur pour desktop -->
+    <div class="top-menu" id="top-menu">
+      <button class="menu-btn" data-screen="home">
+        <i class="fas fa-home"></i> Accueil
+      </button>
+      <button class="menu-btn" data-screen="collection">
+        <i class="fas fa-layer-group"></i> Collection
+      </button>
+      <button class="menu-btn" data-screen="market">
+        <i class="fas fa-store"></i> Marché
+      </button>
+      <button class="menu-btn" data-screen="season">
+        <i class="fas fa-trophy"></i> Saison
+      </button>
+      <button class="menu-btn" data-screen="club">
+        <i class="fas fa-users"></i> Club
+      </button>
+      <button id="btn-logout" class="menu-btn logout">
+        <i class="fas fa-sign-out-alt"></i> Déconnexion
+      </button>
     </div>
   </div>
 

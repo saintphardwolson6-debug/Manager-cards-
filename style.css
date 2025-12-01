@@ -32,6 +32,9 @@ html, body {
   overflow: hidden;
   position: fixed;
   width: 100%;
+  /* Correction pour Chrome mobile */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
 }
 
 .app {
@@ -45,6 +48,8 @@ html, body {
   overflow: hidden;
   position: relative;
   background: linear-gradient(135deg, #071026 0%, #0a1a3a 100%);
+  /* Correction pour éviter les barres de défilement */
+  overflow: hidden;
 }
 
 .bg-animation {
@@ -76,6 +81,7 @@ html, body {
 
 header {
   height: 56px;
+  min-height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -87,6 +93,8 @@ header {
   z-index: 10;
   position: relative;
   flex-shrink: 0;
+  /* Correction pour Chrome mobile */
+  -webkit-backdrop-filter: blur(10px);
 }
 
 header .title {
@@ -95,6 +103,7 @@ header .title {
   background: linear-gradient(90deg, var(--accent), var(--accent-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 header .small {
@@ -107,7 +116,9 @@ main {
   display: flex;
   position: relative;
   overflow: hidden;
+  /* Correction pour la hauteur avec navigation */
   height: calc(100% - 112px);
+  min-height: 0;
 }
 
 .screen {
@@ -123,6 +134,8 @@ main {
   transform: translateY(10px);
   transition: var(--transition);
   -webkit-overflow-scrolling: touch;
+  /* Correction pour Chrome mobile */
+  padding-bottom: 80px; /* Espace pour la navigation */
 }
 
 .screen.active {
@@ -144,6 +157,8 @@ main {
   border: 1px solid rgba(255,255,255,0.05);
   transition: var(--transition);
   flex-shrink: 0;
+  /* Correction pour Chrome mobile */
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .panel:hover {
@@ -196,6 +211,11 @@ button {
   gap: 6px;
   flex-shrink: 0;
   min-height: 40px;
+  /* Correction pour Chrome mobile */
+  -webkit-appearance: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 button:hover {
@@ -382,18 +402,26 @@ button:active {
   gap: 10px;
 }
 
+/* CORRECTION CRITIQUE : Navigation footer améliorée pour Chrome mobile */
 footer {
-  height: 56px;
+  height: 70px; /* Augmenté pour mieux s'adapter */
+  min-height: 70px;
   display: flex;
   gap: 6px;
   align-items: center;
   padding: 8px;
-  background: rgba(6, 20, 35, 0.8);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255,255,255,0.05);
-  z-index: 10;
+  background: rgba(6, 20, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  z-index: 1000;
   display: none;
   flex-shrink: 0;
+  position: relative;
+  /* Corrections spécifiques pour Chrome mobile */
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 -2px 20px rgba(0,0,0,0.3);
+  /* Support pour les iPhones avec encoche */
+  padding-bottom: env(safe-area-inset-bottom, 8px);
 }
 
 footer.visible {
@@ -402,18 +430,33 @@ footer.visible {
 
 footer button {
   flex: 1;
-  height: 40px;
-  border-radius: 10px;
-  font-size: 12px;
+  height: 50px; /* Augmenté pour plus de facilité de toucher */
+  border-radius: 12px;
+  font-size: 11px; /* Légèrement réduit pour mieux s'adapter */
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   padding: 6px 4px;
+  /* Améliorations pour mobile */
+  min-height: 50px;
+  font-weight: 500;
 }
 
 footer button.active {
-  background: rgba(31, 111, 235, 0.2);
+  background: rgba(31, 111, 235, 0.25);
   border: 1px solid var(--accent);
   color: var(--accent-light);
+  transform: translateY(-2px);
+}
+
+/* Amélioration des icônes dans la navigation */
+footer button i {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+footer button span {
+  font-size: 10px;
+  line-height: 1.2;
 }
 
 .notification {
@@ -1425,327 +1468,97 @@ button:disabled:hover {
 
 /* CORRECTION: Amélioration du scroll mobile */
 .screen {
-  padding-bottom: 20px;
+  padding-bottom: 80px; /* Augmenté pour la nouvelle hauteur de navigation */
 }
 
 @media (max-width: 400px) {
   .screen {
     padding: 8px;
     gap: 8px;
+    padding-bottom: 80px; /* Assurer l'espace sur petits écrans */
   }
   
   .panel {
     padding: 12px;
   }
-}
-
-/* Styles pour les animations de victoire/défaite */
-.victory-animation {
-  animation: victory 1s ease;
-}
-
-@keyframes victory {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-}
-
-.defeat-animation {
-  animation: defeat 1s ease;
-}
-
-@keyframes defeat {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  50% { transform: translateX(5px); }
-  75% { transform: translateX(-5px); }
-  100% { transform: translateX(0); }
-}
-
-/* Styles pour les nouveaux effets de transition */
-.slide-in-left {
-  animation: slideInLeft 0.3s ease;
-}
-
-@keyframes slideInLeft {
-  from { transform: translateX(-100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-.slide-in-right {
-  animation: slideInRight 0.3s ease;
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-/* Styles pour les nouveaux boutons spéciaux */
-.special-button {
-  background: linear-gradient(45deg, var(--accent), var(--accent-light));
-  position: relative;
-  overflow: hidden;
-}
-
-.special-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.5s;
-}
-
-.special-button:hover::before {
-  left: 100%;
-}
-
-/* Styles pour les nouveaux effets de carte */
-.card-hover-effect {
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.card-hover-effect:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-}
-
-.card-hover-effect::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.card-hover-effect:hover::after {
-  opacity: 1;
-}
-
-/* Styles pour les nouveaux indicateurs de statut */
-.status-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 5px;
-}
-
-.status-online {
-  background: var(--success);
-}
-
-.status-offline {
-  background: var(--muted);
-}
-
-.status-busy {
-  background: var(--warning);
-}
-
-/* Styles pour les nouveaux effets de texte */
-.text-glow {
-  text-shadow: 0 0 10px currentColor;
-}
-
-.text-gradient {
-  background: linear-gradient(45deg, var(--accent), var(--accent-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Styles pour les nouveaux séparateurs */
-.separator {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-  margin: 16px 0;
-}
-
-/* Styles pour les nouveaux indicateurs de progression */
-.circular-progress {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: conic-gradient(var(--accent) 0%, rgba(255,255,255,0.1) 0%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.circular-progress::before {
-  content: '';
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: var(--panel);
-}
-
-.circular-progress span {
-  position: relative;
-  z-index: 1;
-}
-
-/* Styles pour les nouveaux effets de fond */
-.parallax-bg {
-  background-attachment: fixed;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-
-/* Styles pour les nouveaux modals */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  opacity: 0;
-  visibility: hidden;
-  transition: var(--transition);
-}
-
-.modal-overlay.active {
-  opacity: 1;
-  visibility: visible;
-}
-
-.modal-content {
-  background: var(--panel);
-  border-radius: 20px;
-  padding: 24px;
-  max-width: 400px;
-  width: 90%;
-  transform: scale(0.9);
-  transition: transform 0.3s ease;
-}
-
-.modal-overlay.active .modal-content {
-  transform: scale(1);
-}
-
-/* Styles pour les nouveaux tooltips */
-.tooltip {
-  position: relative;
-}
-
-.tooltip::before {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--panel);
-  color: var(--text);
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: var(--transition);
-  z-index: 1000;
-}
-
-.tooltip:hover::before {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Styles pour les nouveaux effets de chargement */
-.pulse-loading {
-  animation: pulse 1.5s infinite;
-}
-
-.wave-loading {
-  display: flex;
-  gap: 4px;
-}
-
-.wave-loading div {
-  width: 4px;
-  height: 20px;
-  background: var(--accent);
-  animation: wave 1.2s infinite ease-in-out;
-}
-
-.wave-loading div:nth-child(2) {
-  animation-delay: -1.1s;
-}
-
-.wave-loading div:nth-child(3) {
-  animation-delay: -1.0s;
-}
-
-.wave-loading div:nth-child(4) {
-  animation-delay: -0.9s;
-}
-
-.wave-loading div:nth-child(5) {
-  animation-delay: -0.8s;
-}
-
-@keyframes wave {
-  0%, 40%, 100% {
-    transform: scaleY(0.4);
+  
+  /* Améliorations supplémentaires pour mobile */
+  footer {
+    height: 65px;
+    min-height: 65px;
   }
-  20% {
-    transform: scaleY(1);
+  
+  footer button {
+    height: 48px;
+    min-height: 48px;
+    font-size: 10px;
+  }
+  
+  footer button i {
+    font-size: 14px;
   }
 }
 
-/* Styles pour les nouveaux indicateurs de notification */
-.notification-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: var(--danger);
-  color: white;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: bold;
+/* NOUVELLES CORRECTIONS SPÉCIFIQUES POUR CHROME MOBILE */
+
+/* Empêcher le zoom sur les inputs sur iOS */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea {
+    font-size: 16px; /* Empêche le zoom automatique sur iOS */
+  }
 }
 
-/* Styles pour les nouveaux effets de transition de page */
-.page-transition-enter {
-  opacity: 0;
-  transform: translateY(20px);
+/* Correction pour la hauteur safe-area sur iOS */
+@supports (padding: max(0px)) {
+  .app, .screen {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  
+  footer {
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+  }
 }
 
-.page-transition-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.3s, transform 0.3s;
+/* Amélioration du touch sur mobile */
+button, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-.page-transition-exit {
-  opacity: 1;
-  transform: translateY(0);
+/* Correction pour les écrans très petits */
+@media (max-height: 600px) {
+  .screen {
+    padding-bottom: 70px;
+  }
+  
+  footer {
+    height: 60px;
+    min-height: 60px;
+  }
+  
+  footer button {
+    height: 45px;
+    min-height: 45px;
+  }
 }
 
-.page-transition-exit-active {
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: opacity 0.3s, transform 0.3s;
+/* Support pour le mode sombre/clair du système */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f0f2f5;
+    --panel: #ffffff;
+    --text: #1a1a1a;
+    --muted: #666666;
+  }
+}
+
+/* Animation de chargement pour améliorer les performances */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

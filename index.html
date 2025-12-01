@@ -1,0 +1,1993 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FM CARDS — Manager Football Ultimate</title>
+<style>
+  :root{--bg:#071826;--card:#0f1724;--accent:#ffbf40;--muted:#9aa8b2;--success:#2a8;--danger:#c33;--warning:#ffa500}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(180deg,var(--bg),#071026);color:#fff;min-height:100vh}
+  .wrap{max-width:1100px;margin:18px auto;padding:18px}
+  header{display:flex;align-items:center;gap:12px}
+  h1{margin:0;font-size:20px}
+  .card{background:rgba(255,255,255,0.03);padding:12px;border-radius:12px;margin-bottom:12px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .col{flex:1;min-width:220px}
+  button{background:linear-gradient(90deg,var(--accent),#ff8a3d);color:#04102a;border:none;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+  .muted{color:var(--muted)}
+  .cards{display:flex;flex-wrap:wrap;gap:8px}
+  .card-item{background:#fff;color:#000;padding:10px;border-radius:8px;width:140px;text-align:left;font-size:13px;line-height:1.3;position:relative}
+  .gold{border:3px solid #d4af37}
+  .silver{border:3px solid #c0c0c0}
+  .bronze{border:3px solid peru}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:left}
+  input,select,textarea{padding:8px;border-radius:8px;border:none;margin:6px 0;width:100%}
+  .hidden{display:none}
+  .admin-badge{background:#222;padding:6px 8px;border-radius:8px;color:#fff;margin-left:auto}
+  footer{margin-top:18px;color:var(--muted);font-size:13px;text-align:center}
+  .danger{background:var(--danger);color:#fff}
+  .success{background:var(--success);color:#fff}
+  .warning{background:var(--warning);color:#000}
+  #matchLog{background:#08121a;border:1px solid rgba(255,255,255,0.03);padding:10px;border-radius:8px;height:220px;overflow:auto}
+  .market-card{display:flex;gap:8px;align-items:center;justify-content:space-between}
+  .smallbtn{padding:6px 8px;border-radius:6px;font-size:12px}
+  label.small{font-size:13px;color:var(--muted)}
+  @media(max-width:820px){header{flex-direction:column;align-items:flex-start}}
+  .pack-slot{width:120px;height:160px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#0b2,#022);color:#fff;font-weight:700;transition:transform .35s}
+  .pack-anim{animation:pop .45s ease}
+  @keyframes pop{0%{transform:scale(.8)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+  #inventory-popup{max-height:80vh;overflow-y:auto;background:var(--card);border:2px solid var(--accent);padding:20px;box-shadow:0 10px 25px rgba(0,0,0,0.5);}
+  #inventory-popup .cards{justify-content:flex-start;}
+  #sell-popup{background:var(--card);border:2px solid #c33;padding:20px;}
+  .division-badge{background:linear-gradient(45deg,#d4af37,#ffd700);color:#000;padding:4px 8px;border-radius:6px;font-weight:bold;font-size:12px}
+  .friend-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid rgba(255,255,255,0.1)}
+  .tab-container{margin:10px 0}
+  .tab-buttons{display:flex;gap:4px;margin-bottom:10px}
+  .tab-button{padding:8px 12px;background:rgba(255,255,255,0.1);border:none;border-radius:6px;color:#fff;cursor:pointer}
+  .tab-button.active{background:var(--accent);color:#000}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+  .quest-item{padding:10px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;margin-bottom:8px}
+  .progress-bar{background:rgba(255,255,255,0.1);border-radius:10px;height:8px;margin:5px 0}
+  .progress-fill{background:var(--success);height:100%;border-radius:10px;transition:width 0.3s}
+  .notification{position:fixed;top:20px;right:20px;background:var(--success);color:white;padding:12px;border-radius:8px;z-index:1000;animation:slideIn 0.3s ease}
+  @keyframes slideIn{from{transform:translateX(100%);}to{transform:translateX(0);}}
+  .card-reveal{animation:reveal 0.6s ease-out}
+  @keyframes reveal{0%{transform:scale(0.8) rotateY(90deg);opacity:0;}100%{transform:scale(1) rotateY(0deg);opacity:1;}}
+  .level-up{animation:levelUp 1s ease-in-out}
+  @keyframes levelUp{0%{transform:scale(1);}50%{transform:scale(1.2);}100%{transform:scale(1);}}
+  .energy-warning{color:#ff6b6b;font-weight:bold}
+  .achievement-badge{background:linear-gradient(45deg,#ffd700,#ff6b35);color:white;padding:4px 8px;border-radius:12px;font-size:11px;margin-left:8px}
+  .premium-badge{background:linear-gradient(45deg,#ffd700,#ff6b35);color:#000;padding:2px 6px;border-radius:4px;font-size:10px;margin-left:4px}
+  .critical-hit{color:#ff4444;font-weight:bold;animation:criticalFlash 0.5s}
+  @keyframes criticalFlash{0%,100%{opacity:1;}50%{opacity:0.5;}}
+  .tournament-card{background:linear-gradient(45deg,#1a1a2e,#16213e);border:2px solid var(--accent);padding:15px;border-radius:10px;margin-bottom:10px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>FM CARDS — Manager Football Ultimate</h1>
+      <div id="auth-controls" style="margin-left:auto;"></div>
+    </header>
+
+    <section id="login-section" class="card">
+      <h2>Connexion / Créer un compte</h2>
+      <div class="row">
+        <div class="col">
+          <label class="small">Email</label>
+          <input id="email" type="email" placeholder="email@example.com"/>
+          <label class="small">Mot de passe</label>
+          <input id="password" type="password" placeholder="••••••"/>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="btn-signup">Créer compte</button>
+            <button id="btn-login">Se connecter</button>
+          </div>
+        </div>
+        <div class="col">
+          <div style="margin-bottom:8px">Ou via Google :</div>
+          <button id="btn-google">Connexion Google</button>
+          <div style="margin-top:10px;color:var(--muted)">⚠️ Si Google renvoie 'disallowed_useragent', ouvre la page dans Chrome/Firefox.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="dashboard" class="card hidden">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div>
+          <h2 id="display-name">Bienvenue!</h2>
+          <div class="muted" id="display-email"></div>
+          <div id="division-info" class="muted"></div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div>XP: <span id="ui-xp">0</span></div>
+          <div>Coins: <span id="ui-coins">0</span></div>
+          <div>Énergie: <span id="ui-energy">0</span>/100 <span id="energy-timer" class="muted"></span></div>
+          <div id="ui-premium"></div>
+        </div>
+      </div>
+
+      <hr/>
+
+      <div class="tab-container">
+        <div class="tab-buttons">
+          <button class="tab-button active" data-tab="actions">Actions</button>
+          <button class="tab-button" data-tab="pvp">PvP & Classement</button>
+          <button class="tab-button" data-tab="carriere">Carrière</button>
+          <button class="tab-button" data-tab="amis">Amis</button>
+          <button class="tab-button" data-tab="quetes">Quêtes</button>
+        </div>
+
+        <!-- TAB ACTIONS -->
+        <div class="tab-content active" id="tab-actions">
+          <div class="row">
+            <div class="col card">
+              <h3>Actions Rapides</h3>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button id="open-pack-btn">🎴 Ouvrir pack (15⚡)</button>
+                <button id="play-match-btn">🏆 Match simple (8⚡)</button>
+                <button id="play-live-btn">🔴 Match live (12⚡)</button>
+                <button id="team-btn">Mon Équipe / Inventaire</button>
+                <button id="shop-btn">🛒 Boutique</button>
+                <button id="save-btn" style="background:#6aa84f">Sauvegarder</button>
+                <button id="logout-btn" class="danger">Se déconnecter</button>
+              </div>
+              <div id="action-msg" class="muted" style="margin-top:8px"></div>
+              
+              <div style="margin-top:12px">
+                <h4>🎯 Quêtes du Jour</h4>
+                <div id="daily-quests-preview"></div>
+              </div>
+            </div>
+
+            <div class="col card">
+              <h3>Pack & Récompenses</h3>
+              <div>Probabilités: <strong>Commun 50% — Argent 40% — Légendaire 10%</strong></div>
+              <div style="margin-top:8px" id="pack-area" class="cards"></div>
+              <div class="muted" style="margin-top:8px">Coût: 15 énergie • Récompense: Cartes aléatoires</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col card">
+              <h3>Mon Équipe (max 5)</h3>
+              <div id="team-area" class="cards"></div>
+              <div style="margin-top:8px" class="muted">Clique sur 'Mon Équipe' pour gérer l'inventaire.</div>
+            </div>
+
+            <div class="col card">
+              <h3>Boutique (Coins)</h3>
+              <div>
+                <div style="margin-bottom:8px"><button id="buy-pack-500">Pack Bronze (500 coins)</button></div>
+                <div style="margin-bottom:8px"><button id="buy-energy-200">Recharge énergie +30 (200 coins)</button></div>
+                <div style="margin-top:10px" class="muted">Vends des cartes pour obtenir plus de coins.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col card">
+              <h3>Match Live (commentaire)</h3>
+              <div id="matchLog">⏳ Aucune session live pour l'instant. Clique "Lancer match live".</div>
+              <div style="margin-top:8px" class="muted">Live: events s'affichent en temps réel.</div>
+            </div>
+
+            <div class="col card">
+              <h3>Marché (liste publique)</h3>
+              <div id="market-list" style="max-height:220px;overflow:auto"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB PVP -->
+        <div class="tab-content" id="tab-pvp">
+          <div class="row">
+            <div class="col card">
+              <h3>Match PvP</h3>
+              <div id="pvp-status" class="muted">En attente...</div>
+              <button id="search-pvp" style="margin-top:8px">🔍 Rechercher match PvP (15⚡)</button>
+              <div id="pvp-result" style="margin-top:8px"></div>
+            </div>
+            <div class="col card">
+              <h3>Classement Global</h3>
+              <div id="leaderboard" style="max-height:300px;overflow:auto">
+                Chargement du classement...
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col card">
+              <h3>Ma Division</h3>
+              <div id="my-division">
+                <div class="division-badge" id="division-level">Division 5</div>
+                <div style="margin-top:8px">Points: <span id="division-points">0</span></div>
+                <div>Prochain niveau: <span id="next-level">100</span> points</div>
+                <div style="margin-top:8px">
+                  <div>Victoires: <span id="wins-count">0</span></div>
+                  <div>Défaites: <span id="losses-count">0</span></div>
+                  <div>Ratio: <span id="win-ratio">0%</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB CARRIERE -->
+        <div class="tab-content" id="tab-carriere">
+          <div class="row">
+            <div class="col card">
+              <h3>Mode Carrière</h3>
+              <div id="career-status">
+                <div>Saison: <strong id="current-season">1</strong></div>
+                <div>Matchs joués: <span id="career-matches">0</span></div>
+                <div>Victoires: <span id="career-wins">0</span></div>
+                <div>Objectif: Gagner 10 matchs pour monter de division</div>
+              </div>
+              <button id="play-career" style="margin-top:10px">🎮 Jouer match carrière (12⚡)</button>
+              <div id="career-result" style="margin-top:8px"></div>
+            </div>
+            <div class="col card">
+              <h3>Progression Carrière</h3>
+              <div id="career-progress">
+                <div>Division actuelle: <span class="division-badge" id="career-division">Division 5</span></div>
+                <div style="margin-top:8px">Meilleur score: <span id="best-rating">0</span></div>
+                <div>Cartes collectionnées: <span id="cards-collected">0</span>/70</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB AMIS -->
+        <div class="tab-content" id="tab-amis">
+          <div class="row">
+            <div class="col card">
+              <h3>Gestion d'Amis</h3>
+              <input type="text" id="friend-search" placeholder="Rechercher par nom d'utilisateur"/>
+              <button id="search-friend">🔍 Rechercher</button>
+              <div id="friend-search-results" style="margin-top:10px"></div>
+              
+              <h4 style="margin-top:20px">Demandes d'amis</h4>
+              <div id="friend-requests" style="max-height:200px;overflow:auto"></div>
+            </div>
+            <div class="col card">
+              <h3>Mes Amis</h3>
+              <div id="friends-list" style="max-height:300px;overflow:auto">
+                Chargement des amis...
+              </div>
+              
+              <h4 style="margin-top:20px">Transfert de Coins</h4>
+              <select id="friend-select" style="margin-bottom:8px">
+                <option>Sélectionne un ami</option>
+              </select>
+              <input type="number" id="transfer-amount" placeholder="Montant" min="1" style="margin-bottom:8px"/>
+              <button id="transfer-coins">💸 Envoyer coins (10% frais)</button>
+              <div id="transfer-result" class="muted" style="margin-top:8px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB QUETES -->
+        <div class="tab-content" id="tab-quetes">
+          <div class="row">
+            <div class="col card">
+              <h3>🎯 Quêtes Quotidiennes</h3>
+              <div id="daily-quests-list"></div>
+              <div style="margin-top:12px">
+                <button id="claim-all-quests" class="success">🎁 Réclamer toutes les récompenses</button>
+              </div>
+            </div>
+            <div class="col card">
+              <h3>🏆 Récompenses de Connexion</h3>
+              <div id="login-streak">
+                <div>Suite de connexion: <span id="streak-days">0</span> jours</div>
+                <div id="login-rewards" style="margin-top:10px"></div>
+              </div>
+              
+              <h4 style="margin-top:20px">⭐ Réalisations</h4>
+              <div id="achievements-list" style="max-height:200px;overflow:auto"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="inventory-popup" class="card hidden" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999;width:80%;max-width:900px;max-height:80vh;overflow-y:auto">
+      <h3>Mon Inventaire (<span id="inventory-count">0</span> Cartes)</h3>
+      <div id="inventory-list" class="cards"></div>
+      <button id="close-inventory" class="danger" style="margin-top:10px">Fermer</button>
+      <div style="margin-top:10px" class="muted">Clique sur une carte pour l'ajouter ou la retirer de l'équipe.</div>
+    </div>
+
+    <div id="sell-popup" class="card hidden" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999;width:420px">
+      <h3>Mettre en vente</h3>
+      <div id="sell-card-info"></div>
+      <label class="small">Prix (coins)</label><br><input id="sell-price" type="number" value="500"/><br>
+      <button id="confirm-sell">Confirmer mise en vente</button>
+      <button id="cancel-sell" class="danger">Annuler</button>
+    </div>
+
+    <section id="admin-section" class="card hidden">
+      <div style="display:flex;align-items:center;gap:12px">
+        <h3>Panneau Administrateur</h3>
+        <div class="muted">Gérer utilisateurs & marché</div>
+      </div>
+      <div style="margin-top:10px">
+        <input id="admin-search" placeholder="Rechercher uid ou username"/>
+        <button id="admin-refresh">Rafraîchir</button>
+      </div>
+      <div style="margin-top:12px;overflow:auto;max-height:360px">
+        <table>
+          <thead><tr><th>UID</th><th>Username</th><th>Coins</th><th>Premium</th><th>Energy</th><th>Actions</th></tr></thead>
+          <tbody id="admin-users"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>Made with ❤️ — FM CARDS • Version Corrigée</footer>
+  </div>
+
+<script type="module">
+/* -------------------------
+   FIREBASE IMPORTS
+   ------------------------- */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import {
+  getDatabase, ref, set, update, onValue, get, push, remove
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+/* -------------------------
+   FIREBASE CONFIG
+   ------------------------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyBnDW725laagCdj0INT9gaA2z0FsLn6cO4",
+  authDomain: "defi-amis-plus.firebaseapp.com",
+  databaseURL: "https://defi-amis-plus-default-rtdb.firebaseio.com",
+  projectId: "defi-amis-plus",
+  storageBucket: "defi-amis-plus.appspot.com",
+  messagingSenderId: "714241330241",
+  appId: "1:714241330241:web:b927c37c0d511e66f64ac0",
+  measurementId: "G-M7NZ9KGW42"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const googleProvider = new GoogleAuthProvider();
+
+/* -------------------------
+   UI BINDINGS
+   ------------------------- */
+const loginSection = document.getElementById('login-section');
+const dashboard = document.getElementById('dashboard');
+const adminSection = document.getElementById('admin-section');
+
+const btnSignup = document.getElementById('btn-signup');
+const btnLogin = document.getElementById('btn-login');
+const btnGoogle = document.getElementById('btn-google');
+const btnLogout = document.getElementById('logout-btn');
+
+const emailInput = document.getElementById('email');
+const passInput = document.getElementById('password');
+
+const displayNameEl = document.getElementById('display-name');
+const displayEmailEl = document.getElementById('display-email');
+const uiCoins = document.getElementById('ui-coins');
+const uiXp = document.getElementById('ui-xp');
+const uiEnergy = document.getElementById('ui-energy');
+const uiPremium = document.getElementById('ui-premium');
+const energyTimer = document.getElementById('energy-timer');
+
+const openPackBtn = document.getElementById('open-pack-btn');
+const playMatchBtn = document.getElementById('play-match-btn');
+const playLiveBtn = document.getElementById('play-live-btn');
+const packArea = document.getElementById('pack-area');
+const teamArea = document.getElementById('team-area');
+const actionMsg = document.getElementById('action-msg');
+const saveBtn = document.getElementById('save-btn');
+const teamBtn = document.getElementById('team-btn');
+
+const marketList = document.getElementById('market-list');
+const buyPack500Btn = document.getElementById('buy-pack-500');
+const buyEnergy200Btn = document.getElementById('buy-energy-200');
+
+const sellPopup = document.getElementById('sell-popup');
+const sellCardInfo = document.getElementById('sell-card-info');
+const sellPriceInput = document.getElementById('sell-price');
+const confirmSellBtn = document.getElementById('confirm-sell');
+const cancelSellBtn = document.getElementById('cancel-sell');
+
+const adminUsersTbody = document.getElementById('admin-users');
+const adminRefresh = document.getElementById('admin-refresh');
+const adminSearch = document.getElementById('admin-search');
+
+const matchLog = document.getElementById('matchLog');
+const inventoryPopup = document.getElementById('inventory-popup');
+const inventoryList = document.getElementById('inventory-list');
+const closeInventoryBtn = document.getElementById('close-inventory');
+const inventoryCount = document.getElementById('inventory-count');
+
+// NOUVEAUX BINDINGS PVP
+const searchPvpBtn = document.getElementById('search-pvp');
+const pvpStatus = document.getElementById('pvp-status');
+const pvpResult = document.getElementById('pvp-result');
+const leaderboard = document.getElementById('leaderboard');
+const divisionInfo = document.getElementById('division-info');
+const divisionLevel = document.getElementById('division-level');
+const divisionPoints = document.getElementById('division-points');
+const nextLevel = document.getElementById('next-level');
+const winsCount = document.getElementById('wins-count');
+const lossesCount = document.getElementById('losses-count');
+const winRatio = document.getElementById('win-ratio');
+
+// NOUVEAUX BINDINGS CARRIERE
+const playCareerBtn = document.getElementById('play-career');
+const careerResult = document.getElementById('career-result');
+const careerMatches = document.getElementById('career-matches');
+const careerWins = document.getElementById('career-wins');
+const careerDivision = document.getElementById('career-division');
+const bestRating = document.getElementById('best-rating');
+const cardsCollected = document.getElementById('cards-collected');
+const currentSeason = document.getElementById('current-season');
+
+// NOUVEAUX BINDINGS AMIS
+const friendSearch = document.getElementById('friend-search');
+const searchFriendBtn = document.getElementById('search-friend');
+const friendSearchResults = document.getElementById('friend-search-results');
+const friendRequests = document.getElementById('friend-requests');
+const friendsList = document.getElementById('friends-list');
+const friendSelect = document.getElementById('friend-select');
+const transferAmount = document.getElementById('transfer-amount');
+const transferCoinsBtn = document.getElementById('transfer-coins');
+const transferResult = document.getElementById('transfer-result');
+
+// NOUVEAUX BINDINGS QUETES
+const dailyQuestsPreview = document.getElementById('daily-quests-preview');
+const dailyQuestsList = document.getElementById('daily-quests-list');
+const claimAllQuestsBtn = document.getElementById('claim-all-quests');
+const loginStreak = document.getElementById('streak-days');
+const loginRewards = document.getElementById('login-rewards');
+const achievementsList = document.getElementById('achievements-list');
+
+// SYSTEME DE TABS
+document.querySelectorAll('.tab-button').forEach(button => {
+  button.addEventListener('click', () => {
+    const tabId = button.getAttribute('data-tab');
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    button.classList.add('active');
+    document.getElementById(`tab-${tabId}`).classList.add('active');
+  });
+});
+
+/* -------------------------
+   DONNEES DU JEU
+   ------------------------- */
+const PRESET_CARDS = [
+  { id:'c1', name:'Ronaldo', rarity:'gold', style:'Sniper', stats:{ att:95, def:40, vit:90, men:88 } },
+  { id:'c2', name:'Messi', rarity:'gold', style:'Dribbleur', stats:{ att:96, def:45, vit:85, men:94 } },
+  { id:'c3', name:'Mbappé', rarity:'gold', style:'Vitesse', stats:{ att:92, def:50, vit:97, men:80 } },
+  { id:'c4', name:'Modric', rarity:'silver', style:'Leader', stats:{ att:80, def:75, vit:78, men:92 } },
+  { id:'c5', name:'Kanté', rarity:'silver', style:'Roc', stats:{ att:60, def:90, vit:85, men:85 } },
+  { id:'c6', name:'Van Dijk', rarity:'silver', style:'Mural', stats:{ att:55, def:95, vit:75, men:88 } },
+  { id:'c7', name:'Joueur Defense', rarity:'bronze', style:'Basique', stats:{ att:45, def:70, vit:65, men:60 } },
+  { id:'c8', name:'Gardien Top', rarity:'silver', style:'Muraille', stats:{ att:10, def:90, vit:50, men:85 } },
+  { id:'c9', name:'Joueur Milieu', rarity:'bronze', style:'Basique', stats:{ att:55, def:55, vit:60, men:58 } },
+  { id:'c10', name:'Joueur Attaque', rarity:'bronze', style:'Basique', stats:{ att:62, def:40, vit:65, men:55 } }
+];
+
+function randomName(idx){ return 'J'+(100+idx); }
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+const AUTO_CARDS = [];
+const styles = ['Dribbleur', 'Sniper', 'Leader', 'Vitesse', 'Roc', 'Mural', 'Muraille', 'Basique'];
+
+for(let i=0;i<60;i++){
+  const id = 'auto'+i;
+  const rarRnd = Math.random()*100;
+  const rarity = rarRnd < 8 ? 'gold' : rarRnd < 45 ? 'silver' : 'bronze';
+
+  const minBase = rarity==='gold' ? 80 : rarity==='silver' ? 65 : 45;
+  const maxBase = rarity==='gold' ? 98 : rarity==='silver' ? 85 : 65;
+
+  const stats = {
+    att: randInt(minBase, maxBase),
+    def: randInt(minBase, maxBase),
+    vit: randInt(minBase, maxBase),
+    men: randInt(minBase, maxBase)
+  };
+
+  AUTO_CARDS.push({ id, name: randomName(i), style: styles[randInt(0, styles.length-1)], rarity, stats });
+}
+const ALL_CARDS = PRESET_CARDS.concat(AUTO_CARDS);
+
+/* -------------------------
+   SYSTEMES AVANCES
+   ------------------------- */
+const DAILY_QUESTS = [
+  { id: 'open_pack', title: 'Ouvrir un pack', reward: { coins: 100, xp: 50 }, progress: 0, target: 1, completed: false, claimed: false },
+  { id: 'win_3_matches', title: 'Gagner 3 matchs', reward: { coins: 150, xp: 75 }, progress: 0, target: 3, completed: false, claimed: false },
+  { id: 'sell_card', title: 'Vendre une carte', reward: { coins: 80, xp: 40 }, progress: 0, target: 1, completed: false, claimed: false },
+  { id: 'play_pvp', title: 'Jouer 2 matchs PvP', reward: { coins: 120, xp: 60 }, progress: 0, target: 2, completed: false, claimed: false }
+];
+
+const LOGIN_REWARDS = [
+  { day: 1, reward: { coins: 50, xp: 25 }, claimed: false },
+  { day: 2, reward: { coins: 75, xp: 35 }, claimed: false },
+  { day: 3, reward: { coins: 100, xp: 50, energy: 10 }, claimed: false },
+  { day: 4, reward: { coins: 125, xp: 65 }, claimed: false },
+  { day: 5, reward: { coins: 150, xp: 75, pack: 'bronze' }, claimed: false },
+  { day: 6, reward: { coins: 200, xp: 100 }, claimed: false },
+  { day: 7, reward: { coins: 300, xp: 150, pack: 'silver' }, claimed: false }
+];
+
+const ACHIEVEMENTS = [
+  { id: 'first_win', name: 'Première Victoire', desc: 'Gagner ton premier match', reward: 100, completed: false, claimed: false },
+  { id: 'card_collector', name: 'Collectionneur', desc: 'Obtenir 20 cartes', reward: 200, completed: false, claimed: false },
+  { id: 'trader', name: 'Marchand', desc: 'Vendre 10 cartes', reward: 150, completed: false, claimed: false },
+  { id: 'champion', name: 'Champion', desc: 'Atteindre la division 1', reward: 500, completed: false, claimed: false },
+  { id: 'rich', name: 'Riche', desc: 'Posséder 5000 coins', reward: 300, completed: false, claimed: false }
+];
+
+const DIVISIONS = [
+  { level: 1, name: "Légende", minPoints: 2000 },
+  { level: 2, name: "Diamant", minPoints: 1500 },
+  { level: 3, name: "Platine", minPoints: 1000 },
+  { level: 4, name: "Or", minPoints: 500 },
+  { level: 5, name: "Argent", minPoints: 0 }
+];
+
+/* -------------------------
+   CONFIGURATION PAR DEFAUT
+   ------------------------- */
+const DEFAULT_USER = {
+  username: null,
+  coins: 1000,
+  xp: 0,
+  energy: 50,
+  isPremium: false,
+  banned: false,
+  team: [],
+  inventory: [],
+  createdAt: null,
+  // NOUVEAUX CHAMPS
+  division: 5,
+  divisionPoints: 0,
+  wins: 0,
+  losses: 0,
+  careerMatches: 0,
+  careerWins: 0,
+  trophies: [],
+  friends: [],
+  friendRequests: [],
+  pvpRating: 1000,
+  // SYSTEMES AVANCES
+  dailyQuests: JSON.parse(JSON.stringify(DAILY_QUESTS)),
+  loginStreak: 0,
+  lastLogin: null,
+  loginRewards: JSON.parse(JSON.stringify(LOGIN_REWARDS)),
+  achievements: JSON.parse(JSON.stringify(ACHIEVEMENTS)),
+  totalMatches: 0,
+  cardsSold: 0,
+  packsOpened: 0
+};
+
+const ADMIN_UIDS = [];
+
+let currentUser = null;
+let localState = { 
+  username:null, coins:0, xp:0, energy:0, isPremium:false, 
+  team:[], inventory:[], banned:false,
+  division:5, divisionPoints:0, wins:0, losses:0,
+  careerMatches:0, careerWins:0, trophies:[], friends:[],
+  friendRequests:[], pvpRating:1000,
+  dailyQuests: [], loginStreak: 0, lastLogin: null,
+  loginRewards: [], achievements: [], totalMatches: 0,
+  cardsSold: 0, packsOpened: 0
+};
+let sellTarget = null;
+let energyTimerInterval = null;
+
+/* -------------------------
+   FONCTIONS UTILITAIRES
+   ------------------------- */
+function uidPath(uid){ return `players/${uid}`; }
+function show(el){ el.classList.remove('hidden') }
+function hide(el){ el.classList.add('hidden') }
+function nowISO(){ return new Date().toISOString(); }
+function byId(id){ return document.getElementById(id); }
+
+function generateUniqueCardId(baseId) {
+  return `${baseId}-${Date.now()}-${Math.floor(Math.random() * 99999)}`;
+}
+
+function getDivisionInfo(points) {
+  for(let division of DIVISIONS) {
+    if(points >= division.minPoints) {
+      const nextDivision = DIVISIONS.find(d => d.level === division.level - 1);
+      return {
+        level: division.level,
+        name: division.name,
+        nextPoints: nextDivision ? nextDivision.minPoints - points : null
+      };
+    }
+  }
+  return DIVISIONS[DIVISIONS.length-1];
+}
+
+function showNotification(message, type = 'success') {
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
+}
+
+function startEnergyTimer() {
+  if (energyTimerInterval) clearInterval(energyTimerInterval);
+  
+  energyTimerInterval = setInterval(() => {
+    if (localState.energy < 100) {
+      localState.energy += 1;
+      updateUI();
+      saveUserData();
+    }
+  }, 60000); // 1 énergie par minute
+  
+  updateEnergyTimerDisplay();
+}
+
+function updateEnergyTimerDisplay() {
+  if (localState.energy >= 100) {
+    energyTimer.textContent = '(Pleine)';
+  } else {
+    const minutesLeft = 100 - localState.energy;
+    energyTimer.textContent = `(+1 dans 1min)`;
+  }
+}
+
+function hasEnoughEnergy(cost) {
+  if (localState.energy < cost) {
+    showNotification(`Énergie insuffisante! Il te faut ${cost} énergie.`, 'danger');
+    return false;
+  }
+  return true;
+}
+
+/* -------------------------
+   SYSTEME DE COMBAT
+   ------------------------- */
+function pickBestPlayerFromArray(uniqueCardIds){
+  let best = null;
+  let bestRating = -1;
+  
+  uniqueCardIds.forEach(uniqueId => {
+    const card = localState.inventory.find(c => c.uniqueId === uniqueId);
+    if(card) {
+      const avgStat = (card.stats.att + card.stats.def + card.stats.vit + card.stats.men) / 4;
+      if(avgStat > bestRating) {
+        bestRating = avgStat;
+        best = card;
+      }
+    }
+  });
+  
+  if(!best && localState.inventory.length > 0) {
+    best = localState.inventory.reduce((bestCard, card) => {
+      const currentRating = (card.stats.att + card.stats.def + card.stats.vit + card.stats.men) / 4;
+      const bestRating = (bestCard.stats.att + bestCard.stats.def + bestCard.stats.vit + bestCard.stats.men) / 4;
+      return currentRating > bestRating ? card : bestCard;
+    }, localState.inventory[0]);
+  }
+  
+  return best;
+}
+
+function simulateDuel(my, opp){
+  if(!my || !opp) return { win: false, myScore: 0, oppScore: 0, critical: false };
+  
+  const weights = { 
+    att: 0.35, 
+    def: 0.25, 
+    vit: 0.25, 
+    men: 0.15 
+  };
+  
+  const getRating = (p) => {
+    let rating = p.stats.att * weights.att + 
+                 p.stats.def * weights.def + 
+                 p.stats.vit * weights.vit + 
+                 p.stats.men * weights.men;
+    
+    const rarityBonus = (r) => {
+      switch(r) {
+        case 'gold': return 8;
+        case 'silver': return 3;
+        case 'bronze': return 0;
+        default: return 0;
+      }
+    };
+    
+    rating += rarityBonus(p.rarity);
+    
+    const chanceFactor = Math.random() * 20 - 8;
+    rating += chanceFactor;
+    
+    return Math.max(10, rating);
+  };
+  
+  const myScore = getRating(my);
+  const oppScore = getRating(opp);
+  
+  const scoreDifference = Math.abs(myScore - oppScore);
+  let win = myScore >= oppScore;
+  let critical = false;
+  
+  if(scoreDifference < 8) {
+    const upsetChance = 0.25;
+    if(Math.random() < upsetChance) {
+      win = !win;
+    }
+  }
+  
+  const criticalChance = 0.05;
+  if(Math.random() < criticalChance) {
+    win = true;
+    critical = true;
+  }
+  
+  return { 
+    win: win, 
+    myScore: myScore.toFixed(1), 
+    oppScore: oppScore.toFixed(1),
+    critical: critical
+  };
+}
+
+/* -------------------------
+   AUTHENTIFICATION
+   ------------------------- */
+btnSignup.addEventListener('click', async ()=>{
+  try{
+    const email = emailInput.value.trim(); const pass = passInput.value;
+    if(!email || !pass) return alert('Remplis email & mot de passe');
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    const uid = cred.user.uid;
+    await set(ref(db, uidPath(uid)), Object.assign({}, DEFAULT_USER, { username: email.split('@')[0], createdAt: nowISO() }));
+    alert('Compte créé — connecté.');
+  }catch(e){ alert('Erreur création: '+e.message) }
+});
+
+btnLogin.addEventListener('click', async ()=>{
+  try{
+    const email = emailInput.value.trim(); const pass = passInput.value;
+    if(!email || !pass) return alert('Remplis email & mot de passe');
+    await signInWithEmailAndPassword(auth, email, pass);
+  }catch(e){ alert('Erreur connexion: '+e.message) }
+});
+
+btnGoogle.addEventListener('click', async ()=>{
+  try{
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    const userRef = ref(db, uidPath(user.uid));
+    const snap = await get(userRef);
+    if(!snap.exists()){
+      await set(userRef, Object.assign({}, DEFAULT_USER, { username: user.displayName || user.email.split('@')[0], createdAt: nowISO() }));
+    }
+  }catch(e){
+    alert('Erreur Google: '+ e.message + '\n(Ouvre dans Chrome/Firefox si erreur useragent)');
+  }
+});
+
+btnLogout.addEventListener('click', async ()=>{ await signOut(auth); });
+
+onAuthStateChanged(auth, async (user)=>{
+  if(user){
+    currentUser = user;
+    await loadUserData(user.uid);
+    loginSection.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+    displayNameEl.textContent = localState.username ? `Bienvenue, ${localState.username}` : 'Bienvenue!';
+    displayEmailEl.textContent = user.email || '';
+    updateUI();
+    startEnergyTimer();
+    if(ADMIN_UIDS.includes(user.uid)) { 
+      adminSection.classList.remove('hidden'); 
+      loadAllUsersForAdmin(); 
+    } else { 
+      adminSection.classList.add('hidden'); 
+    }
+  } else {
+    currentUser = null;
+    loginSection.classList.remove('hidden');
+    dashboard.classList.add('hidden');
+    adminSection.classList.add('hidden');
+    if (energyTimerInterval) clearInterval(energyTimerInterval);
+  }
+});
+
+/* -------------------------
+   GESTION UTILISATEUR
+   ------------------------- */
+async function loadUserData(uid){
+  const userRef = ref(db, uidPath(uid));
+  const snap = await get(userRef);
+  if(snap.exists()){
+    const data = snap.val();
+    Object.keys(DEFAULT_USER).forEach(key => {
+      localState[key] = data[key] !== undefined ? data[key] : DEFAULT_USER[key];
+    });
+    
+    // Vérifier la connexion quotidienne
+    checkDailyLogin();
+  } else {
+    await set(userRef, Object.assign({}, DEFAULT_USER, { username: currentUser.email.split('@')[0], createdAt: nowISO() }));
+    localState = Object.assign({}, DEFAULT_USER, { username: currentUser.email.split('@')[0], createdAt: nowISO() });
+  }
+  if(localState.banned){ alert("Ton compte est banni."); await signOut(auth); }
+  updateUI();
+}
+
+async function saveUserData(){
+  if(!currentUser) return;
+  try {
+    await update(ref(db, uidPath(currentUser.uid)), {
+      coins: localState.coins,
+      xp: localState.xp,
+      energy: localState.energy,
+      isPremium: localState.isPremium,
+      team: localState.team,
+      inventory: localState.inventory,
+      division: localState.division,
+      divisionPoints: localState.divisionPoints,
+      wins: localState.wins,
+      losses: localState.losses,
+      careerMatches: localState.careerMatches,
+      careerWins: localState.careerWins,
+      trophies: localState.trophies,
+      friends: localState.friends,
+      friendRequests: localState.friendRequests,
+      pvpRating: localState.pvpRating,
+      dailyQuests: localState.dailyQuests,
+      loginStreak: localState.loginStreak,
+      lastLogin: localState.lastLogin,
+      loginRewards: localState.loginRewards,
+      achievements: localState.achievements,
+      totalMatches: localState.totalMatches,
+      cardsSold: localState.cardsSold,
+      packsOpened: localState.packsOpened
+    });
+    actionMsg.textContent = 'Sauvegarde OK ('+new Date().toLocaleTimeString()+')';
+  } catch(error) {
+    console.error('Erreur sauvegarde:', error);
+    actionMsg.textContent = 'Erreur sauvegarde';
+  }
+}
+
+saveBtn.addEventListener('click', saveUserData);
+
+/* -------------------------
+   MISE A JOUR UI
+   ------------------------- */
+function updateUI(){
+  uiCoins.textContent = localState.coins;
+  uiXp.textContent = localState.xp;
+  uiEnergy.textContent = localState.energy;
+  
+  // Affichage Premium
+  if(localState.isPremium) {
+    uiPremium.innerHTML = '<span class="premium-badge">★ PREMIUM</span>';
+  } else {
+    uiPremium.textContent = '';
+  }
+  
+  const divInfo = getDivisionInfo(localState.divisionPoints);
+  divisionLevel.textContent = `Division ${divInfo.level} - ${divInfo.name}`;
+  divisionPoints.textContent = localState.divisionPoints;
+  nextLevel.textContent = divInfo.nextPoints || 'MAX';
+  winsCount.textContent = localState.wins;
+  lossesCount.textContent = localState.losses;
+  
+  const totalMatches = localState.wins + localState.losses;
+  const winRate = totalMatches > 0 ? ((localState.wins / totalMatches) * 100).toFixed(1) : 0;
+  winRatio.textContent = `${winRate}%`;
+  
+  careerMatches.textContent = localState.careerMatches;
+  careerWins.textContent = localState.careerWins;
+  careerDivision.textContent = `Division ${localState.division}`;
+  
+  const bestCard = localState.inventory.reduce((best, card) => {
+    const rating = (card.stats.att + card.stats.def + card.stats.vit + card.stats.men) / 4;
+    return rating > best ? rating : best;
+  }, 0);
+  bestRating.textContent = bestCard.toFixed(1);
+  
+  cardsCollected.textContent = localState.inventory.length;
+  
+  renderTeam();
+  loadMarket();
+  loadLeaderboard();
+  loadFriends();
+  loadQuests();
+  loadAchievements();
+  updateEnergyTimerDisplay();
+}
+
+/* -------------------------
+   SYSTEME DE CARTES - CORRIGÉ
+   ------------------------- */
+function drawRarity(){
+  const r = Math.random()*100;
+  if(r < 10) return 'gold';
+  if(r < 50) return 'silver';
+  return 'bronze';
+}
+
+function drawCardByRarity(r){
+  const pool = ALL_CARDS.filter(c => c.rarity === r);
+  return pool.length > 0 ? pool[Math.floor(Math.random()*pool.length)] : ALL_CARDS[0];
+}
+
+openPackBtn.addEventListener('click', ()=>{
+  if (!hasEnoughEnergy(15)) return;
+  
+  packArea.innerHTML = '';
+  const count = localState.isPremium ? 4 : 3; // AVANTAGE PREMIUM
+  const slots = [];
+  
+  for(let i=0;i<count;i++){
+    const rarity = drawRarity();
+    const card = drawCardByRarity(rarity);
+    slots.push(card);
+    
+    const slot = document.createElement('div');
+    slot.className = 'pack-slot pack-anim';
+    slot.textContent = '...';
+    packArea.appendChild(slot);
+  }
+  
+  setTimeout(()=>{
+    packArea.innerHTML = '';
+    slots.forEach(card=>{
+      const uniqueCard = { ...card, uniqueId: generateUniqueCardId(card.id) };
+      const cardElement = renderCardTo(packArea, uniqueCard, true);
+      cardElement.classList.add('card-reveal');
+      
+      localState.inventory.push(uniqueCard);
+      if(localState.team.length < 5) localState.team.push(uniqueCard.uniqueId);
+    });
+    
+    // CORRECTION DU BUG - Pas d'ajout de coins/XP, seulement consommation d'énergie
+    localState.energy -= 15;
+    localState.packsOpened += 1;
+    
+    // Mise à jour des quêtes
+    updateQuestProgress('open_pack', 1);
+    
+    updateUI(); 
+    saveUserData();
+    actionMsg.textContent = `Pack ouvert! -15 énergie.`;
+    showNotification('🎴 Pack ouvert avec succès!', 'success');
+  }, 550);
+});
+
+function renderCardTo(container, card, clickable=false, inInventory=false){
+  const d = document.createElement('div');
+  d.className = 'card-item ' + (card.rarity==='gold'?'gold': card.rarity==='silver'?'silver':'bronze');
+
+  d.innerHTML = `<strong>${card.name}</strong>
+                 <div class="muted">${card.style} • ${card.rarity}</div>
+                 <div class="muted" style="font-size:11px">
+                   Tir:${card.stats.att} • Def:${card.stats.def}<br>
+                   Vit:${card.stats.vit} • Men:${card.stats.men}
+                 </div>`;
+  
+  if(clickable && !inInventory){
+    const sellBtn = document.createElement('button');
+    sellBtn.className = 'smallbtn';
+    sellBtn.style.marginTop='6px';
+    sellBtn.textContent = 'Vendre';
+    sellBtn.addEventListener('click', (ev) => { ev.stopPropagation(); openSellPopup(card); });
+    d.appendChild(sellBtn);
+  }
+  
+  container.appendChild(d);
+  return d;
+}
+
+/* -------------------------
+   GESTION EQUIPE & INVENTAIRE
+   ------------------------- */
+function renderTeam(){
+  teamArea.innerHTML = '';
+  if(localState.team.length===0) teamArea.innerHTML = '<div class="muted">Aucune carte dans l\'équipe active.</div>';
+  
+  localState.team.forEach(uniqueId=>{
+    const card = localState.inventory.find(c=>c.uniqueId===uniqueId);
+    if(card) renderCardTo(teamArea, card, true);
+  });
+}
+
+teamBtn.addEventListener('click', ()=>{
+  renderInventory();
+  show(inventoryPopup);
+});
+
+closeInventoryBtn.addEventListener('click', ()=>{
+  hide(inventoryPopup);
+  updateUI();
+});
+
+function renderInventory(){
+  inventoryList.innerHTML = '';
+  inventoryCount.textContent = localState.inventory.length;
+
+  if(localState.inventory.length === 0){
+    inventoryList.innerHTML = '<div class="muted" style="width:100%">Aucune carte dans l\'inventaire. Ouvre un pack!</div>';
+    return;
+  }
+
+  const sortedInventory = [...localState.inventory].sort((a,b) => {
+    const avgA = (a.stats.att + a.stats.def + a.stats.vit + a.stats.men) / 4;
+    const avgB = (b.stats.att + b.stats.def + b.stats.vit + b.stats.men) / 4;
+    return avgB - avgA;
+  });
+
+  sortedInventory.forEach(card => {
+    const isSelected = localState.team.includes(card.uniqueId);
+    const d = renderCardTo(inventoryList, card, true, true);
+
+    if(isSelected){
+      d.style.border = '3px solid #6aa84f';
+      d.style.boxShadow = '0 0 10px #6aa84f';
+    }
+
+    d.addEventListener('click', (e)=> {
+      e.stopPropagation();
+      if(isSelected){
+        const idx = localState.team.indexOf(card.uniqueId);
+        if(idx !== -1) localState.team.splice(idx, 1);
+      } else {
+        if(localState.team.length >=5) return alert('Équipe pleine (max 5). Retire une carte d\'abord.');
+        localState.team.push(card.uniqueId);
+      }
+      renderInventory();
+      saveUserData();
+    });
+  });
+}
+
+/* -------------------------
+   MARCHE
+   ------------------------- */
+async function openSellPopup(card){
+  if(!localState.inventory.find(c => c.uniqueId === card.uniqueId)) return alert('Cette carte n\'est pas dans ton inventaire.');
+  
+  sellTarget = card;
+  sellCardInfo.innerHTML = `<strong>${card.name}</strong> • ${card.style} • Rareté: ${card.rarity}<br>
+                           Stats: T:${card.stats.att} D:${card.stats.def} V:${card.stats.vit} M:${card.stats.men}`;
+  const avgStat = (card.stats.att + card.stats.def + card.stats.vit + card.stats.men) / 4;
+  sellPriceInput.value = Math.max(100, Math.round(avgStat * 10));
+  sellPopup.classList.remove('hidden');
+}
+
+confirmSellBtn.addEventListener('click', async ()=>{
+  if(!currentUser || !sellTarget) return alert('Erreur.');
+  
+  if(!localState.inventory.find(c => c.uniqueId === sellTarget.uniqueId)) return alert('Carte déjà vendue.');
+
+  const price = Number(sellPriceInput.value) || 100;
+  const mRef = ref(db, 'market');
+  const newKeyRef = push(mRef);
+  
+  await set(ref(db, 'market/' + newKeyRef.key), {
+    card: sellTarget, 
+    seller: currentUser.uid,
+    price,
+    createdAt: nowISO()
+  });
+
+  const teamIdx = localState.team.indexOf(sellTarget.uniqueId);
+  if(teamIdx !== -1) localState.team.splice(teamIdx,1);
+  
+  const inventoryIdx = localState.inventory.findIndex(c => c.uniqueId === sellTarget.uniqueId);
+  if(inventoryIdx !== -1) localState.inventory.splice(inventoryIdx, 1);
+
+  localState.cardsSold += 1;
+  updateQuestProgress('sell_card', 1);
+  
+  await saveUserData();
+  updateUI();
+  sellPopup.classList.add('hidden');
+  actionMsg.textContent = `Carte mise en vente pour ${price} coins.`;
+  showNotification('💸 Carte mise en vente!', 'success');
+  sellTarget = null;
+});
+
+cancelSellBtn.addEventListener('click', ()=>{ sellPopup.classList.add('hidden'); sellTarget = null; });
+
+async function loadMarket(){
+  marketList.innerHTML = 'Chargement marché...';
+  const mRef = ref(db,'market');
+  onValue(mRef, (snap)=>{
+    const data = snap.val() || {};
+    marketList.innerHTML = '';
+    for(const key in data){
+      const item = data[key];
+      const card = item.card;
+      if(!card || !card.stats) continue;
+      
+      const div = document.createElement('div');
+      div.className = 'market-card card-item';
+      div.innerHTML = `<div><strong>${card.name}</strong><div class="muted">${card.style} • T:${card.stats.att}</div><div class="muted">Vendeur: ${item.seller.substring(0, 4)}...</div></div>
+                       <div style="min-width:110px;text-align:right">${item.price} coins</div>`;
+      const buyBtn = document.createElement('button');
+      buyBtn.className = 'smallbtn';
+      buyBtn.textContent = 'Acheter';
+      buyBtn.addEventListener('click', ()=> buyMarketItem(key, item));
+      div.appendChild(buyBtn);
+      if(currentUser && currentUser.uid === item.seller){
+        const cancelBtn = document.createElement('button'); 
+        cancelBtn.className='smallbtn danger'; 
+        cancelBtn.textContent='Annuler'; 
+        cancelBtn.addEventListener('click', async ()=> { 
+          await remove(ref(db,'market/'+key)); 
+        });
+        div.appendChild(cancelBtn);
+      }
+      marketList.appendChild(div);
+    }
+  }, {onlyOnce:false});
+}
+
+async function buyMarketItem(key, item){
+  if(!currentUser) return alert('Connecte-toi d\'abord.');
+  if(currentUser.uid === item.seller) return alert('Tu ne peux pas acheter ta propre carte!');
+  
+  const buyerRef = ref(db, uidPath(currentUser.uid));
+  const buyerSnap = await get(buyerRef);
+  const buyer = buyerSnap.exists() ? buyerSnap.val() : null;
+  if(!buyer) return alert('Profil introuvable.');
+  if(buyer.coins < item.price) return alert('Coins insuffisants.');
+  
+  await update(buyerRef, { coins: buyer.coins - item.price });
+  
+  const sellerRef = ref(db, uidPath(item.seller));
+  const sellerSnap = await get(sellerRef);
+  const seller = sellerSnap.exists() ? sellerSnap.val() : null;
+  const sellerCoins = seller ? (Number(seller.coins||0) + Number(item.price)) : Number(item.price);
+  if(seller) await update(sellerRef, { coins: sellerCoins });
+  
+  const buyerInventory = buyer.inventory && Array.isArray(buyer.inventory) ? buyer.inventory : [];
+  buyerInventory.push(item.card);
+  
+  const buyerTeam = buyer.team && Array.isArray(buyer.team) ? buyer.team : [];
+  if(buyerTeam.length < 5) buyerTeam.push(item.card.uniqueId);
+
+  await update(buyerRef, { team: buyerTeam, inventory: buyerInventory });
+  await remove(ref(db, 'market/' + key));
+  
+  alert('Achat réussi !');
+  if(currentUser) await loadUserData(currentUser.uid);
+}
+
+/* -------------------------
+   BOUTIQUE - CORRIGÉ
+   ------------------------- */
+buyPack500Btn.addEventListener('click', ()=>{
+  if(localState.coins < 500) return alert('Pas assez de coins!');
+  
+  localState.coins -= 500;
+  
+  const card = drawCardByRarity('bronze');
+  const uniqueCard = { ...card, uniqueId: generateUniqueCardId(card.id) };
+
+  localState.inventory.push(uniqueCard);
+  if(localState.team.length < 5) localState.team.push(uniqueCard.uniqueId);
+  
+  localState.packsOpened += 1;
+  updateQuestProgress('open_pack', 1);
+  
+  updateUI(); 
+  saveUserData();
+  alert(`Pack acheté! Nouvelle carte: ${uniqueCard.name} (${uniqueCard.style}) -500 coins`);
+  showNotification('🛒 Pack bronze acheté!', 'success');
+});
+
+buyEnergy200Btn.addEventListener('click', ()=>{
+  if(localState.coins < 200) return alert('Pas assez de coins!');
+  localState.coins -= 200;
+  localState.energy = Math.min(100, localState.energy + 30);
+  updateUI(); 
+  saveUserData();
+  alert('Énergie rechargée! +30 énergie, -200 coins.');
+  showNotification('⚡ Énergie rechargée!', 'success');
+});
+
+/* -------------------------
+   SYSTEME PVP - CORRIGÉ
+   ------------------------- */
+searchPvpBtn.addEventListener('click', async ()=>{
+  if(localState.team.length === 0) return alert('Ton équipe est vide.');
+  if (!hasEnoughEnergy(15)) return;
+  
+  pvpStatus.textContent = '🔍 Recherche d\'adversaire...';
+  
+  setTimeout(async () => {
+    const strongOpponents = ALL_CARDS.filter(card => {
+      const avgStat = (card.stats.att + card.stats.def + card.stats.vit + card.stats.men) / 4;
+      return avgStat > 75 || card.rarity === 'gold';
+    });
+    
+    const opponentCard = strongOpponents.length > 0 
+      ? strongOpponents[Math.floor(Math.random() * strongOpponents.length)]
+      : ALL_CARDS[Math.floor(Math.random() * ALL_CARDS.length)];
+    
+    const myPlayer = pickBestPlayerFromArray(localState.team);
+    
+    const result = simulateDuel(myPlayer, opponentCard);
+    
+    localState.energy -= 15;
+    localState.totalMatches += 1;
+    updateQuestProgress('play_pvp', 1);
+    
+    if(result.win){
+      localState.wins++;
+      // AVANTAGE PREMIUM - Plus de points en PvP
+      const pointsGain = localState.isPremium ? 20 : 15;
+      const coinsGain = localState.isPremium ? 60 : 40;
+      
+      localState.divisionPoints += pointsGain;
+      localState.coins += coinsGain;
+      localState.pvpRating += 10;
+      
+      let resultHTML = `<div class="success">VICTOIRE! ${myPlayer.name} bat ${opponentCard.name}</div>`;
+      if(result.critical) {
+        resultHTML += `<div class="critical-hit">⚡ COUP CRITIQUE!</div>`;
+      }
+      resultHTML += `<div>+${pointsGain} points division, +${coinsGain} coins</div>`;
+      pvpResult.innerHTML = resultHTML;
+      
+      updateQuestProgress('win_3_matches', 1);
+    } else {
+      localState.losses++;
+      localState.divisionPoints = Math.max(0, localState.divisionPoints - 10);
+      localState.pvpRating = Math.max(0, localState.pvpRating - 15);
+      pvpResult.innerHTML = `<div class="danger">Défaite contre ${opponentCard.name}</div>
+                            <div>-10 points division</div>`;
+    }
+    
+    updateUI();
+    saveUserData();
+    pvpStatus.textContent = 'Match terminé';
+  }, 2000);
+});
+
+async function loadLeaderboard(){
+  leaderboard.innerHTML = 'Chargement...';
+  const playersRef = ref(db, 'players');
+  onValue(playersRef, (snap)=>{
+    const data = snap.val() || {};
+    const players = [];
+    
+    for(const uid in data){
+      if(data[uid].username && !data[uid].banned){
+        players.push({
+          username: data[uid].username,
+          divisionPoints: data[uid].divisionPoints || 0,
+          pvpRating: data[uid].pvpRating || 1000,
+          wins: data[uid].wins || 0,
+          losses: data[uid].losses || 0
+        });
+      }
+    }
+    
+    players.sort((a,b) => (b.pvpRating || 0) - (a.pvpRating || 0));
+    
+    leaderboard.innerHTML = '';
+    if(players.length === 0) {
+      leaderboard.innerHTML = '<div class="muted">Aucun joueur dans le classement</div>';
+      return;
+    }
+    
+    players.slice(0, 10).forEach((player, index) => {
+      const div = document.createElement('div');
+      div.className = 'friend-item';
+      const totalMatches = player.wins + player.losses;
+      const winRate = totalMatches > 0 ? ((player.wins / totalMatches) * 100).toFixed(1) : 0;
+      
+      div.innerHTML = `
+        <div>
+          <strong>#${index + 1} ${player.username}</strong>
+          <div class="muted">Rating: ${player.pvpRating} | ${winRate}% victoires</div>
+        </div>
+        <div class="division-badge">Div ${getDivisionInfo(player.divisionPoints).level}</div>
+      `;
+      leaderboard.appendChild(div);
+    });
+  }, {onlyOnce: false});
+}
+
+/* -------------------------
+   MODE CARRIERE - CORRIGÉ
+   ------------------------- */
+playCareerBtn.addEventListener('click', ()=>{
+  if(localState.team.length === 0) return alert('Ton équipe est vide.');
+  if (!hasEnoughEnergy(12)) return;
+  
+  const myPlayer = pickBestPlayerFromArray(localState.team);
+  
+  const careerOpponents = ALL_CARDS.filter(card => {
+    const avgStat = (card.stats.att + card.stats.def + card.stats.vit + card.stats.men) / 4;
+    return avgStat > 80 || card.rarity === 'gold';
+  });
+  
+  const opponentCard = careerOpponents.length > 0 
+    ? careerOpponents[Math.floor(Math.random() * careerOpponents.length)]
+    : ALL_CARDS[Math.floor(Math.random() * ALL_CARDS.length)];
+  
+  const result = simulateDuel(myPlayer, opponentCard);
+  
+  localState.careerMatches++;
+  localState.energy -= 12;
+  localState.totalMatches += 1;
+  
+  if(result.win){
+    localState.careerWins++;
+    // AVANTAGE PREMIUM - Plus de récompenses en carrière
+    const coinsGain = localState.isPremium ? 50 : 30;
+    const xpGain = localState.isPremium ? 20 : 12;
+    
+    localState.coins += coinsGain;
+    localState.xp += xpGain;
+    
+    let resultHTML = `<div class="success">Victoire carrière! +${coinsGain} coins, +${xpGain} XP</div>`;
+    if(result.critical) {
+      resultHTML += `<div class="critical-hit">⚡ COUP CRITIQUE!</div>`;
+    }
+    careerResult.innerHTML = resultHTML;
+    
+    if(localState.careerWins % 10 === 0 && localState.division > 1){
+      localState.division--;
+      careerResult.innerHTML += `<div class="success">🎉 Promotion! Division ${localState.division}</div>`;
+      showNotification('🎉 Promotion de division!', 'success');
+    }
+    
+    updateQuestProgress('win_3_matches', 1);
+  } else {
+    localState.coins = Math.max(0, localState.coins - 10);
+    careerResult.innerHTML = `<div class="danger">Défaite en carrière -10 coins</div>`;
+  }
+  
+  updateUI();
+  saveUserData();
+});
+
+/* -------------------------
+   SYSTEME D'AMIS - CORRIGÉ
+   ------------------------- */
+searchFriendBtn.addEventListener('click', async ()=>{
+  const searchTerm = friendSearch.value.trim();
+  if(!searchTerm) return alert('Entre un nom d\'utilisateur');
+  
+  const playersRef = ref(db, 'players');
+  const snap = await get(playersRef);
+  const data = snap.val() || {};
+  const results = [];
+  
+  for(const uid in data){
+    const player = data[uid];
+    if(player.username && player.username.toLowerCase().includes(searchTerm.toLowerCase())){
+      results.push({ uid, ...player });
+    }
+  }
+  
+  friendSearchResults.innerHTML = '';
+  
+  if(results.length === 0) {
+    friendSearchResults.innerHTML = '<div class="muted">Aucun joueur trouvé</div>';
+    return;
+  }
+  
+  results.forEach(player => {
+    if(player.uid === currentUser.uid) return;
+    if(localState.friends.includes(player.uid)) return;
+    
+    const div = document.createElement('div');
+    div.className = 'friend-item';
+    div.innerHTML = `
+      <div>
+        <strong>${player.username}</strong>
+        <div class="muted">Division ${getDivisionInfo(player.divisionPoints || 0).level}</div>
+      </div>
+      <button class="smallbtn" onclick="sendFriendRequest('${player.uid}')">Ajouter</button>
+    `;
+    friendSearchResults.appendChild(div);
+  });
+});
+
+window.sendFriendRequest = async (targetUid) => {
+  const targetRef = ref(db, uidPath(targetUid));
+  const targetSnap = await get(targetRef);
+  if(!targetSnap.exists()) return alert('Utilisateur non trouvé');
+  
+  const targetData = targetSnap.val();
+  const requests = Array.isArray(targetData.friendRequests) ? targetData.friendRequests : [];
+  
+  if(requests.includes(currentUser.uid)) return alert('Demande déjà envoyée');
+  
+  requests.push(currentUser.uid);
+  await update(targetRef, { friendRequests: requests });
+  alert('Demande d\'ami envoyée!');
+  showNotification('👥 Demande d\'ami envoyée!', 'success');
+};
+
+async function loadFriends(){
+  // Charger les demandes d'amis
+  const requests = Array.isArray(localState.friendRequests) ? localState.friendRequests : [];
+  friendRequests.innerHTML = '';
+  
+  if(requests.length === 0){
+    friendRequests.innerHTML = '<div class="muted">Aucune demande d\'ami</div>';
+  } else {
+    for(const requesterUid of requests){
+      const requesterRef = ref(db, uidPath(requesterUid));
+      const requesterSnap = await get(requesterRef);
+      if(requesterSnap.exists()){
+        const requester = requesterSnap.val();
+        const div = document.createElement('div');
+        div.className = 'friend-item';
+        div.innerHTML = `
+          <div>${requester.username}</div>
+          <div>
+            <button class="smallbtn success" onclick="acceptFriendRequest('${requesterUid}')">Accepter</button>
+            <button class="smallbtn danger" onclick="declineFriendRequest('${requesterUid}')">Refuser</button>
+          </div>
+        `;
+        friendRequests.appendChild(div);
+      }
+    }
+  }
+  
+  // Charger la liste d'amis
+  friendsList.innerHTML = '';
+  friendSelect.innerHTML = '<option>Sélectionne un ami</option>';
+  
+  const friends = Array.isArray(localState.friends) ? localState.friends : [];
+  if(friends.length === 0){
+    friendsList.innerHTML = '<div class="muted">Aucun ami</div>';
+  } else {
+    for(const friendUid of friends){
+      const friendRef = ref(db, uidPath(friendUid));
+      const friendSnap = await get(friendRef);
+      if(friendSnap.exists()){
+        const friend = friendSnap.val();
+        const div = document.createElement('div');
+        div.className = 'friend-item';
+        div.innerHTML = `
+          <div>
+            <strong>${friend.username}</strong>
+            <div class="muted">Division ${getDivisionInfo(friend.divisionPoints || 0).level}</div>
+          </div>
+          <button class="smallbtn danger" onclick="removeFriend('${friendUid}')">Retirer</button>
+        `;
+        friendsList.appendChild(div);
+        
+        const option = document.createElement('option');
+        option.value = friendUid;
+        option.textContent = friend.username;
+        friendSelect.appendChild(option);
+      }
+    }
+  }
+}
+
+window.acceptFriendRequest = async (requesterUid) => {
+  const requests = localState.friendRequests.filter(uid => uid !== requesterUid);
+  const friends = [...(localState.friends || []), requesterUid];
+  
+  localState.friendRequests = requests;
+  localState.friends = friends;
+  
+  // Ajouter l'ami réciproquement
+  const requesterRef = ref(db, uidPath(requesterUid));
+  const requesterSnap = await get(requesterRef);
+  if(requesterSnap.exists()){
+    const requesterFriends = [...(requesterSnap.val().friends || []), currentUser.uid];
+    await update(requesterRef, { friends: requesterFriends });
+  }
+  
+  await saveUserData();
+  loadFriends();
+  showNotification('👥 Nouvel ami ajouté!', 'success');
+};
+
+window.declineFriendRequest = async (requesterUid) => {
+  localState.friendRequests = localState.friendRequests.filter(uid => uid !== requesterUid);
+  await saveUserData();
+  loadFriends();
+};
+
+window.removeFriend = async (friendUid) => {
+  localState.friends = localState.friends.filter(uid => uid !== friendUid);
+  
+  // Retirer réciproquement
+  const friendRef = ref(db, uidPath(friendUid));
+  const friendSnap = await get(friendRef);
+  if(friendSnap.exists()){
+    const friendFriends = (friendSnap.val().friends || []).filter(uid => uid !== currentUser.uid);
+    await update(friendRef, { friends: friendFriends });
+  }
+  
+  await saveUserData();
+  loadFriends();
+  showNotification('👥 Ami retiré', 'warning');
+};
+
+transferCoinsBtn.addEventListener('click', async ()=>{
+  const friendUid = friendSelect.value;
+  const amount = parseInt(transferAmount.value);
+  
+  if(!friendUid || friendUid === 'Sélectionne un ami') return alert('Sélectionne un ami');
+  if(!amount || amount < 1) return alert('Montant invalide');
+  if(amount > localState.coins) return alert('Fonds insuffisants');
+  
+  const fees = Math.ceil(amount * 0.1);
+  const netAmount = amount - fees;
+  
+  const friendRef = ref(db, uidPath(friendUid));
+  const friendSnap = await get(friendRef);
+  if(!friendSnap.exists()) return alert('Ami non trouvé');
+  
+  const friend = friendSnap.val();
+  await update(friendRef, { coins: (friend.coins || 0) + netAmount });
+  
+  localState.coins -= amount;
+  await saveUserData();
+  
+  transferResult.textContent = `✅ ${netAmount} coins envoyés (frais: ${fees} coins)`;
+  showNotification(`💸 ${netAmount} coins envoyés à un ami!`, 'success');
+});
+
+/* -------------------------
+   SYSTEME DE QUÊTES ET RÉCOMPENSES - CORRIGÉ
+   ------------------------- */
+function checkDailyLogin() {
+  const today = new Date().toDateString();
+  if(localState.lastLogin !== today) {
+    localState.loginStreak += 1;
+    if(localState.loginStreak > 7) localState.loginStreak = 1;
+    localState.lastLogin = today;
+    
+    // Réinitialiser les quêtes quotidiennes
+    localState.dailyQuests = JSON.parse(JSON.stringify(DAILY_QUESTS));
+    
+    saveUserData();
+    showNotification(`🔔 Nouvelle journée! Suite: ${localState.loginStreak} jours`, 'success');
+  }
+}
+
+function updateQuestProgress(questId, amount) {
+  const quest = localState.dailyQuests.find(q => q.id === questId);
+  if(quest && !quest.completed && !quest.claimed) {
+    quest.progress = Math.min(quest.target, quest.progress + amount);
+    if(quest.progress >= quest.target) {
+      quest.completed = true;
+    }
+    saveUserData();
+  }
+}
+
+function loadQuests() {
+  // Aperçu des quêtes
+  dailyQuestsPreview.innerHTML = '';
+  localState.dailyQuests.forEach(quest => {
+    const progress = (quest.progress / quest.target) * 100;
+    const div = document.createElement('div');
+    div.className = 'quest-item';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between">
+        <span>${quest.title}</span>
+        <span>${quest.progress}/${quest.target}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${progress}%"></div>
+      </div>
+      ${quest.completed ? '<div class="success">✓ Terminé</div>' : ''}
+    `;
+    dailyQuestsPreview.appendChild(div);
+  });
+  
+  // Liste complète des quêtes
+  dailyQuestsList.innerHTML = '';
+  localState.dailyQuests.forEach(quest => {
+    const progress = (quest.progress / quest.target) * 100;
+    const div = document.createElement('div');
+    div.className = 'quest-item';
+    div.innerHTML = `
+      <h4>${quest.title}</h4>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${progress}%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:5px">
+        <span>${quest.progress}/${quest.target}</span>
+        <span>Récompense: ${quest.reward.coins} coins, ${quest.reward.xp} XP</span>
+      </div>
+      ${quest.completed && !quest.claimed ? 
+        '<button class="smallbtn success" onclick="claimQuest(\'' + quest.id + '\')">🎁 Réclamer</button>' : 
+        quest.claimed ? '<div class="success">✓ Réclamé</div>' : ''}
+    `;
+    dailyQuestsList.appendChild(div);
+  });
+  
+  // Récompenses de connexion
+  loginStreak.textContent = localState.loginStreak;
+  loginRewards.innerHTML = '';
+  localState.loginRewards.forEach((reward, index) => {
+    const day = index + 1;
+    const div = document.createElement('div');
+    div.className = 'quest-item';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between">
+        <span>Jour ${day}</span>
+        <span>${reward.reward.coins} coins, ${reward.reward.xp} XP</span>
+      </div>
+      ${reward.claimed ? '<div class="success">✓ Réclamé</div>' : 
+        day <= localState.loginStreak ? '<button class="smallbtn success" onclick="claimLoginReward(' + index + ')">🎁 Réclamer</button>' : 
+        '<div class="muted">🔒 Disponible jour ' + day + '</div>'}
+    `;
+    loginRewards.appendChild(div);
+  });
+}
+
+window.claimQuest = function(questId) {
+  const quest = localState.dailyQuests.find(q => q.id === questId);
+  if(quest && quest.completed && !quest.claimed) {
+    localState.coins += quest.reward.coins;
+    localState.xp += quest.reward.xp;
+    quest.claimed = true;
+    
+    saveUserData();
+    updateUI();
+    showNotification(`🎁 Quête récompensée: +${quest.reward.coins} coins, +${quest.reward.xp} XP`, 'success');
+  }
+};
+
+window.claimLoginReward = function(dayIndex) {
+  if(dayIndex < 0 || dayIndex >= localState.loginRewards.length) return;
+  
+  const reward = localState.loginRewards[dayIndex];
+  if(reward && !reward.claimed && (dayIndex + 1) <= localState.loginStreak) {
+    localState.coins += reward.reward.coins;
+    localState.xp += reward.reward.xp;
+    if(reward.reward.energy) {
+      localState.energy = Math.min(100, localState.energy + reward.reward.energy);
+    }
+    reward.claimed = true;
+    
+    saveUserData();
+    updateUI();
+    showNotification(`🎁 Récompense jour ${dayIndex + 1}: +${reward.reward.coins} coins, +${reward.reward.xp} XP`, 'success');
+  }
+};
+
+claimAllQuestsBtn.addEventListener('click', () => {
+  let totalCoins = 0;
+  let totalXp = 0;
+  let claimedCount = 0;
+  
+  localState.dailyQuests.forEach(quest => {
+    if(quest.completed && !quest.claimed) {
+      totalCoins += quest.reward.coins;
+      totalXp += quest.reward.xp;
+      quest.claimed = true;
+      claimedCount++;
+    }
+  });
+  
+  if(claimedCount > 0) {
+    localState.coins += totalCoins;
+    localState.xp += totalXp;
+    saveUserData();
+    updateUI();
+    showNotification(`🎁 ${claimedCount} récompenses: +${totalCoins} coins, +${totalXp} XP`, 'success');
+  } else {
+    showNotification('Aucune récompense à réclamer', 'warning');
+  }
+});
+
+function loadAchievements() {
+  achievementsList.innerHTML = '';
+  localState.achievements.forEach(achievement => {
+    let completed = false;
+    
+    // Vérifier la complétion
+    switch(achievement.id) {
+      case 'first_win':
+        completed = localState.wins > 0;
+        break;
+      case 'card_collector':
+        completed = localState.inventory.length >= 20;
+        break;
+      case 'trader':
+        completed = localState.cardsSold >= 10;
+        break;
+      case 'champion':
+        completed = localState.division === 1;
+        break;
+      case 'rich':
+        completed = localState.coins >= 5000;
+        break;
+    }
+    
+    const div = document.createElement('div');
+    div.className = 'quest-item';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between">
+        <span>${achievement.name}</span>
+        ${completed && !achievement.completed ? '<span class="achievement-badge">Nouveau!</span>' : ''}
+      </div>
+      <div class="muted">${achievement.desc}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:5px">
+        <span>Récompense: ${achievement.reward} coins</span>
+        ${completed ? 
+          (achievement.completed ? 
+            '<span class="success">✓ Réclamé</span>' : 
+            '<button class="smallbtn success" onclick="claimAchievement(\'' + achievement.id + '\')">🎁 Réclamer</button>') : 
+          '<span class="muted">🔒 En progression</span>'}
+      </div>
+    `;
+    achievementsList.appendChild(div);
+  });
+}
+
+window.claimAchievement = function(achievementId) {
+  const achievement = localState.achievements.find(a => a.id === achievementId);
+  if(achievement && !achievement.completed) {
+    
+    // Vérifier à nouveau la complétion
+    let completed = false;
+    switch(achievementId) {
+      case 'first_win':
+        completed = localState.wins > 0;
+        break;
+      case 'card_collector':
+        completed = localState.inventory.length >= 20;
+        break;
+      case 'trader':
+        completed = localState.cardsSold >= 10;
+        break;
+      case 'champion':
+        completed = localState.division === 1;
+        break;
+      case 'rich':
+        completed = localState.coins >= 5000;
+        break;
+    }
+    
+    if(completed) {
+      localState.coins += achievement.reward;
+      achievement.completed = true;
+      saveUserData();
+      updateUI();
+      showNotification(`🏆 Réalisation: ${achievement.name} - +${achievement.reward} coins`, 'success');
+    }
+  }
+};
+
+/* -------------------------
+   MATCH SIMPLE - CORRIGÉ
+   ------------------------- */
+playMatchBtn.addEventListener('click', async ()=>{
+  if(!currentUser) return alert('Connecte-toi.');
+  if(localState.team.length === 0) return alert('Ton équipe est vide.');
+  if (!hasEnoughEnergy(8)) return;
+  
+  const myPlayer = pickBestPlayerFromArray(localState.team);
+  const opponentCard = ALL_CARDS[Math.floor(Math.random() * ALL_CARDS.length)];
+  const result = simulateDuel(myPlayer, opponentCard);
+
+  localState.energy -= 8;
+  localState.totalMatches += 1;
+  
+  let msg = '';
+  if(result.win){
+    // AVANTAGE PREMIUM - Plus de récompenses
+    const baseCoins = localState.isPremium ? 100 : 80;
+    const coinsGain = Math.round(baseCoins + (result.myScore - result.oppScore) * 5);
+    const xpGain = localState.isPremium ? 20 : 15;
+    
+    localState.coins += coinsGain;
+    localState.xp += xpGain;
+    
+    msg = `Tu as **gagné**! ${myPlayer.name} (${result.myScore}) bat ${opponentCard.name} (${result.oppScore}). +${coinsGain} coins.`;
+    if(result.critical) {
+      msg += ` ⚡ COUP CRITIQUE!`;
+    }
+    
+    updateQuestProgress('win_3_matches', 1);
+  } else {
+    localState.coins += 10;
+    localState.xp += 5;
+    msg = `**Défaite**: ${opponentCard.name} (${result.oppScore}) a battu ${myPlayer.name} (${result.myScore}).`;
+  }
+  
+  updateUI(); 
+  saveUserData();
+  actionMsg.innerHTML = msg;
+});
+
+/* -------------------------
+   MATCH LIVE - CORRIGÉ
+   ------------------------- */
+playLiveBtn.addEventListener('click', ()=>{
+  if(!currentUser) return alert('Connecte-toi.');
+  if(localState.team.length === 0) return alert('Équipe vide.');
+  if (!hasEnoughEnergy(12)) return;
+
+  const myBest = pickBestPlayerFromArray(localState.team);
+  
+  const liveOpponents = ALL_CARDS.filter(card => {
+    const avgStat = (card.stats.att + card.stats.def + card.stats.vit + card.stats.men) / 4;
+    return avgStat > 85 || card.rarity === 'gold';
+  });
+  
+  const oppBest = liveOpponents.length > 0 
+    ? liveOpponents[Math.floor(Math.random() * liveOpponents.length)]
+    : ALL_CARDS[Math.floor(Math.random() * ALL_CARDS.length)];
+    
+  runLiveMatch(myBest, oppBest);
+});
+
+function runLiveMatch(p1, p2){
+  matchLog.innerHTML = `<strong>Live: ${p1.name} (${p1.style}) vs ${p2.name} (${p2.style})</strong><br>`;
+  let minute = 1, score1 = 0, score2 = 0;
+  const totalMinutes = 90;
+  
+  const calculateChance = (player, opponent) => {
+    const baseChance = (player.stats.att * 0.3) + (player.stats.vit * 0.25) + (player.stats.men * 0.2);
+    const defenseFactor = (opponent.stats.def * 0.7) + (opponent.stats.men * 0.3);
+    
+    return Math.max(8, baseChance - defenseFactor + (Math.random() * 15 - 5));
+  }
+  
+  const calculateGoalProb = (shooter, keeper) => {
+    return (shooter.stats.att * 0.005) + (Math.random() * 0.04);
+  }
+
+  const t = setInterval(() => {
+    if(minute > totalMinutes){ 
+      clearInterval(t); 
+      const winMsg = score1 > score2 ? `${p1.name} GAGNE!` : score2 > score1 ? `${p2.name} GAGNE!` : 'MATCH NUL.';
+      matchLog.innerHTML += `<br><strong>Fin live: ${score1} - ${score2}. ${winMsg}</strong>`; 
+      
+      localState.energy -= 12;
+      localState.totalMatches += 1;
+      
+      if(score1 > score2) {
+        // AVANTAGE PREMIUM - Plus de coins en live
+        const coinsGain = localState.isPremium ? 120 : 80;
+        localState.coins += coinsGain;
+        updateQuestProgress('win_3_matches', 1);
+      }
+      
+      updateUI(); 
+      saveUserData();
+      
+      return; 
+    }
+    
+    if(minute % 12 === 0 || minute === 45){
+      const chanceP1 = calculateChance(p1, p2);
+      const chanceP2 = calculateChance(p2, p1);
+      const totalChance = chanceP1 + chanceP2;
+      const roll = Math.random() * totalChance;
+
+      if(roll < chanceP1){
+        const goalProb = calculateGoalProb(p1, p2);
+        if(Math.random() < goalProb) { 
+          score1++; 
+          matchLog.innerHTML += `${minute}' — ⚽ BUT pour ${p1.name} (${score1}-${score2})!<br>`; 
+        }
+        else matchLog.innerHTML += `${minute}' — Tir repoussé. (${p1.style})<br>`;
+      } else if(roll > chanceP1) {
+        const goalProb = calculateGoalProb(p2, p1);
+        if(Math.random() < goalProb) { 
+          score2++; 
+          matchLog.innerHTML += `${minute}' — ⚽ BUT pour ${p2.name} (${score1}-${score2})!<br>`; 
+        }
+        else matchLog.innerHTML += `${minute}' — Occasion manquée. (${p2.style})<br>`;
+      } else {
+       if(minute === 45) matchLog.innerHTML += `45' — MI-TEMPS. ${score1}-${score2}.<br>`;
+       else matchLog.innerHTML += `${minute}' — Jeu au milieu.<br>`;
+      }
+      matchLog.scrollTop = matchLog.scrollHeight;
+    }
+    minute++;
+  }, 120);
+}
+
+/* -------------------------
+   ADMIN PANEL
+   ------------------------- */
+async function loadAllUsersForAdmin(){
+  adminUsersTbody.innerHTML = 'Chargement...';
+  const rootRef = ref(db, 'players');
+  onValue(rootRef, (snap)=>{
+    const data = snap.val() || {};
+    const q = (adminSearch.value || '').toLowerCase();
+    adminUsersTbody.innerHTML = '';
+    
+    for(const uid in data){
+      const u = data[uid];
+      const username = (u.username || '').toLowerCase();
+      if(q && !(uid.toLowerCase().includes(q) || username.includes(q))) continue;
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${uid.substring(0, 4)}...</td>
+        <td>${u.username || '—'}</td>
+        <td>${u.coins || 0}</td>
+        <td>${u.isPremium ? 'Oui' : 'Non'}</td>
+        <td>${u.energy || 0}</td>
+        <td>
+          <button class="smallbtn" onclick="adminAddCoins('${uid}', 500)">+500</button>
+          <button class="smallbtn" onclick="adminTogglePremium('${uid}', ${u.isPremium ? 1 : 0})">${u.isPremium ? 'Retirer' : 'Donner'}</button>
+          <button class="smallbtn danger" onclick="adminBan('${uid}')">Ban</button>
+        </td>
+      `;
+      adminUsersTbody.appendChild(tr);
+    }
+  }, {onlyOnce: false});
+}
+
+window.adminAddCoins = async (uid, amount) => {
+  const userRef = ref(db, uidPath(uid));
+  const snap = await get(userRef);
+  const current = snap.exists() ? (snap.val().coins || 0) : 0;
+  await update(userRef, { coins: current + amount });
+  alert('Ajouté ' + amount + ' coins à ' + uid);
+};
+
+window.adminTogglePremium = async (uid, cur) => {
+  await update(ref(db, uidPath(uid)), { isPremium: !cur });
+  alert('Premium modifié pour ' + uid);
+};
+
+window.adminBan = async (uid) => {
+  await update(ref(db, uidPath(uid)), { banned: true });
+  alert('Utilisateur banni: ' + uid);
+};
+
+adminRefresh.addEventListener('click', loadAllUsersForAdmin);
+adminSearch.addEventListener('input', loadAllUsersForAdmin);
+
+/* -------------------------
+   INITIALISATION
+   ------------------------- */
+function initializeGame() {
+  loadMarket();
+  updateUI();
+  
+  // Auto-sauvegarde toutes les 2 minutes
+  setInterval(() => { 
+    if(currentUser) saveUserData(); 
+  }, 120000);
+  
+  console.log('FM CARDS - Version Corrigée prête!');
+}
+
+// Démarrer le jeu
+initializeGame();
+</script>
+</body>
+</html>
+

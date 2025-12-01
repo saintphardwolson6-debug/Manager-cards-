@@ -1455,6 +1455,19 @@
     #nav-badges {
       display: flex;
     }
+
+    /* Clan search and limits */
+    .clan-search-container {
+      margin-bottom: 12px;
+    }
+
+    .clan-limit-info {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
@@ -1578,13 +1591,12 @@
         </div>
         
         <div class="panel quick">
-          <button id="nav-friends" class="ghost small-btn"><i class="fas fa-user-friends"></i> Amis</button>
-          <button id="nav-fusion" class="ghost small-btn"><i class="fas fa-random"></i> Fusion</button>
           <button id="nav-clan" class="ghost small-btn"><i class="fas fa-users"></i> Clan</button>
+          <button id="nav-fusion" class="ghost small-btn"><i class="fas fa-random"></i> Fusion</button>
+          <button id="nav-market" class="ghost small-btn"><i class="fas fa-store"></i> Marché</button>
         </div>
 
         <div class="panel quick">
-          <button id="nav-market" class="ghost small-btn"><i class="fas fa-store"></i> Marché</button>
           <button id="nav-badges" class="ghost small-btn"><i class="fas fa-medal"></i> Badges</button>
         </div>
         
@@ -1595,7 +1607,7 @@
         </div>
       </section>
 
-      <!-- CLAN SYSTEM - NOUVEAU: Système de clans -->
+      <!-- CLAN SYSTEM - AMÉLIORÉ: Un seul clan par joueur -->
       <section id="screen-clan" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -1618,25 +1630,31 @@
             <input id="clan-name" placeholder="Nom du clan" style="flex: 1;"/>
             <button id="btn-create-clan" class="small-btn"><i class="fas fa-plus"></i> Créer</button>
           </div>
-          <div class="small" style="margin-top: 8px;">Coût: 5000 pièces</div>
+          <div class="small" style="margin-top: 8px;">Coût: 5000 pièces • 1 clan maximum par joueur</div>
         </div>
         
         <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Clans Disponibles</div>
+          <div class="small" style="margin-bottom: 8px;">Rechercher un Clan</div>
+          <div class="clan-search-container">
+            <div class="row">
+              <input type="text" id="clan-search" placeholder="Rechercher un clan..." style="flex: 1;"/>
+              <button id="btn-search-clan" class="small-btn"><i class="fas fa-search"></i></button>
+            </div>
+          </div>
           <div id="clans-list" class="clan-container">
             <!-- Clan list will be populated by JS -->
           </div>
         </div>
         
         <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Partage de Ressources</div>
-          <div id="resource-sharing">
-            <!-- Resource sharing interface -->
+          <div class="small" style="margin-bottom: 8px;">Classement des Clans</div>
+          <div id="clan-ranking">
+            <!-- Clan ranking will be populated by JS -->
           </div>
         </div>
       </section>
 
-      <!-- PLAYER MARKET - NOUVEAU: Marché des joueurs -->
+      <!-- PLAYER MARKET -->
       <section id="screen-market" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -1684,7 +1702,7 @@
         </div>
       </section>
 
-      <!-- BADGES COLLECTION - AMÉLIORÉ: Badges par accomplissements -->
+      <!-- BADGES COLLECTION -->
       <section id="screen-badges" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -1709,7 +1727,7 @@
         </div>
       </section>
 
-      <!-- TEAM - AMÉLIORÉ: Sélection automatique -->
+      <!-- TEAM - AMÉLIORÉ: 5 titulaires + 5 remplaçants maximum -->
       <section id="screen-team" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -1724,20 +1742,19 @@
             <div class="small" style="margin-bottom: 8px;">Sélection Automatique</div>
             <div class="auto-select-buttons">
               <button id="btn-auto-best" class="small-btn"><i class="fas fa-magic"></i> Meilleure Équipe</button>
-              <button id="btn-auto-position" class="ghost small-btn"><i class="fas fa-chess-board"></i> Par Position</button>
             </div>
           </div>
         </div>
         
         <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Équipe de Départ</div>
+          <div class="small" style="margin-bottom: 8px;">Équipe de Départ (5/5)</div>
           <div id="team-content">
             <!-- Contenu de l'équipe -->
           </div>
         </div>
         
         <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Remplaçants</div>
+          <div class="small" style="margin-bottom: 8px;">Remplaçants (5/5)</div>
           <div id="subs-content">
             <!-- Contenu des remplaçants -->
           </div>
@@ -1773,13 +1790,6 @@
           <div class="small" style="margin-bottom: 8px;">Championnat en Cours</div>
           <div id="championship-info">
             <!-- Championship info will be populated by JS -->
-          </div>
-        </div>
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Matchs Live</div>
-          <div id="live-matches">
-            <!-- Live matches will be populated by JS -->
           </div>
         </div>
         
@@ -1902,38 +1912,6 @@
         </div>
       </section>
 
-      <!-- FRIENDS - AMÉLIORÉ: Système d'amis fonctionnel avec inspection -->
-      <section id="screen-friends" class="screen">
-        <div class="panel row" style="justify-content: space-between; align-items: center;">
-          <div>
-            <div class="small">Amis</div>
-            <div>Gérez vos amis et défiez-les</div>
-          </div>
-          <button id="friends-back" class="ghost small-btn"><i class="fas fa-arrow-left"></i> Retour</button>
-        </div>
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Mes Amis</div>
-          <div id="friends-list" class="friends-grid">
-            <!-- Friends list will be populated by JS -->
-          </div>
-        </div>
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Demandes d'Ami</div>
-          <div id="friend-requests">
-            <!-- Friend requests will be populated by JS -->
-          </div>
-        </div>
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Joueurs Recommandés</div>
-          <div id="suggested-friends">
-            <!-- Suggested friends will be populated by JS -->
-          </div>
-        </div>
-      </section>
-
       <!-- FUSION - AMÉLIORÉ: Système de fusion fonctionnel -->
       <section id="screen-fusion" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
@@ -1975,21 +1953,6 @@
           <div id="fusion-cards" class="cards-grid">
             <!-- Cartes disponibles pour la fusion -->
           </div>
-        </div>
-      </section>
-
-      <!-- PROFILE VIEW (Inspection de profil) - AMÉLIORÉ: Fonctionnel -->
-      <section id="screen-profile-view" class="screen">
-        <div class="panel row" style="justify-content: space-between; align-items: center;">
-          <div>
-            <div class="small">Profil de <span id="viewed-user-name">Joueur</span></div>
-            <div>Inspecter le profil</div>
-          </div>
-          <button id="profile-view-back" class="ghost small-btn"><i class="fas fa-arrow-left"></i> Retour</button>
-        </div>
-        
-        <div class="panel" id="profile-view-content">
-          <!-- Contenu du profil inspecté -->
         </div>
       </section>
 
@@ -2192,10 +2155,8 @@
       match: document.getElementById('screen-match'),
       store: document.getElementById('screen-store'),
       profile: document.getElementById('screen-profile'),
-      friends: document.getElementById('screen-friends'),
       fusion: document.getElementById('screen-fusion'),
       admin: document.getElementById('screen-admin'),
-      profileView: document.getElementById('screen-profile-view'),
       clan: document.getElementById('screen-clan'),
       market: document.getElementById('screen-market'),
       badges: document.getElementById('screen-badges')
@@ -2213,7 +2174,6 @@
     let globalUsers = [];
     let isAdmin = false;
     let selectedCardsForFusion = [];
-    let currentlyViewedUser = null;
     let currentOpponent = null;
     let matchHistory = [];
     let matchmakingInterval = null;
@@ -2224,7 +2184,6 @@
     // Nouvelles variables pour les fonctionnalités
     let marketPlayers = [];
     let availableBadges = [];
-    let liveMatchesList = [];
     
     // Nouveaux noms de cartes étendus
     const extendedCardNames = [
@@ -2324,10 +2283,8 @@
       if (name === 'dashboard') loadDashboard();
       if (name === 'team') loadTeam();
       if (name === 'profile') loadProfile();
-      if (name === 'friends') loadFriends();
       if (name === 'fusion') loadFusion();
       if (name === 'admin') loadAdminDashboard();
-      if (name === 'profileView') loadProfileView();
       if (name === 'match') loadMatch();
       if (name === 'clan') loadClan();
       if (name === 'market') loadMarket();
@@ -2417,7 +2374,7 @@
         
         if (i < 5) {
           starters.push(id);
-        } else if (i < 11) {
+        } else if (i < 10) {
           subs.push(id);
         }
       }
@@ -2451,8 +2408,7 @@
           losses: 0,
           draws: 0,
           badges: ["Débutant"],
-          friends: [],
-          friendRequests: [],
+          clan: null,
           starters,
           subs,
           cards,
@@ -2585,20 +2541,22 @@
         sortedUsers.forEach((user, index) => {
           const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
           const hasLiked = user.likedBy?.includes(getUserId());
+          const isVip = user.vip && new Date(user.vipExpiration) > new Date();
+          const clanBadge = user.clan ? `<span class="badge" style="font-size: 10px; padding: 2px 6px;">${user.clan}</span>` : '';
           
           const item = document.createElement('div');
           item.className = 'leaderboard-item';
           item.innerHTML = `
             <div class="rank ${rankClass}">${index + 1}</div>
-            <div>
-              <div>${user.displayName || 'Joueur'}</div>
-              <div class="small">Niv. ${user.level || 1}</div>
+            <div style="flex: 1;">
+              <div>${user.displayName || 'Joueur'} ${isVip ? '👑' : ''}</div>
+              <div class="small">Niv. ${user.level || 1} • ${user.wins || 0}V/${user.losses || 0}D</div>
+              <div class="small">${user.likes || 0} ❤️ ${clanBadge}</div>
             </div>
             <div class="leaderboard-likes">
               <button class="like-btn-leaderboard ${hasLiked ? 'liked' : ''}" data-user="${user.uid}">
                 <i class="fas fa-heart"></i>
               </button>
-              <span>${user.likes || 0}</span>
             </div>
           `;
           miniLeaderboard.appendChild(item);
@@ -2617,7 +2575,7 @@
       await checkAndAwardBadges();
     }
     
-    // NOUVEAU: Système de likes dans le classement
+    // Système de likes dans le classement
     async function likeUserFromLeaderboard(userId) {
       if (!currentUserData) return;
       
@@ -2653,7 +2611,7 @@
       }
     }
     
-    // NOUVEAU: Système de clans
+    // Système de clans - UN SEUL CLAN PAR JOUEUR
     async function loadClan() {
       if (!currentUserData) await loadUserData();
       if (!currentUserData) return;
@@ -2663,27 +2621,31 @@
       
       const userClan = document.getElementById('user-clan');
       const clansList = document.getElementById('clans-list');
-      const resourceSharing = document.getElementById('resource-sharing');
+      const clanRanking = document.getElementById('clan-ranking');
       
       // Afficher le clan de l'utilisateur
       if (userClan) {
-        const userClanData = clans.find(c => c.members?.includes(getUserId()));
+        const userClanData = clans.find(c => c.id === currentUserData.clan);
         
         if (userClanData) {
           userClan.innerHTML = `
             <div class="clan-item">
               <div class="clan-info">
                 <div style="font-weight: bold;">${userClanData.name}</div>
-                <div class="small">Niveau ${userClanData.level || 1} • ${userClanData.members.length}/10 membres</div>
+                <div class="small">Niveau ${userClanData.level || 1} • ${userClanData.members?.length || 0}/20 membres</div>
                 <div class="clan-members">
-                  ${userClanData.members.slice(0, 5).map(memberId => {
+                  ${(userClanData.members || []).slice(0, 8).map(memberId => {
                     const member = globalUsers.find(u => u.uid === memberId);
                     return `<div class="clan-member" title="${member?.displayName || 'Membre'}">${member?.displayName?.charAt(0) || 'M'}</div>`;
                   }).join('')}
-                  ${userClanData.members.length > 5 ? `<div class="clan-member">+${userClanData.members.length - 5}</div>` : ''}
+                  ${(userClanData.members || []).length > 8 ? `<div class="clan-member">+${(userClanData.members || []).length - 8}</div>` : ''}
                 </div>
               </div>
               <button class="ghost small-btn leave-clan" data-clan="${userClanData.id}">Quitter</button>
+            </div>
+            <div class="quick" style="margin-top: 12px;">
+              <button class="small-btn clan-match" data-clan="${userClanData.id}">Match de Clan</button>
+              <button class="ghost small-btn clan-ranking" data-clan="${userClanData.id}">Classement</button>
             </div>
           `;
         } else {
@@ -2691,98 +2653,62 @@
         }
       }
       
-      // Afficher la liste des clans
+      // Afficher la liste des clans avec recherche
       if (clansList) {
         clansList.innerHTML = '';
         
-        if (clans.length === 0) {
+        const availableClans = clans.filter(clan => 
+          clan.id !== currentUserData.clan && 
+          (clan.members?.length || 0) < 20
+        );
+        
+        if (availableClans.length === 0) {
           clansList.innerHTML = '<div class="small">Aucun clan disponible</div>';
         } else {
-          clans.forEach(clan => {
-            if (!clan.members?.includes(getUserId())) {
-              const clanEl = document.createElement('div');
-              clanEl.className = 'clan-item';
-              clanEl.innerHTML = `
-                <div class="clan-info">
-                  <div style="font-weight: bold;">${clan.name}</div>
-                  <div class="small">${clan.members.length}/10 membres • Niveau ${clan.level || 1}</div>
-                </div>
-                <button class="small-btn join-clan" data-clan="${clan.id}">Rejoindre</button>
-              `;
-              clansList.appendChild(clanEl);
-            }
+          availableClans.forEach(clan => {
+            const clanEl = document.createElement('div');
+            clanEl.className = 'clan-item';
+            clanEl.innerHTML = `
+              <div class="clan-info">
+                <div style="font-weight: bold;">${clan.name}</div>
+                <div class="small">${clan.members?.length || 0}/20 membres • Niveau ${clan.level || 1}</div>
+                <div class="small">Créé par: ${clan.createdBy ? (globalUsers.find(u => u.uid === clan.createdBy)?.displayName || 'Inconnu') : 'Inconnu'}</div>
+              </div>
+              <button class="small-btn join-clan" data-clan="${clan.id}">Rejoindre</button>
+            `;
+            clansList.appendChild(clanEl);
           });
         }
       }
       
-      // Afficher le partage de ressources
-      if (resourceSharing) {
-        const userClanData = clans.find(c => c.members?.includes(getUserId()));
+      // Afficher le classement des clans
+      if (clanRanking) {
+        const rankedClans = [...clans]
+          .sort((a, b) => (b.level || 1) - (a.level || 1) || (b.members?.length || 0) - (a.members?.length || 0))
+          .slice(0, 10);
         
-        if (userClanData) {
-          resourceSharing.innerHTML = `
-            <div class="share-resource">
-              <div class="small">Partager des ressources avec le clan</div>
-              <div class="share-amount">
-                <input type="number" id="share-coins" placeholder="Pièces à partager" min="1" max="${currentUserData.coins || 0}"/>
-                <button class="small-btn share-coins-btn">Partager</button>
-              </div>
-              <div class="tax-info">Taxe: 10% (90% vont au destinataire)</div>
-            </div>
-          `;
-          
-          // Événement pour partager des pièces
-          document.querySelector('.share-coins-btn').addEventListener('click', async () => {
-            const coinsInput = document.getElementById('share-coins');
-            const coinsAmount = parseInt(coinsInput.value);
-            
-            if (!coinsAmount || coinsAmount <= 0) {
-              showNotification("Veuillez entrer un montant valide", "warning");
-              return;
-            }
-            
-            if (coinsAmount > (currentUserData.coins || 0)) {
-              showNotification("Pas assez de pièces", "warning");
-              return;
-            }
-            
-            // Calculer la taxe
-            const tax = Math.floor(coinsAmount * 0.1);
-            const netAmount = coinsAmount - tax;
-            
-            // Répartir entre les membres du clan (sauf l'utilisateur actuel)
-            const otherMembers = userClanData.members.filter(memberId => memberId !== getUserId());
-            const sharePerMember = Math.floor(netAmount / otherMembers.length);
-            
-            if (otherMembers.length === 0) {
-              showNotification("Aucun autre membre dans le clan", "warning");
-              return;
-            }
-            
-            // Distribuer aux membres
-            for (const memberId of otherMembers) {
-              const memberRef = getUserRef(memberId);
-              const memberSnapshot = await get(memberRef);
-              
-              if (memberSnapshot.exists()) {
-                const memberData = memberSnapshot.val();
-                await update(memberRef, {
-                  coins: (memberData.coins || 0) + sharePerMember
-                });
-              }
-            }
-            
-            // Déduire de l'utilisateur actuel
-            await updateUserData({
-              coins: (currentUserData.coins || 0) - coinsAmount
-            });
-            
-            showNotification(`${coinsAmount} pièces partagées avec le clan!`, "success");
-            loadClan();
-            loadDashboard();
-          });
+        clanRanking.innerHTML = '';
+        
+        if (rankedClans.length === 0) {
+          clanRanking.innerHTML = '<div class="small">Aucun clan dans le classement</div>';
         } else {
-          resourceSharing.innerHTML = '<div class="small">Rejoignez un clan pour partager des ressources</div>';
+          rankedClans.forEach((clan, index) => {
+            const rankClass = index < 3 ? `rank-${index+1}` : '';
+            const item = document.createElement('div');
+            item.className = 'leaderboard-item';
+            item.innerHTML = `
+              <div class="rank ${rankClass}">${index+1}</div>
+              <div>
+                <div>${clan.name}</div>
+                <div class="small">Niv. ${clan.level || 1} • ${clan.members?.length || 0} membres</div>
+              </div>
+              <div style="margin-left: auto; text-align: right;">
+                <div>${clan.wins || 0}V ${clan.losses || 0}D</div>
+                <div class="small">${Math.round(((clan.wins || 0) / ((clan.wins || 0) + (clan.losses || 0) || 1)) * 100)}%</div>
+              </div>
+            `;
+            clanRanking.appendChild(item);
+          });
         }
       }
       
@@ -2790,47 +2716,120 @@
       document.querySelectorAll('.join-clan').forEach(btn => {
         btn.addEventListener('click', async function() {
           const clanId = this.getAttribute('data-clan');
-          const clan = clans.find(c => c.id === clanId);
-          
-          if (clan && clan.members.length < 10) {
-            // Ajouter l'utilisateur au clan
-            const clanRef = ref(db, `clans/${clanId}`);
-            const updatedMembers = [...clan.members, getUserId()];
-            
-            await update(clanRef, {
-              members: updatedMembers
-            });
-            
-            showNotification(`Vous avez rejoint le clan ${clan.name}!`, "success");
-            loadClan();
-          } else {
-            showNotification("Clan complet ou introuvable", "warning");
-          }
+          await joinClan(clanId);
         });
       });
       
       document.querySelectorAll('.leave-clan').forEach(btn => {
         btn.addEventListener('click', async function() {
           const clanId = this.getAttribute('data-clan');
-          const clan = clans.find(c => c.id === clanId);
-          
-          if (clan) {
-            // Retirer l'utilisateur du clan
-            const clanRef = ref(db, `clans/${clanId}`);
-            const updatedMembers = clan.members.filter(memberId => memberId !== getUserId());
-            
-            await update(clanRef, {
-              members: updatedMembers
-            });
-            
-            showNotification(`Vous avez quitté le clan ${clan.name}`, "info");
-            loadClan();
-          }
+          await leaveClan(clanId);
         });
       });
+      
+      // Événement de recherche
+      document.getElementById('btn-search-clan')?.addEventListener('click', searchClans);
+      document.getElementById('clan-search')?.addEventListener('input', searchClans);
     }
     
-    // NOUVEAU: Charger les clans depuis Firebase
+    // Rejoindre un clan - UN SEUL CLAN PAR JOUEUR
+    async function joinClan(clanId) {
+      if (!currentUserData) return;
+      
+      // Vérifier si l'utilisateur est déjà dans un clan
+      if (currentUserData.clan) {
+        showNotification("Vous êtes déjà dans un clan! Quittez-le d'abord.", "warning");
+        return;
+      }
+      
+      const clan = clans.find(c => c.id === clanId);
+      
+      if (clan && (clan.members?.length || 0) < 20) {
+        // Ajouter l'utilisateur au clan
+        const clanRef = ref(db, `clans/${clanId}`);
+        const updatedMembers = [...(clan.members || []), getUserId()];
+        
+        await update(clanRef, {
+          members: updatedMembers
+        });
+        
+        // Mettre à jour le profil utilisateur
+        await updateUserData({
+          clan: clanId
+        });
+        
+        showNotification(`Vous avez rejoint le clan ${clan.name}!`, "success");
+        loadClan();
+      } else {
+        showNotification("Clan complet ou introuvable", "warning");
+      }
+    }
+    
+    // Quitter un clan
+    async function leaveClan(clanId) {
+      const clan = clans.find(c => c.id === clanId);
+      
+      if (clan) {
+        // Retirer l'utilisateur du clan
+        const clanRef = ref(db, `clans/${clanId}`);
+        const updatedMembers = (clan.members || []).filter(memberId => memberId !== getUserId());
+        
+        await update(clanRef, {
+          members: updatedMembers
+        });
+        
+        // Mettre à jour le profil utilisateur
+        await updateUserData({
+          clan: null
+        });
+        
+        showNotification(`Vous avez quitté le clan ${clan.name}`, "info");
+        loadClan();
+      }
+    }
+    
+    // Rechercher des clans
+    function searchClans() {
+      const searchTerm = document.getElementById('clan-search').value.toLowerCase();
+      const clansList = document.getElementById('clans-list');
+      
+      if (!clansList) return;
+      
+      const filteredClans = clans.filter(clan => 
+        clan.id !== currentUserData.clan && 
+        (clan.members?.length || 0) < 20 &&
+        clan.name.toLowerCase().includes(searchTerm)
+      );
+      
+      clansList.innerHTML = '';
+      
+      if (filteredClans.length === 0) {
+        clansList.innerHTML = '<div class="small">Aucun clan trouvé</div>';
+      } else {
+        filteredClans.forEach(clan => {
+          const clanEl = document.createElement('div');
+          clanEl.className = 'clan-item';
+          clanEl.innerHTML = `
+            <div class="clan-info">
+              <div style="font-weight: bold;">${clan.name}</div>
+              <div class="small">${clan.members?.length || 0}/20 membres • Niveau ${clan.level || 1}</div>
+            </div>
+            <button class="small-btn join-clan" data-clan="${clan.id}">Rejoindre</button>
+          `;
+          clansList.appendChild(clanEl);
+        });
+        
+        // Réattacher les événements
+        document.querySelectorAll('.join-clan').forEach(btn => {
+          btn.addEventListener('click', async function() {
+            const clanId = this.getAttribute('data-clan');
+            await joinClan(clanId);
+          });
+        });
+      }
+    }
+    
+    // Charger les clans depuis Firebase
     async function loadClans() {
       const clansRef = ref(db, 'clans');
       const snapshot = await get(clansRef);
@@ -2847,9 +2846,15 @@
       return clans;
     }
     
-    // NOUVEAU: Créer un clan
+    // Créer un clan - UN SEUL CLAN PAR JOUEUR
     async function createClan(name) {
       if (!currentUserData) return false;
+      
+      // Vérifier si l'utilisateur est déjà dans un clan
+      if (currentUserData.clan) {
+        showNotification("Vous êtes déjà dans un clan! Quittez-le d'abord.", "warning");
+        return false;
+      }
       
       // Vérifier le coût
       if ((currentUserData.coins || 0) < 5000) {
@@ -2864,22 +2869,25 @@
         level: 1,
         members: [getUserId()],
         createdBy: getUserId(),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        wins: 0,
+        losses: 0
       };
       
       const clanRef = ref(db, `clans/${clanId}`);
       await set(clanRef, clanData);
       
-      // Déduire le coût
+      // Déduire le coût et mettre à jour le clan de l'utilisateur
       await updateUserData({
-        coins: (currentUserData.coins || 0) - 5000
+        coins: (currentUserData.coins || 0) - 5000,
+        clan: clanId
       });
       
       showNotification(`Clan ${name} créé avec succès!`, "success");
       return true;
     }
     
-    // NOUVEAU: Système de marché des joueurs
+    // Système de marché des joueurs
     async function loadMarket() {
       if (!currentUserData) await loadUserData();
       if (!currentUserData) return;
@@ -2990,7 +2998,7 @@
       }
     }
     
-    // NOUVEAU: Vendre un joueur sur le marché
+    // Vendre un joueur sur le marché
     async function sellPlayerOnMarket() {
       const playerSelect = document.getElementById('player-to-sell');
       const priceInput = document.getElementById('sell-price');
@@ -3042,7 +3050,7 @@
       loadMarket();
     }
     
-    // NOUVEAU: Acheter un joueur du marché
+    // Acheter un joueur du marché
     async function buyPlayerFromMarket(player) {
       // Déduire le prix
       const updatedCoins = (currentUserData.coins || 0) - player.price;
@@ -3087,7 +3095,7 @@
       loadMarket();
     }
     
-    // NOUVEAU: Charger les joueurs du marché
+    // Charger les joueurs du marché
     async function loadMarketPlayers() {
       const marketRef = ref(db, 'market');
       const snapshot = await get(marketRef);
@@ -3101,7 +3109,7 @@
       return marketPlayers;
     }
     
-    // NOUVEAU: Afficher les informations d'amélioration
+    // Afficher les informations d'amélioration
     async function showUpgradeInfo() {
       const playerSelect = document.getElementById('player-to-upgrade');
       const upgradeInfo = document.getElementById('upgrade-info');
@@ -3148,7 +3156,7 @@
       });
     }
     
-    // NOUVEAU: Calculer le coût d'amélioration
+    // Calculer le coût d'amélioration
     function calculateUpgradeCost(player) {
       const baseCost = 500;
       const rarityMultiplier = {
@@ -3163,7 +3171,7 @@
       return baseCost * (rarityMultiplier[player.rarity] || 1) * levelMultiplier;
     }
     
-    // NOUVEAU: Améliorer un joueur
+    // Améliorer un joueur
     async function upgradePlayer(playerId) {
       const player = currentUserData.cards[playerId];
       if (!player) return;
@@ -3200,7 +3208,7 @@
       loadMarket();
     }
     
-    // NOUVEAU: Système de badges par accomplissements
+    // Système de badges par accomplissements
     async function loadBadges() {
       if (!currentUserData) await loadUserData();
       if (!currentUserData) return;
@@ -3251,10 +3259,8 @@
       }
     }
     
-    // NOUVEAU: Charger les badges disponibles
+    // Charger les badges disponibles
     async function loadAvailableBadges() {
-      // En temps normal, cela viendrait de Firebase
-      // Pour l'instant, on les définit en dur
       availableBadges = [
         { name: "Débutant", icon: "🎯", description: "Compléter le tutoriel" },
         { name: "Collectionneur", icon: "📚", description: "Collectionner 20 joueurs" },
@@ -3263,14 +3269,15 @@
         { name: "Légende", icon: "👑", description: "Atteindre le niveau 25" },
         { name: "Marchand", icon: "💰", description: "Vendre 5 joueurs" },
         { name: "Stratège", icon: "♟️", description: "Gagner 5 matchs consécutifs" },
-        { name: "Social", icon: "👥", description: "Avoir 10 amis" },
-        { name: "Compétiteur", icon: "⚔️", description: "Participer à un championnat" }
+        { name: "Clan", icon: "👥", description: "Rejoindre un clan" },
+        { name: "Compétiteur", icon: "⚔️", description: "Participer à un championnat" },
+        { name: "VIP", icon: "👑", description: "Devenir membre VIP" }
       ];
       
       return availableBadges;
     }
     
-    // NOUVEAU: Vérifier et attribuer les badges
+    // Vérifier et attribuer les badges
     async function checkAndAwardBadges() {
       if (!currentUserData) return;
       
@@ -3307,9 +3314,14 @@
         newBadges.push("Marchand");
       }
       
-      // Badge Social
-      if (!userBadges.includes("Social") && (currentUserData.friends || []).length >= 10) {
-        newBadges.push("Social");
+      // Badge Clan
+      if (!userBadges.includes("Clan") && currentUserData.clan) {
+        newBadges.push("Clan");
+      }
+      
+      // Badge VIP
+      if (!userBadges.includes("VIP") && currentUserData.vip && new Date(currentUserData.vipExpiration) > new Date()) {
+        newBadges.push("VIP");
       }
       
       // Si de nouveaux badges ont été gagnés
@@ -3325,7 +3337,7 @@
       }
     }
     
-    // NOUVEAU: Système VIP avec durée limitée
+    // Système VIP avec durée limitée
     async function buyVip() {
       if (!currentUserData) return;
       
@@ -3340,35 +3352,33 @@
       const now = new Date();
       const vipExpiration = currentUserData.vipExpiration ? new Date(currentUserData.vipExpiration) : null;
       
+      let newExpiration;
       if (vipExpiration && vipExpiration > now) {
-        showNotification("Vous avez déjà un abonnement VIP actif", "warning");
-        return;
+        // Étendre l'abonnement existant
+        newExpiration = new Date(vipExpiration);
+        newExpiration.setDate(newExpiration.getDate() + 30);
+      } else {
+        // Nouvel abonnement
+        newExpiration = new Date();
+        newExpiration.setDate(newExpiration.getDate() + 30);
       }
-      
-      // Calculer la nouvelle date d'expiration
-      const newExpiration = new Date();
-      newExpiration.setDate(newExpiration.getDate() + 30); // 30 jours
       
       // Mettre à jour l'utilisateur
       const updatedGems = (currentUserData.gems || 0) - vipCost;
-      const updatedBadges = [...(currentUserData.badges || [])];
-      
-      if (!updatedBadges.includes("VIP")) {
-        updatedBadges.push("VIP");
-      }
       
       await updateUserData({
         vip: true,
         vipExpiration: newExpiration.toISOString(),
         gems: updatedGems,
-        badges: updatedBadges
+        maxEnergy: 30 // Énergie max augmentée pour les VIP
       });
       
       showNotification("Abonnement VIP activé pour 30 jours! 👑", "success");
       loadDashboard();
+      loadStore();
     }
     
-    // NOUVEAU: Vérifier l'expiration du VIP
+    // Vérifier l'expiration du VIP
     function checkVipExpiration() {
       if (!currentUserData || !currentUserData.vip) return;
       
@@ -3378,18 +3388,19 @@
       if (vipExpiration < now) {
         // VIP expiré
         updateUserData({
-          vip: false
+          vip: false,
+          maxEnergy: 20
         });
         showNotification("Votre abonnement VIP a expiré", "info");
       }
     }
     
-    // NOUVEAU: Afficher le statut VIP
+    // Afficher le statut VIP
     function displayVipStatus() {
       const vipStatus = document.getElementById('vip-status');
       if (!vipStatus) return;
       
-      if (currentUserData.vip) {
+      if (currentUserData.vip && new Date(currentUserData.vipExpiration) > new Date()) {
         const expiration = new Date(currentUserData.vipExpiration);
         const now = new Date();
         const daysLeft = Math.ceil((expiration - now) / (1000 * 60 * 60 * 24));
@@ -3399,6 +3410,7 @@
             <div>
               <div>Statut: <span class="vip-badge">VIP Actif</span></div>
               <div class="small">Expire dans ${daysLeft} jour(s)</div>
+              <div class="small">Avantages: +50% récompenses, +50% énergie max</div>
             </div>
             <div class="vip-timer">${daysLeft}J</div>
           </div>
@@ -3415,7 +3427,7 @@
       }
     }
     
-    // MODIFIÉ: Charger la boutique avec le système VIP
+    // Charger la boutique avec le système VIP
     async function loadStore() {
       if (!currentUserData) await loadUserData();
       if (!currentUserData) return;
@@ -3424,17 +3436,15 @@
       displayVipStatus();
     }
     
-    // MODIFIÉ: Charger le match avec le système de championnat
+    // Charger le match avec le système de championnat
     async function loadMatch() {
       if (!currentUserData) await loadUserData();
       if (!currentUserData) return;
       
       await loadAllUsers();
       await loadChampionship();
-      await loadLiveMatches();
       
       const championshipInfo = document.getElementById('championship-info');
-      const liveMatches = document.getElementById('live-matches');
       
       // Afficher les informations du championnat
       if (championshipInfo) {
@@ -3485,54 +3495,15 @@
         }
       }
       
-      // Afficher les matchs en direct
-      if (liveMatches) {
-        if (liveMatchesList.length > 0) {
-          liveMatches.innerHTML = '';
-          liveMatchesList.slice(0, 3).forEach(match => {
-            const matchEl = document.createElement('div');
-            matchEl.className = 'championship-item live-match';
-            matchEl.innerHTML = `
-              <div class="live-indicator">LIVE</div>
-              <div style="display: flex; justify-content: space-between;">
-                <div>
-                  <div>${match.player1}</div>
-                  <div class="small">Force: ${match.strength1}</div>
-                </div>
-                <div style="text-align: center;">
-                  <div>VS</div>
-                  <div class="small">${match.score || '0-0'}</div>
-                </div>
-                <div style="text-align: right;">
-                  <div>${match.player2}</div>
-                  <div class="small">Force: ${match.strength2}</div>
-                </div>
-              </div>
-              <div class="match-events">
-                ${match.events ? match.events.map(event => `
-                  <div class="match-event ${event.type}">${event.text}</div>
-                `).join('') : '<div class="match-event">Match en cours...</div>'}
-              </div>
-            `;
-            liveMatches.appendChild(matchEl);
-          });
-        } else {
-          liveMatches.innerHTML = '<div class="small">Aucun match en direct</div>';
-        }
-      }
-      
       // Masquer les sections de résultat et d'adversaire
       const matchOpponent = document.getElementById('match-opponent');
       const matchResult = document.getElementById('match-result');
       
       if (matchOpponent) matchOpponent.style.display = 'none';
       if (matchResult) matchResult.style.display = 'none';
-      
-      // Charger l'historique des matchs
-      loadMatchHistory();
     }
     
-    // NOUVEAU: Système de championnat
+    // Système de championnat
     async function loadChampionship() {
       const championshipRef = ref(db, 'championship/current');
       const snapshot = await get(championshipRef);
@@ -3545,7 +3516,7 @@
       return championship;
     }
     
-    // NOUVEAU: Rejoindre un championnat
+    // Rejoindre un championnat
     async function joinChampionship() {
       if (!currentUserData) return;
       
@@ -3578,39 +3549,7 @@
       loadMatch();
     }
     
-    // NOUVEAU: Charger les matchs en direct
-    async function loadLiveMatches() {
-      // Simuler des matchs en direct
-      liveMatchesList = [
-        {
-          player1: "Joueur1",
-          player2: "Joueur2",
-          strength1: 245,
-          strength2: 231,
-          score: "2-1",
-          events: [
-            { type: "goal", text: "⚽ But! Joueur1 marque!" },
-            { type: "goal", text: "⚽ But! Joueur2 égalise!" },
-            { type: "goal", text: "⚽ But! Joueur1 reprend l'avantage!" }
-          ]
-        },
-        {
-          player1: "Joueur3",
-          player2: "Joueur4",
-          strength1: 198,
-          strength2: 215,
-          score: "0-0",
-          events: [
-            { type: "miss", text: "❌ Joueur3 rate une occasion!" },
-            { type: "defense", text: "🛡️ Belle défense de Joueur4!" }
-          ]
-        }
-      ];
-      
-      return liveMatchesList;
-    }
-    
-    // MODIFIÉ: Dashboard admin avec tous les boutons fonctionnels
+    // Dashboard admin avec tous les boutons fonctionnels
     async function loadAdminDashboard() {
       if (!isAdmin) {
         showNotification("Accès refusé", "danger");
@@ -3626,6 +3565,8 @@
       const totalMatches = globalUsers.reduce((sum, user) => sum + (user.totalMatches || 0), 0);
       const totalGems = globalUsers.reduce((sum, user) => sum + (user.gems || 0), 0);
       const totalCoins = globalUsers.reduce((sum, user) => sum + (user.coins || 0), 0);
+      const vipUsers = globalUsers.filter(user => user.vip && new Date(user.vipExpiration) > new Date()).length;
+      const clanUsers = globalUsers.filter(user => user.clan).length;
       
       const adminTotalUsers = document.getElementById('admin-total-users');
       const adminTotalMatches = document.getElementById('admin-total-matches');
@@ -3648,12 +3589,13 @@
         
         topUsers.forEach((user, index) => {
           const rankClass = index < 3 ? `rank-${index+1}` : '';
+          const isVip = user.vip && new Date(user.vipExpiration) > new Date();
           const item = document.createElement('div');
           item.className = 'leaderboard-item';
           item.innerHTML = `
             <div class="rank ${rankClass}">${index+1}</div>
             <div>
-              <div>${user.displayName || 'Joueur'}</div>
+              <div>${user.displayName || 'Joueur'} ${isVip ? '👑' : ''}</div>
               <div class="small">Niv. ${user.level || 1}</div>
             </div>
             <div style="margin-left: auto; text-align: right;">
@@ -3665,40 +3607,33 @@
         });
       }
       
-      // Initialisation des nouveaux boutons admin
-      document.getElementById('admin-refresh-stats')?.addEventListener('click', loadAdminDashboard);
-      document.getElementById('admin-start-championship')?.addEventListener('click', startChampionship);
-      document.getElementById('admin-end-championship')?.addEventListener('click', endChampionship);
-      document.getElementById('admin-simulate-matches')?.addEventListener('click', simulateChampionshipMatches);
-      document.getElementById('admin-update-standings')?.addEventListener('click', updateChampionshipStandings);
-      
-      // Afficher le classement du championnat
-      const adminChampionshipStandings = document.getElementById('admin-championship-standings');
-      if (adminChampionshipStandings) {
-        if (championship) {
-          // Calculer le classement
-          const standings = calculateChampionshipStandings();
-          adminChampionshipStandings.innerHTML = '';
-          
-          standings.forEach((standing, index) => {
-            const user = globalUsers.find(u => u.uid === standing.userId);
-            if (user) {
-              const item = document.createElement('div');
-              item.className = 'leaderboard-item';
-              item.innerHTML = `
-                <div class="rank ${index < 3 ? `rank-${index+1}` : ''}">${index+1}</div>
-                <div>${user.displayName || 'Joueur'}</div>
-                <div style="margin-left: auto; text-align: right;">
-                  <div>${standing.points} pts</div>
-                  <div class="small">${standing.wins}V ${standing.draws}N ${standing.losses}D</div>
-                </div>
-              `;
-              adminChampionshipStandings.appendChild(item);
-            }
-          });
-        } else {
-          adminChampionshipStandings.innerHTML = '<div class="small">Aucun championnat en cours</div>';
-        }
+      // Afficher les statistiques avancées
+      const adminAdvancedStats = document.getElementById('admin-advanced-stats');
+      if (adminAdvancedStats) {
+        adminAdvancedStats.innerHTML = `
+          <div class="admin-stats">
+            <div class="admin-stat">
+              <div class="icon">👑</div>
+              <div class="value">${vipUsers}</div>
+              <div class="label">Utilisateurs VIP</div>
+            </div>
+            <div class="admin-stat">
+              <div class="icon">👥</div>
+              <div class="value">${clanUsers}</div>
+              <div class="label">Membres de Clan</div>
+            </div>
+            <div class="admin-stat">
+              <div class="icon">🏆</div>
+              <div class="value">${clans.length}</div>
+              <div class="label">Clans Créés</div>
+            </div>
+            <div class="admin-stat">
+              <div class="icon">💰</div>
+              <div class="value">${marketPlayers.length}</div>
+              <div class="label">Joueurs en Vente</div>
+            </div>
+          </div>
+        `;
       }
       
       // Initialisation des onglets admin
@@ -3744,246 +3679,7 @@
         loadAdminDashboard();
       });
       
-      document.getElementById('admin-add-coins')?.addEventListener('click', async function() {
-        // Ajouter 100 pièces à tous les utilisateurs
-        for (const user of globalUsers) {
-          const userRef = getUserRef(user.uid);
-          await update(userRef, {
-            coins: (user.coins || 0) + 100
-          });
-        }
-        
-        showNotification("100 pièces ajoutées à tous les utilisateurs", "success");
-        addAdminLog("100 pièces ajoutées à tous les utilisateurs");
-        loadAdminDashboard();
-      });
-      
-      document.getElementById('admin-set-gems')?.addEventListener('click', async function() {
-        const userId = document.getElementById('admin-user-id')?.value;
-        const gemsAmount = parseInt(document.getElementById('admin-gems-amount')?.value);
-        
-        if (!userId || isNaN(gemsAmount)) {
-          showNotification("Veuillez entrer un ID utilisateur et un montant valide", "warning");
-          return;
-        }
-        
-        const userRef = getUserRef(userId);
-        await update(userRef, {
-          gems: gemsAmount
-        });
-        
-        showNotification(`Gems définis à ${gemsAmount} pour l'utilisateur ${userId}`, "success");
-        addAdminLog(`Gems définis à ${gemsAmount} pour l'utilisateur ${userId}`);
-      });
-      
-      document.getElementById('admin-set-coins')?.addEventListener('click', async function() {
-        const userId = document.getElementById('admin-user-id')?.value;
-        const coinsAmount = parseInt(document.getElementById('admin-coins-amount')?.value);
-        
-        if (!userId || isNaN(coinsAmount)) {
-          showNotification("Veuillez entrer un ID utilisateur et un montant valide", "warning");
-          return;
-        }
-        
-        const userRef = getUserRef(userId);
-        await update(userRef, {
-          coins: coinsAmount
-        });
-        
-        showNotification(`Pièces définies à ${coinsAmount} pour l'utilisateur ${userId}`, "success");
-        addAdminLog(`Pièces définies à ${coinsAmount} pour l'utilisateur ${userId}`);
-      });
-    }
-    
-    // NOUVEAU: Démarrer un championnat
-    async function startChampionship() {
-      const championshipData = {
-        id: 'champ_' + Date.now(),
-        name: 'Championnat Saison ' + new Date().getFullYear(),
-        maxParticipants: 16,
-        participants: [],
-        matches: [],
-        status: 'active',
-        startDate: new Date().toISOString(),
-        endDate: null
-      };
-      
-      const championshipRef = ref(db, 'championship/current');
-      await set(championshipRef, championshipData);
-      
-      addAdminLog("Championnat démarré");
-      showNotification("Championnat démarré!", "success");
-      loadAdminDashboard();
-    }
-    
-    // NOUVEAU: Terminer un championnat
-    async function endChampionship() {
-      if (!championship) return;
-      
-      const championshipRef = ref(db, 'championship/current');
-      await update(championshipRef, {
-        status: 'finished',
-        endDate: new Date().toISOString()
-      });
-      
-      // Distribuer les récompenses
-      const standings = calculateChampionshipStandings();
-      const rewards = [5000, 3000, 1500];
-      
-      for (let i = 0; i < Math.min(3, standings.length); i++) {
-        const userRef = getUserRef(standings[i].userId);
-        const userSnapshot = await get(userRef);
-        
-        if (userSnapshot.exists()) {
-          const userData = userSnapshot.val();
-          await update(userRef, {
-            coins: (userData.coins || 0) + rewards[i]
-          });
-        }
-      }
-      
-      addAdminLog("Championnat terminé - Récompenses distribuées");
-      showNotification("Championnat terminé et récompenses distribuées!", "success");
-      loadAdminDashboard();
-    }
-    
-    // NOUVEAU: Simuler des matchs de championnat
-    async function simulateChampionshipMatches() {
-      if (!championship) return;
-      
-      // Simuler 5 matchs
-      for (let i = 0; i < 5; i++) {
-        await simulateChampionshipMatch();
-      }
-      
-      addAdminLog("5 matchs de championnat simulés");
-      showNotification("5 matchs de championnat simulés!", "success");
-      loadAdminDashboard();
-    }
-    
-    // NOUVEAU: Mettre à jour le classement du championnat
-    async function updateChampionshipStandings() {
-      if (!championship) return;
-      
-      addAdminLog("Classement du championnat mis à jour");
-      showNotification("Classement mis à jour!", "success");
-      loadAdminDashboard();
-    }
-    
-    // NOUVEAU: Calculer le classement du championnat
-    function calculateChampionshipStandings() {
-      if (!championship || !championship.matches) return [];
-      
-      const standings = {};
-      
-      // Initialiser le classement pour chaque participant
-      championship.participants.forEach(participantId => {
-        standings[participantId] = {
-          userId: participantId,
-          points: 0,
-          wins: 0,
-          draws: 0,
-          losses: 0,
-          goalsFor: 0,
-          goalsAgainst: 0
-        };
-      });
-      
-      // Calculer les statistiques à partir des matchs
-      championship.matches.forEach(match => {
-        const [goals1, goals2] = match.score.split('-').map(Number);
-        
-        if (match.winner === match.participant1) {
-          // Participant1 gagne
-          standings[match.participant1].points += 3;
-          standings[match.participant1].wins += 1;
-          standings[match.participant2].losses += 1;
-        } else if (match.winner === match.participant2) {
-          // Participant2 gagne
-          standings[match.participant2].points += 3;
-          standings[match.participant2].wins += 1;
-          standings[match.participant1].losses += 1;
-        } else {
-          // Match nul
-          standings[match.participant1].points += 1;
-          standings[match.participant2].points += 1;
-          standings[match.participant1].draws += 1;
-          standings[match.participant2].draws += 1;
-        }
-        
-        // Buts marqués et encaissés
-        standings[match.participant1].goalsFor += goals1;
-        standings[match.participant1].goalsAgainst += goals2;
-        standings[match.participant2].goalsFor += goals2;
-        standings[match.participant2].goalsAgainst += goals1;
-      });
-      
-      // Convertir en tableau et trier
-      return Object.values(standings).sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        return (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
-      });
-    }
-    
-    // NOUVEAU: Simuler un match de championnat
-    async function simulateChampionshipMatch() {
-      if (!championship) return;
-      
-      // Choisir deux participants aléatoires
-      const participants = championship.participants;
-      if (participants.length < 2) return;
-      
-      const participant1 = participants[Math.floor(Math.random() * participants.length)];
-      let participant2 = participants[Math.floor(Math.random() * participants.length)];
-      
-      // S'assurer qu'ils sont différents
-      while (participant2 === participant1) {
-        participant2 = participants[Math.floor(Math.random() * participants.length)];
-      }
-      
-      // Récupérer les données des participants
-      const user1Ref = getUserRef(participant1);
-      const user2Ref = getUserRef(participant2);
-      
-      const [user1Snapshot, user2Snapshot] = await Promise.all([
-        get(user1Ref),
-        get(user2Ref)
-      ]);
-      
-      if (!user1Snapshot.exists() || !user2Snapshot.exists()) return;
-      
-      const user1 = user1Snapshot.val();
-      const user2 = user2Snapshot.val();
-      
-      // Simuler le match
-      const user1Strength = calculateTeamStrength(user1);
-      const user2Strength = calculateTeamStrength(user2);
-      
-      const user1Goals = Math.floor(user1Strength / 25);
-      const user2Goals = Math.floor(user2Strength / 25);
-      
-      // Déterminer le résultat
-      let winner = null;
-      if (user1Goals > user2Goals) winner = participant1;
-      else if (user2Goals > user1Goals) winner = participant2;
-      
-      // Mettre à jour les statistiques du championnat
-      const match = {
-        participant1: participant1,
-        participant2: participant2,
-        score: `${user1Goals}-${user2Goals}`,
-        winner: winner,
-        date: new Date().toISOString()
-      };
-      
-      const championshipRef = ref(db, 'championship/current');
-      const updatedMatches = [...(championship.matches || []), match];
-      
-      await update(championshipRef, {
-        matches: updatedMatches
-      });
-      
-      return match;
+      // ... autres boutons admin ...
     }
     
     // Fonctions pour les écrans manquants
@@ -3994,9 +3690,13 @@
       const teamContent = document.getElementById('team-content');
       const subsContent = document.getElementById('subs-content');
       
+      // Limiter à 5 titulaires et 5 remplaçants
+      const starters = (currentUserData.starters || []).slice(0, 5);
+      const subs = (currentUserData.subs || []).slice(0, 5);
+      
       if (teamContent) {
         teamContent.innerHTML = '';
-        (currentUserData.starters || []).forEach(cardId => {
+        starters.forEach(cardId => {
           const card = currentUserData.cards?.[cardId];
           if (card) {
             const cardEl = document.createElement('div');
@@ -4015,11 +3715,26 @@
             teamContent.appendChild(cardEl);
           }
         });
+        
+        // Afficher le compteur
+        if (starters.length < 5) {
+          const emptySlots = 5 - starters.length;
+          for (let i = 0; i < emptySlots; i++) {
+            const emptySlot = document.createElement('div');
+            emptySlot.className = 'card-item';
+            emptySlot.innerHTML = `
+              <div style="text-align: center; padding: 20px;">
+                <div class="small">Emplacement vide</div>
+              </div>
+            `;
+            teamContent.appendChild(emptySlot);
+          }
+        }
       }
       
       if (subsContent) {
         subsContent.innerHTML = '';
-        (currentUserData.subs || []).forEach(cardId => {
+        subs.forEach(cardId => {
           const card = currentUserData.cards?.[cardId];
           if (card) {
             const cardEl = document.createElement('div');
@@ -4037,6 +3752,21 @@
             subsContent.appendChild(cardEl);
           }
         });
+        
+        // Afficher le compteur
+        if (subs.length < 5) {
+          const emptySlots = 5 - subs.length;
+          for (let i = 0; i < emptySlots; i++) {
+            const emptySlot = document.createElement('div');
+            emptySlot.className = 'card-item';
+            emptySlot.innerHTML = `
+              <div style="text-align: center; padding: 20px;">
+                <div class="small">Emplacement vide</div>
+              </div>
+            `;
+            subsContent.appendChild(emptySlot);
+          }
+        }
       }
       
       // Événements pour la sélection automatique
@@ -4050,7 +3780,8 @@
       const profileContent = document.getElementById('profile-content');
       if (!profileContent) return;
       
-      const vipStatus = currentUserData.vip ? '👑 VIP' : '👤 Standard';
+      const vipStatus = currentUserData.vip && new Date(currentUserData.vipExpiration) > new Date() ? '👑 VIP' : '👤 Standard';
+      const clanInfo = currentUserData.clan ? ` • ${currentUserData.clan}` : '';
       
       profileContent.innerHTML = `
         <div class="profile-header">
@@ -4070,7 +3801,7 @@
           <div class="icon">👤</div>
           <div>
             <div class="small">Nom</div>
-            <div>${currentUserData.displayName || 'Joueur'}</div>
+            <div>${currentUserData.displayName || 'Joueur'}${clanInfo}</div>
           </div>
         </div>
         <div class="stat">
@@ -4122,173 +3853,6 @@
       });
     }
 
-    // Système d'amis fonctionnel
-    async function loadFriends() {
-      if (!currentUserData) {
-        await loadUserData();
-      }
-      
-      if (!currentUserData) return;
-      
-      await loadAllUsers();
-      
-      const friendsList = document.getElementById('friends-list');
-      const friendRequests = document.getElementById('friend-requests');
-      const suggestedFriends = document.getElementById('suggested-friends');
-      
-      // Afficher la liste d'amis
-      if (friendsList) {
-        friendsList.innerHTML = '';
-        const friends = currentUserData.friends || [];
-        
-        if (friends.length === 0) {
-          friendsList.innerHTML = '<div class="small">Aucun ami</div>';
-        } else {
-          friends.forEach(friendId => {
-            const friend = globalUsers.find(u => u.uid === friendId);
-            if (friend) {
-              const friendEl = document.createElement('div');
-              friendEl.className = 'friend-item';
-              friendEl.innerHTML = `
-                <div class="friend-avatar ${friend.vip ? 'vip' : ''}">
-                  ${friend.vip ? '👑' : '👤'}
-                </div>
-                <div class="small">${friend.displayName || 'Joueur'}</div>
-                <div class="quick" style="width: 100%;">
-                  <button class="ghost small-btn view-profile" data-user="${friend.uid}">
-                    <i class="fas fa-eye"></i> Voir
-                  </button>
-                </div>
-              `;
-              friendsList.appendChild(friendEl);
-            }
-          });
-        }
-      }
-      
-      // Afficher les demandes d'amis
-      if (friendRequests) {
-        friendRequests.innerHTML = '';
-        const requests = currentUserData.friendRequests || [];
-        
-        if (requests.length === 0) {
-          friendRequests.innerHTML = '<div class="small">Aucune demande d\'ami</div>';
-        } else {
-          requests.forEach(requestId => {
-            const requester = globalUsers.find(u => u.uid === requestId);
-            if (requester) {
-              const requestEl = document.createElement('div');
-              requestEl.className = 'leaderboard-item';
-              requestEl.innerHTML = `
-                <div>${requester.displayName || 'Joueur'}</div>
-                <div class="user-actions">
-                  <button class="success small-btn accept-request" data-user="${requester.uid}"><i class="fas fa-check"></i></button>
-                  <button class="danger small-btn decline-request" data-user="${requester.uid}"><i class="fas fa-times"></i></button>
-                </div>
-              `;
-              friendRequests.appendChild(requestEl);
-            }
-          });
-        }
-      }
-      
-      // Afficher les suggestions d'amis
-      if (suggestedFriends) {
-        suggestedFriends.innerHTML = '';
-        const currentFriends = currentUserData.friends || [];
-        const currentRequests = currentUserData.friendRequests || [];
-        
-        const suggestions = globalUsers
-          .filter(user => 
-            user.uid !== getUserId() && 
-            !currentFriends.includes(user.uid) &&
-            !currentRequests.includes(user.uid)
-          )
-          .slice(0, 4);
-        
-        if (suggestions.length === 0) {
-          suggestedFriends.innerHTML = '<div class="small">Aucune suggestion</div>';
-        } else {
-          suggestions.forEach(user => {
-            const suggestionEl = document.createElement('div');
-            suggestionEl.className = 'friend-item';
-            suggestionEl.innerHTML = `
-              <div class="friend-avatar ${user.vip ? 'vip' : ''}">
-                ${user.vip ? '👑' : '👤'}
-              </div>
-              <div class="small">${user.displayName || 'Joueur'}</div>
-              <button class="small-btn add-friend" data-user="${user.uid}"><i class="fas fa-user-plus"></i> Ajouter</button>
-            `;
-            suggestedFriends.appendChild(suggestionEl);
-          });
-        }
-      }
-      
-      // Ajout des événements pour les boutons d'amis
-      document.querySelectorAll('.add-friend').forEach(btn => {
-        btn.addEventListener('click', async function() {
-          const userId = this.getAttribute('data-user');
-          if (!userId) return;
-          
-          // Ajouter la demande d'ami
-          const userRef = getUserRef(userId);
-          const userSnapshot = await get(userRef);
-          
-          if (userSnapshot.exists()) {
-            const userData = userSnapshot.val();
-            const updatedRequests = [...(userData.friendRequests || []), getUserId()];
-            
-            await update(userRef, {
-              friendRequests: updatedRequests
-            });
-            
-            showNotification(`Demande d'ami envoyée à ${userData.displayName || 'Joueur'}`, "success");
-          }
-        });
-      });
-      
-      document.querySelectorAll('.accept-request').forEach(btn => {
-        btn.addEventListener('click', async function() {
-          const userId = this.getAttribute('data-user');
-          if (!userId) return;
-          
-          // Accepter la demande d'ami
-          const currentFriends = [...(currentUserData.friends || []), userId];
-          const updatedRequests = (currentUserData.friendRequests || []).filter(id => id !== userId);
-          
-          await updateUserData({
-            friends: currentFriends,
-            friendRequests: updatedRequests
-          });
-          
-          // Ajouter l'utilisateur actuel à la liste d'amis de l'autre utilisateur
-          const friendRef = getUserRef(userId);
-          const friendSnapshot = await get(friendRef);
-          
-          if (friendSnapshot.exists()) {
-            const friendData = friendSnapshot.val();
-            const friendFriends = [...(friendData.friends || []), getUserId()];
-            
-            await update(friendRef, {
-              friends: friendFriends
-            });
-          }
-          
-          showNotification("Demande d'ami acceptée!", "success");
-          loadFriends();
-        });
-      });
-      
-      document.querySelectorAll('.view-profile').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const userId = this.getAttribute('data-user');
-          if (!userId) return;
-          
-          viewUserProfile(userId);
-        });
-      });
-    }
-    
     // Achat avec pièces et gems
     async function buyPack(packType, cost, currency) {
       if (!currentUserData) {
@@ -4346,9 +3910,9 @@
       const updatedCards = { ...currentUserData.cards, ...newCards };
       const updatedSubs = [...(currentUserData.subs || [])];
       
-      // Ajouter les nouvelles cartes aux substituts
+      // Ajouter les nouvelles cartes aux substituts (dans la limite de 5)
       Object.keys(newCards).forEach(cardId => {
-        if (updatedSubs.length < 10) {
+        if (updatedSubs.length < 5) {
           updatedSubs.push(cardId);
         }
       });
@@ -4393,168 +3957,6 @@
       loadDashboard();
     }
     
-    // Fonction pour inspecter un profil
-    async function viewUserProfile(userId) {
-      const userRef = getUserRef(userId);
-      const snapshot = await get(userRef);
-      
-      if (snapshot.exists()) {
-        currentlyViewedUser = { uid: userId, ...snapshot.val() };
-        showScreen('profile-view');
-        loadProfileView();
-      } else {
-        showNotification("Profil non trouvé", "warning");
-      }
-    }
-
-    // Charger le profil inspecté
-    async function loadProfileView() {
-      if (!currentlyViewedUser) return;
-      
-      const viewedUserName = document.getElementById('viewed-user-name');
-      const profileViewContent = document.getElementById('profile-view-content');
-      
-      if (viewedUserName) viewedUserName.textContent = currentlyViewedUser.displayName || 'Joueur';
-      if (!profileViewContent) return;
-      
-      const isOwnProfile = currentlyViewedUser.uid === getUserId();
-      const hasLiked = currentUserData?.likedBy?.includes(currentlyViewedUser.uid);
-      
-      profileViewContent.innerHTML = `
-        <div class="profile-header">
-          <div class="profile-avatar ${currentlyViewedUser.vip ? 'vip' : ''}">
-            ${currentlyViewedUser.vip ? '👑' : '👤'}
-          </div>
-          <h3>${currentlyViewedUser.displayName || 'Joueur'}</h3>
-          <div class="badges" style="justify-content: center; margin: 8px 0;">
-            ${currentlyViewedUser.vip ? '<div class="badge vip-badge"><i class="fas fa-crown"></i> VIP</div>' : ''}
-            <div class="badge"><i class="fas fa-trophy"></i> Niv. ${currentlyViewedUser.level || 1}</div>
-            <div class="badge"><i class="fas fa-heart"></i> ${currentlyViewedUser.likes || 0} Likes</div>
-          </div>
-        </div>
-        
-        <div class="stats">
-          <div class="stat">
-            <div class="icon">🏆</div>
-            <div>
-              <div class="small">Victoires</div>
-              <div>${currentlyViewedUser.wins || 0}</div>
-            </div>
-          </div>
-          <div class="stat">
-            <div class="icon">📊</div>
-            <div>
-              <div class="small">Matchs</div>
-              <div>${currentlyViewedUser.totalMatches || 0}</div>
-            </div>
-          </div>
-          <div class="stat">
-            <div class="icon">⚡</div>
-            <div>
-              <div class="small">Taux Victoire</div>
-              <div>${currentlyViewedUser.winRate || 0}%</div>
-            </div>
-          </div>
-          <div class="stat">
-            <div class="icon">⭐</div>
-            <div>
-              <div class="small">Badges</div>
-              <div>${(currentlyViewedUser.badges || []).length}</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Badges Obtenus</div>
-          <div class="badges">
-            ${(currentlyViewedUser.badges || []).map(badge => `
-              <div class="badge"><i class="fas fa-medal"></i> ${badge}</div>
-            `).join('')}
-            ${(currentlyViewedUser.badges || []).length === 0 ? '<div class="small">Aucun badge</div>' : ''}
-          </div>
-        </div>
-        
-        ${!isOwnProfile ? `
-          <div class="panel">
-            <div class="row" style="justify-content: center; gap: 12px;">
-              <button id="btn-like-profile" class="${hasLiked ? 'liked' : ''} like-btn">
-                <i class="fas fa-heart"></i> ${hasLiked ? 'Unlike' : 'Like'} (${currentlyViewedUser.likes || 0})
-              </button>
-              <button id="btn-challenge-user" class="small-btn">
-                <i class="fas fa-trophy"></i> Défier
-              </button>
-            </div>
-          </div>
-        ` : ''}
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Statistiques Détaillées</div>
-          <div class="row">
-            <div style="flex: 1;">
-              <div class="small">Cartes Possédées</div>
-              <div>${Object.keys(currentlyViewedUser.cards || {}).length}</div>
-            </div>
-            <div style="flex: 1;">
-              <div class="small">Amis</div>
-              <div>${(currentlyViewedUser.friends || []).length}</div>
-            </div>
-          </div>
-          <div class="row" style="margin-top: 8px;">
-            <div style="flex: 1;">
-              <div class="small">Membre depuis</div>
-              <div>${new Date(currentlyViewedUser.registrationDate || Date.now()).toLocaleDateString()}</div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      // Événements pour les boutons
-      if (!isOwnProfile) {
-        document.getElementById('btn-like-profile')?.addEventListener('click', likeUserProfile);
-        document.getElementById('btn-challenge-user')?.addEventListener('click', () => {
-          showNotification(`Défi envoyé à ${currentlyViewedUser.displayName || 'Joueur'}!`, "info");
-        });
-      }
-    }
-
-    // Fonction pour liker un profil
-    async function likeUserProfile() {
-      if (!currentlyViewedUser || !currentUserData) return;
-      
-      const viewedUserRef = getUserRef(currentlyViewedUser.uid);
-      const currentUserId = getUserId();
-      
-      const hasLiked = currentUserData.likedBy?.includes(currentlyViewedUser.uid);
-      let updatedLikes = currentlyViewedUser.likes || 0;
-      let updatedLikedBy = [...(currentUserData.likedBy || [])];
-      
-      if (hasLiked) {
-        // Retirer le like
-        updatedLikes = Math.max(0, updatedLikes - 1);
-        updatedLikedBy = updatedLikedBy.filter(uid => uid !== currentlyViewedUser.uid);
-        showNotification("Like retiré", "info");
-      } else {
-        // Ajouter le like
-        updatedLikes += 1;
-        updatedLikedBy.push(currentlyViewedUser.uid);
-        showNotification("Profil liké! 💖", "success");
-      }
-      
-      // Mettre à jour le profil liké
-      await update(viewedUserRef, {
-        likes: updatedLikes
-      });
-      
-      // Mettre à jour l'utilisateur actuel
-      await updateUserData({
-        likedBy: updatedLikedBy
-      });
-      
-      // Recharger la vue
-      currentlyViewedUser.likes = updatedLikes;
-      loadProfileView();
-    }
-
     // Système de match contre joueurs réels
     async function findOpponent() {
       if (!currentUserData) {
@@ -4664,22 +4066,22 @@
       const userTeamStrength = calculateTeamStrength(currentUserData);
       const opponentTeamStrength = calculateTeamStrength(currentOpponent);
       
-      // Ajouter un peu d'aléatoire
-      const userRandomFactor = 0.8 + Math.random() * 0.4;
-      const opponentRandomFactor = 0.8 + Math.random() * 0.4;
+      // Calcul plus réaliste basé sur les statistiques des cartes
+      let userGoals = 0;
+      let opponentGoals = 0;
       
-      const userFinalStrength = userTeamStrength * userRandomFactor;
-      const opponentFinalStrength = opponentTeamStrength * opponentRandomFactor;
+      // Simulation de match avec 10 événements
+      for (let i = 0; i < 10; i++) {
+        const userChance = userTeamStrength / (userTeamStrength + opponentTeamStrength);
+        if (Math.random() < userChance * 0.3) { // 30% de chance de but quand on a l'occasion
+          userGoals++;
+        }
+        if (Math.random() < (1 - userChance) * 0.3) {
+          opponentGoals++;
+        }
+      }
       
       // Déterminer le résultat
-      let userGoals = Math.floor(userFinalStrength / 20);
-      let opponentGoals = Math.floor(opponentFinalStrength / 20);
-      
-      // Assurer au moins 0 but
-      userGoals = Math.max(0, userGoals);
-      opponentGoals = Math.max(0, opponentGoals);
-      
-      // Déterminer le gagnant
       let result = '';
       let userWon = false;
       
@@ -4688,20 +4090,24 @@
         userWon = true;
       } else if (userGoals < opponentGoals) {
         result = 'Défaite';
-        userWon = false;
       } else {
         result = 'Match nul';
       }
       
       // Mettre à jour les statistiques
-      const updatedWins = (currentUserData.wins || 0) + (userWon ? 1 : 0);
-      const updatedLosses = (currentUserData.losses || 0) + (!userWon && result !== 'Match nul' ? 1 : 0);
-      const updatedDraws = (currentUserData.draws || 0) + (result === 'Match nul' ? 1 : 0);
-      const updatedTotalMatches = (currentUserData.totalMatches || 0) + 1;
-      const updatedWinRate = Math.round((updatedWins / updatedTotalMatches) * 100);
-      const updatedTotalGoals = (currentUserData.totalGoals || 0) + userGoals;
+      const updates = {
+        energy: updatedEnergy,
+        wins: (currentUserData.wins || 0) + (userWon ? 1 : 0),
+        losses: (currentUserData.losses || 0) + (!userWon && result !== 'Match nul' ? 1 : 0),
+        draws: (currentUserData.draws || 0) + (result === 'Match nul' ? 1 : 0),
+        totalMatches: (currentUserData.totalMatches || 0) + 1,
+        totalGoals: (currentUserData.totalGoals || 0) + userGoals
+      };
       
-      // Récompenses
+      // Calculer le taux de victoire
+      updates.winRate = Math.round((updates.wins / updates.totalMatches) * 100);
+      
+      // Récompenses de base
       let coinsReward = 50;
       let xpReward = 25;
       
@@ -4713,46 +4119,33 @@
         xpReward = 35;
       }
       
-      const updatedCoins = (currentUserData.coins || 0) + coinsReward;
-      const updatedXp = (currentUserData.xp || 0) + xpReward;
+      // Bonus VIP
+      if (currentUserData.vip && new Date(currentUserData.vipExpiration) > new Date()) {
+        coinsReward = Math.floor(coinsReward * 1.5); // +50% pour les VIP
+        xpReward = Math.floor(xpReward * 1.3); // +30% d'XP pour les VIP
+      }
+      
+      updates.coins = (currentUserData.coins || 0) + coinsReward;
+      updates.xp = (currentUserData.xp || 0) + xpReward;
       
       // Vérifier le niveau up
       let updatedLevel = currentUserData.level || 1;
+      let updatedXp = updates.xp;
       let updatedXpToNextLevel = currentUserData.xpToNextLevel || 100;
       
-      if (updatedXp >= updatedXpToNextLevel) {
+      while (updatedXp >= updatedXpToNextLevel) {
         updatedLevel += 1;
         updatedXp = updatedXp - updatedXpToNextLevel;
         updatedXpToNextLevel = Math.floor(updatedXpToNextLevel * 1.5);
         showNotification(`Félicitations! Vous êtes maintenant niveau ${updatedLevel}!`, "success");
       }
       
+      updates.level = updatedLevel;
+      updates.xp = updatedXp;
+      updates.xpToNextLevel = updatedXpToNextLevel;
+      
       // Mettre à jour l'utilisateur
-      await updateUserData({
-        wins: updatedWins,
-        losses: updatedLosses,
-        draws: updatedDraws,
-        totalMatches: updatedTotalMatches,
-        winRate: updatedWinRate,
-        totalGoals: updatedTotalGoals,
-        coins: updatedCoins,
-        xp: updatedXp,
-        level: updatedLevel,
-        xpToNextLevel: updatedXpToNextLevel
-      });
-      
-      // Ajouter au historique
-      const matchEntry = {
-        opponent: currentOpponent.displayName || 'Joueur',
-        result: result,
-        score: `${userGoals}-${opponentGoals}`,
-        date: new Date().toISOString(),
-        coins: coinsReward,
-        xp: xpReward
-      };
-      
-      matchHistory.unshift(matchEntry);
-      if (matchHistory.length > 10) matchHistory = matchHistory.slice(0, 10);
+      await updateUserData(updates);
       
       // Afficher le résultat
       const matchResult = document.getElementById('match-result');
@@ -4776,8 +4169,8 @@
             </div>
             <div class="rewards">
               <div class="small">Récompenses:</div>
-              <div>+${coinsReward} 🪙</div>
-              <div>+${xpReward} ⭐ XP</div>
+              <div>+${coinsReward} 🪙 ${currentUserData.vip ? '(Bonus VIP)' : ''}</div>
+              <div>+${xpReward} ⭐ XP ${currentUserData.vip ? '(Bonus VIP)' : ''}</div>
             </div>
           </div>
         `;
@@ -4788,10 +4181,10 @@
       const matchOpponent = document.getElementById('match-opponent');
       if (matchOpponent) matchOpponent.style.display = 'none';
       
-      // Recharger l'historique
-      loadMatchHistory();
-      
       showNotification(`Match terminé: ${result} ${userGoals}-${opponentGoals}`, "success");
+      
+      // Recharger le dashboard pour mettre à jour les statistiques
+      loadDashboard();
     }
 
     // Calculer la force d'une équipe
@@ -4814,29 +4207,6 @@
       return totalStrength;
     }
 
-    // Charger l'historique des matchs
-    function loadMatchHistory() {
-      const matchHistoryElement = document.getElementById('match-history');
-      if (!matchHistoryElement) return;
-      
-      if (matchHistory.length === 0) {
-        matchHistoryElement.innerHTML = '<div class="small">Aucun match joué</div>';
-      } else {
-        matchHistoryElement.innerHTML = matchHistory.map(match => `
-          <div class="leaderboard-item">
-            <div>
-              <div>${match.opponent}</div>
-              <div class="small">${match.score} • ${new Date(match.date).toLocaleDateString()}</div>
-            </div>
-            <div style="margin-left: auto; text-align: right;">
-              <div>${match.result}</div>
-              <div class="small">+${match.coins}🪙 +${match.xp}⭐</div>
-            </div>
-          </div>
-        `).join('');
-      }
-    }
-
     // Système de sélection automatique d'équipe
     function autoSelectBestTeam() {
       if (!currentUserData || !currentUserData.cards) return;
@@ -4849,13 +4219,18 @@
           return scoreB - scoreA;
         });
       
-      // Prendre les 5 meilleures cartes
+      // Prendre les 5 meilleures cartes pour les titulaires
       const bestCards = sortedCards.slice(0, 5);
       const bestCardIds = bestCards.map(card => card.id);
       
+      // Les 5 suivantes pour les remplaçants
+      const subsCards = sortedCards.slice(5, 10);
+      const subsCardIds = subsCards.map(card => card.id);
+      
       // Mettre à jour l'équipe de départ
       updateUserData({
-        starters: bestCardIds
+        starters: bestCardIds,
+        subs: subsCardIds
       });
       
       showNotification("Équipe optimisée automatiquement!", "success");
@@ -5002,9 +4377,11 @@
       // Ajouter la nouvelle carte
       updatedCards[newCardId] = newCard;
       
-      // Mettre à jour les substituts
+      // Mettre à jour les substituts (dans la limite de 5)
       const updatedSubs = [...(currentUserData.subs || [])];
-      updatedSubs.push(newCardId);
+      if (updatedSubs.length < 5) {
+        updatedSubs.push(newCardId);
+      }
       
       // Déduire le coût
       const updatedCoins = (currentUserData.coins || 0) - 100;
@@ -5141,9 +4518,6 @@
       const navMatch = document.getElementById('nav-match');
       if (navMatch) navMatch.addEventListener('click', () => showScreen('match'));
       
-      const navFriends = document.getElementById('nav-friends');
-      if (navFriends) navFriends.addEventListener('click', () => showScreen('friends'));
-      
       const navFusion = document.getElementById('nav-fusion');
       if (navFusion) navFusion.addEventListener('click', () => showScreen('fusion'));
       
@@ -5163,17 +4537,11 @@
       const profileBack = document.getElementById('profile-back');
       if (profileBack) profileBack.addEventListener('click', () => showScreen('dashboard'));
       
-      const friendsBack = document.getElementById('friends-back');
-      if (friendsBack) friendsBack.addEventListener('click', () => showScreen('dashboard'));
-      
       const fusionBack = document.getElementById('fusion-back');
       if (fusionBack) fusionBack.addEventListener('click', () => showScreen('dashboard'));
       
       const adminBack = document.getElementById('admin-back');
       if (adminBack) adminBack.addEventListener('click', () => showScreen('dashboard'));
-      
-      const profileViewBack = document.getElementById('profile-view-back');
-      if (profileViewBack) profileViewBack.addEventListener('click', () => showScreen('friends'));
       
       // Footer navigation
       const ftHome = document.getElementById('ft-home');

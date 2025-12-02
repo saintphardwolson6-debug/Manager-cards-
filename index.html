@@ -868,7 +868,6 @@
       }
     }
     
-    /* Styles pour les nouvelles fonctionnalités admin */
     .admin-controls {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -942,7 +941,6 @@
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
 
-    /* Nouveaux styles pour les fonctionnalités ajoutées */
     .vip-badge {
       background: linear-gradient(45deg, var(--gold), var(--legendary)) !important;
       color: black !important;
@@ -972,7 +970,6 @@
       100% { transform: scale(1); }
     }
 
-    /* Styles pour les nouveaux badges */
     .badge.rare {
       background: linear-gradient(45deg, var(--silver), var(--gold));
       color: black;
@@ -1060,7 +1057,6 @@
       transition: width 0.3s ease;
     }
 
-    /* Styles pour la sélection automatique */
     .auto-select-container {
       margin-top: 12px;
       padding-top: 12px;
@@ -1076,7 +1072,6 @@
       flex: 1;
     }
 
-    /* Styles pour la recherche d'adversaire */
     .matchmaking {
       display: flex;
       flex-direction: column;
@@ -1105,7 +1100,6 @@
       100% { transform: scale(1); }
     }
 
-    /* Styles pour la fusion */
     .fusion-interface {
       display: flex;
       flex-direction: column;
@@ -1151,48 +1145,7 @@
       50% { transform: scale(1.1); }
       100% { transform: scale(1); }
     }
-
-    /* NOUVEAUX STYLES POUR LES FONCTIONNALITÉS AJOUTÉES */
     
-    /* Clan System */
-    .clan-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    
-    .clan-item {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .clan-info {
-      flex: 1;
-    }
-    
-    .clan-members {
-      display: flex;
-      margin-top: 8px;
-    }
-    
-    .clan-member {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      margin-right: -6px;
-      border: 2px solid var(--panel);
-    }
-    
-    /* Player Market */
     .market-filters {
       display: flex;
       gap: 8px;
@@ -1229,7 +1182,6 @@
       margin-right: 12px;
     }
     
-    /* Player Upgrade */
     .upgrade-interface {
       display: flex;
       flex-direction: column;
@@ -1254,7 +1206,6 @@
       margin-top: 8px;
     }
     
-    /* Resource Sharing */
     .share-resource {
       background: var(--card);
       border-radius: 12px;
@@ -1278,7 +1229,6 @@
       margin-top: 4px;
     }
     
-    /* Championship System */
     .championship-item {
       background: var(--card);
       border-radius: 12px;
@@ -1300,7 +1250,6 @@
       text-align: center;
     }
     
-    /* Live Match Animation */
     .live-match {
       position: relative;
       overflow: hidden;
@@ -1319,7 +1268,6 @@
       animation: pulse 1.5s infinite;
     }
     
-    /* Badge Collection */
     .badge-collection {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1349,7 +1297,6 @@
       margin-bottom: 8px;
     }
     
-    /* Player Limits */
     .limit-info {
       background: var(--card);
       border-radius: 12px;
@@ -1362,7 +1309,6 @@
       margin: 8px 0;
     }
     
-    /* Enhanced Leaderboard with Likes */
     .leaderboard-likes {
       display: flex;
       align-items: center;
@@ -1383,7 +1329,6 @@
       animation: heart-pulse 0.5s ease;
     }
     
-    /* Enhanced Admin Controls */
     .admin-controls-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -1397,7 +1342,6 @@
       text-align: center;
     }
     
-    /* Enhanced Match System */
     .match-events {
       max-height: 200px;
       overflow-y: auto;
@@ -1425,7 +1369,6 @@
       color: var(--warning);
     }
     
-    /* VIP Timer */
     .vip-timer {
       background: linear-gradient(45deg, var(--gold), var(--legendary));
       color: black;
@@ -1436,7 +1379,6 @@
       margin-left: 8px;
     }
     
-    /* CORRECTION: Bouton Annuler visible */
     #btn-cancel-register {
       display: flex !important;
       background: rgba(255,255,255,0.1);
@@ -1447,7 +1389,6 @@
       background: rgba(255,255,255,0.2);
     }
 
-    /* CORRECTION: Navigation visible */
     #nav-market {
       display: flex;
     }
@@ -1456,7 +1397,6 @@
       display: flex;
     }
 
-    /* CORRECTION: Amélioration du scroll mobile */
     .screen {
       padding-bottom: 20px;
     }
@@ -1470,6 +1410,30 @@
       .panel {
         padding: 12px;
       }
+    }
+
+    .resource-sharing-container {
+      margin-top: 12px;
+    }
+
+    .share-friend-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .share-input-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .share-input-group input {
+      flex: 1;
     }
   </style>
 </head>
@@ -1498,7 +1462,7 @@
     </header>
 
     <main>
-      <!-- LOGIN - CORRIGÉ: Bouton Annuler visible -->
+      <!-- LOGIN -->
       <section id="screen-login" class="screen active">
         <div class="panel col">
           <div style="text-align: center; margin-bottom: 20px;">
@@ -1518,7 +1482,7 @@
         </div>
       </section>
 
-      <!-- REGISTER - CORRIGÉ: Bouton Annuler visible -->
+      <!-- REGISTER -->
       <section id="screen-register" class="screen">
         <div class="panel col" style="max-width: 400px; margin: 0 auto; margin-top: 40px;">
           <div style="text-align: center; margin-bottom: 20px;">
@@ -1536,7 +1500,7 @@
         </div>
       </section>
 
-      <!-- DASHBOARD - AMÉLIORÉ: Système de likes dans classement -->
+      <!-- DASHBOARD -->
       <section id="screen-dashboard" class="screen">
         <div class="panel stats" id="dash-stats">
           <div class="stat">
@@ -1583,7 +1547,7 @@
         <div class="panel">
           <div class="small" style="margin-bottom: 8px;">Classement Global</div>
           <div id="mini-leaderboard">
-            <!-- Mini leaderboard with likes will be populated by JS -->
+            <!-- Mini leaderboard will be populated by JS -->
           </div>
         </div>
         
@@ -1596,11 +1560,10 @@
         <div class="panel quick">
           <button id="nav-friends" class="ghost small-btn"><i class="fas fa-user-friends"></i> Amis</button>
           <button id="nav-fusion" class="ghost small-btn"><i class="fas fa-random"></i> Fusion</button>
-          <button id="nav-clan" class="ghost small-btn"><i class="fas fa-users"></i> Clan</button>
+          <button id="nav-market" class="ghost small-btn"><i class="fas fa-store"></i> Marché</button>
         </div>
 
         <div class="panel quick">
-          <button id="nav-market" class="ghost small-btn"><i class="fas fa-store"></i> Marché</button>
           <button id="nav-badges" class="ghost small-btn"><i class="fas fa-medal"></i> Badges</button>
         </div>
         
@@ -1611,48 +1574,7 @@
         </div>
       </section>
 
-      <!-- CLAN SYSTEM - NOUVEAU: Système de clans -->
-      <section id="screen-clan" class="screen">
-        <div class="panel row" style="justify-content: space-between; align-items: center;">
-          <div>
-            <div class="small">Clan</div>
-            <div>Rejoignez ou créez un clan</div>
-          </div>
-          <button id="clan-back" class="ghost small-btn"><i class="fas fa-arrow-left"></i> Retour</button>
-        </div>
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Mon Clan</div>
-          <div id="user-clan">
-            <!-- User's clan info will be populated by JS -->
-          </div>
-        </div>
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Créer un Clan</div>
-          <div class="row">
-            <input id="clan-name" placeholder="Nom du clan" style="flex: 1;"/>
-            <button id="btn-create-clan" class="small-btn"><i class="fas fa-plus"></i> Créer</button>
-          </div>
-          <div class="small" style="margin-top: 8px;">Coût: 5000 pièces</div>
-        </div>
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Clans Disponibles</div>
-          <div id="clans-list" class="clan-container">
-            <!-- Clan list will be populated by JS -->
-          </div>
-        </div>
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Partage de Ressources</div>
-          <div id="resource-sharing">
-            <!-- Resource sharing interface -->
-          </div>
-        </div>
-      </section>
-
-      <!-- PLAYER MARKET - NOUVEAU: Marché des joueurs -->
+      <!-- PLAYER MARKET -->
       <section id="screen-market" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -1700,7 +1622,7 @@
         </div>
       </section>
 
-      <!-- BADGES COLLECTION - AMÉLIORÉ: Badges par accomplissements -->
+      <!-- BADGES COLLECTION -->
       <section id="screen-badges" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -1725,7 +1647,7 @@
         </div>
       </section>
 
-      <!-- TEAM - AMÉLIORÉ: Sélection automatique -->
+      <!-- TEAM -->
       <section id="screen-team" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -1760,7 +1682,7 @@
         </div>
       </section>
 
-      <!-- MATCH - AMÉLIORÉ: Système de championnat -->
+      <!-- MATCH -->
       <section id="screen-match" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -1786,16 +1708,9 @@
         </div>
         
         <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Championnat en Cours</div>
-          <div id="championship-info">
-            <!-- Championship info will be populated by JS -->
-          </div>
-        </div>
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Matchs Live</div>
-          <div id="live-matches">
-            <!-- Live matches will be populated by JS -->
+          <div class="small" style="margin-bottom: 8px;">Historique des Matchs</div>
+          <div id="match-history">
+            <!-- Match history will be populated by JS -->
           </div>
         </div>
         
@@ -1817,7 +1732,7 @@
         </div>
       </section>
 
-      <!-- STORE - CORRIGÉ: VIP avec durée limitée -->
+      <!-- STORE -->
       <section id="screen-store" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -1918,7 +1833,7 @@
         </div>
       </section>
 
-      <!-- FRIENDS - AMÉLIORÉ: Système d'amis fonctionnel avec inspection -->
+      <!-- FRIENDS -->
       <section id="screen-friends" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -1932,6 +1847,13 @@
           <div class="small" style="margin-bottom: 8px;">Mes Amis</div>
           <div id="friends-list" class="friends-grid">
             <!-- Friends list will be populated by JS -->
+          </div>
+        </div>
+        
+        <div class="panel">
+          <div class="small" style="margin-bottom: 8px;">Partage de Ressources</div>
+          <div id="resource-sharing" class="resource-sharing-container">
+            <!-- Resource sharing interface -->
           </div>
         </div>
         
@@ -1950,7 +1872,7 @@
         </div>
       </section>
 
-      <!-- FUSION - AMÉLIORÉ: Système de fusion fonctionnel -->
+      <!-- FUSION -->
       <section id="screen-fusion" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -1994,22 +1916,7 @@
         </div>
       </section>
 
-      <!-- PROFILE VIEW (Inspection de profil) - AMÉLIORÉ: Fonctionnel -->
-      <section id="screen-profile-view" class="screen">
-        <div class="panel row" style="justify-content: space-between; align-items: center;">
-          <div>
-            <div class="small">Profil de <span id="viewed-user-name">Joueur</span></div>
-            <div>Inspecter le profil</div>
-          </div>
-          <button id="profile-view-back" class="ghost small-btn"><i class="fas fa-arrow-left"></i> Retour</button>
-        </div>
-        
-        <div class="panel" id="profile-view-content">
-          <!-- Contenu du profil inspecté -->
-        </div>
-      </section>
-
-      <!-- ADMIN DASHBOARD - AMÉLIORÉ: Tous les boutons fonctionnels -->
+      <!-- ADMIN DASHBOARD -->
       <section id="screen-admin" class="screen">
         <div class="panel row" style="justify-content: space-between; align-items: center;">
           <div>
@@ -2023,7 +1930,6 @@
           <div class="admin-tab active" data-tab="stats">📊 Statistiques</div>
           <div class="admin-tab" data-tab="users">👥 Utilisateurs</div>
           <div class="admin-tab" data-tab="controls">⚙️ Contrôles</div>
-          <div class="admin-tab" data-tab="championship">🏆 Championnat</div>
         </div>
         
         <!-- Section Statistiques -->
@@ -2051,13 +1957,6 @@
                 <div class="value" id="admin-total-coins">0</div>
                 <div class="label">Pièces en Circulation</div>
               </div>
-            </div>
-          </div>
-          
-          <div class="panel">
-            <div class="small" style="margin-bottom: 8px;">📈 Statistiques Avancées</div>
-            <div id="admin-advanced-stats">
-              <!-- Statistiques avancées -->
             </div>
           </div>
           
@@ -2122,26 +2021,6 @@
             <div class="small" style="margin-bottom: 8px;">📋 Journal d'Administration</div>
             <div class="admin-log" id="admin-log">
               <!-- Journal des actions admin -->
-            </div>
-          </div>
-        </div>
-        
-        <!-- Section Championnat -->
-        <div class="admin-section" id="admin-championship-section">
-          <div class="panel">
-            <div class="small" style="margin-bottom: 8px;">🏆 Gestion du Championnat</div>
-            <div class="admin-controls-grid">
-              <button class="small-btn" id="admin-start-championship"><i class="fas fa-play"></i> Démarrer Championnat</button>
-              <button class="small-btn" id="admin-end-championship"><i class="fas fa-stop"></i> Terminer Championnat</button>
-              <button class="small-btn" id="admin-simulate-matches"><i class="fas fa-dice"></i> Simuler Matchs</button>
-              <button class="small-btn" id="admin-update-standings"><i class="fas fa-sync"></i> Mettre à jour Classement</button>
-            </div>
-          </div>
-          
-          <div class="panel">
-            <div class="small" style="margin-bottom: 8px;">Classement du Championnat</div>
-            <div id="admin-championship-standings">
-              <!-- Classement du championnat -->
             </div>
           </div>
         </div>
@@ -2211,8 +2090,6 @@
       friends: document.getElementById('screen-friends'),
       fusion: document.getElementById('screen-fusion'),
       admin: document.getElementById('screen-admin'),
-      profileView: document.getElementById('screen-profile-view'),
-      clan: document.getElementById('screen-clan'),
       market: document.getElementById('screen-market'),
       badges: document.getElementById('screen-badges')
     };
@@ -2229,20 +2106,13 @@
     let globalUsers = [];
     let isAdmin = false;
     let selectedCardsForFusion = [];
-    let currentlyViewedUser = null;
     let currentOpponent = null;
     let matchHistory = [];
     let matchmakingInterval = null;
-    let clans = [];
-    let championship = null;
-    let playerCollectionLimit = 50;
-    
-    // Nouvelles variables pour les fonctionnalités
     let marketPlayers = [];
     let availableBadges = [];
-    let liveMatchesList = [];
     
-    // Nouveaux noms de cartes étendus
+    // Noms de cartes étendus
     const extendedCardNames = [
       'Messi', 'Ronaldo', 'Neymar', 'Mbappé', 'Haaland', 'Lewandowski', 
       'De Bruyne', 'Salah', 'Mané', 'Kane', 'Benzema', 'Modric', 
@@ -2291,7 +2161,7 @@
       adminLog.scrollTop = adminLog.scrollHeight;
     }
     
-    // CORRECTION: Fonction showScreen améliorée avec tous les écrans
+    // Fonction showScreen améliorée
     function showScreen(name) {
       if (!screens[name]) {
         console.error(`Écran ${name} non trouvé`);
@@ -2336,16 +2206,14 @@
         }
       }
       
-      // CORRECTION: Charger les données pour tous les écrans
+      // Charger les données pour tous les écrans
       if (name === 'dashboard') loadDashboard();
       if (name === 'team') loadTeam();
       if (name === 'profile') loadProfile();
       if (name === 'friends') loadFriends();
       if (name === 'fusion') loadFusion();
       if (name === 'admin') loadAdminDashboard();
-      if (name === 'profileView') loadProfileView();
       if (name === 'match') loadMatch();
-      if (name === 'clan') loadClan();
       if (name === 'market') loadMarket();
       if (name === 'badges') loadBadges();
       if (name === 'store') loadStore();
@@ -2357,7 +2225,7 @@
       }, 10);
     }
     
-    // CORRECTION: Fonction pour vérifier et charger les données utilisateur
+    // Fonction pour vérifier et charger les données utilisateur
     async function ensureUserData() {
       if (!currentUserData) {
         await loadUserData();
@@ -2483,8 +2351,6 @@
           cards,
           matchHistory: {},
           lastDailyReward: null,
-          likes: 0,
-          likedBy: [],
           totalMatches: 0,
           winRate: 0,
           totalGoals: 0,
@@ -2595,42 +2461,33 @@
       // Charger tous les utilisateurs pour le classement
       await loadAllUsers();
       
-      // Populate mini leaderboard with likes
+      // Populate mini leaderboard with stats
       const miniLeaderboard = document.getElementById('mini-leaderboard');
       if (miniLeaderboard) {
         const sortedUsers = [...globalUsers]
-          .sort((a, b) => (b.likes || 0) - (a.likes || 0) || (b.level || 1) - (a.level || 1))
+          .sort((a, b) => {
+            // Score basé sur les statistiques: niveau * 1000 + victoires * 100 + buts
+            const scoreA = (a.level || 1) * 1000 + (a.wins || 0) * 100 + (a.totalGoals || 0);
+            const scoreB = (b.level || 1) * 1000 + (b.wins || 0) * 100 + (b.totalGoals || 0);
+            return scoreB - scoreA;
+          })
           .slice(0, 5);
         
         miniLeaderboard.innerHTML = '';
         sortedUsers.forEach((user, index) => {
           const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
-          const hasLiked = user.likedBy?.includes(getUserId());
+          const vipBadge = user.vip ? '<span class="vip-badge" style="padding: 2px 6px; font-size: 10px; margin-left: 5px;">VIP</span>' : '';
           
           const item = document.createElement('div');
           item.className = 'leaderboard-item';
           item.innerHTML = `
             <div class="rank ${rankClass}">${index + 1}</div>
             <div>
-              <div>${user.displayName || 'Joueur'}</div>
-              <div class="small">Niv. ${user.level || 1}</div>
-            </div>
-            <div class="leaderboard-likes">
-              <button class="like-btn-leaderboard ${hasLiked ? 'liked' : ''}" data-user="${user.uid}">
-                <i class="fas fa-heart"></i>
-              </button>
-              <span>${user.likes || 0}</span>
+              <div>${user.displayName || 'Joueur'}${vipBadge}</div>
+              <div class="small">Niv. ${user.level || 1} • ${user.wins || 0}V/${user.losses || 0}D • ${user.totalGoals || 0}⚽</div>
             </div>
           `;
           miniLeaderboard.appendChild(item);
-        });
-        
-        // Événements pour les boutons like dans le classement
-        document.querySelectorAll('.like-btn-leaderboard').forEach(btn => {
-          btn.addEventListener('click', function() {
-            const userId = this.getAttribute('data-user');
-            likeUserFromLeaderboard(userId);
-          });
         });
       }
       
@@ -2638,588 +2495,7 @@
       await checkAndAwardBadges();
     }
     
-    // NOUVEAU: Système de likes dans le classement
-    async function likeUserFromLeaderboard(userId) {
-      if (!currentUserData) return;
-      
-      const userRef = getUserRef(userId);
-      const snapshot = await get(userRef);
-      
-      if (snapshot.exists()) {
-        const userData = snapshot.val();
-        const hasLiked = userData.likedBy?.includes(getUserId());
-        let updatedLikes = userData.likes || 0;
-        let updatedLikedBy = [...(userData.likedBy || [])];
-        
-        if (hasLiked) {
-          // Retirer le like
-          updatedLikes = Math.max(0, updatedLikes - 1);
-          updatedLikedBy = updatedLikedBy.filter(uid => uid !== getUserId());
-          showNotification("Like retiré", "info");
-        } else {
-          // Ajouter le like
-          updatedLikes += 1;
-          updatedLikedBy.push(getUserId());
-          showNotification("Joueur liké! 💖", "success");
-        }
-        
-        // Mettre à jour le profil liké
-        await update(userRef, {
-          likes: updatedLikes,
-          likedBy: updatedLikedBy
-        });
-        
-        // Recharger le dashboard pour mettre à jour l'affichage
-        loadDashboard();
-      }
-    }
-    
-    // NOUVEAU: Système de clans
-    async function loadClan() {
-      if (!await ensureUserData()) return;
-      
-      await loadAllUsers();
-      await loadClans();
-      
-      const userClan = document.getElementById('user-clan');
-      const clansList = document.getElementById('clans-list');
-      const resourceSharing = document.getElementById('resource-sharing');
-      
-      // Afficher le clan de l'utilisateur
-      if (userClan) {
-        const userClanData = clans.find(c => c.members?.includes(getUserId()));
-        
-        if (userClanData) {
-          userClan.innerHTML = `
-            <div class="clan-item">
-              <div class="clan-info">
-                <div style="font-weight: bold;">${userClanData.name}</div>
-                <div class="small">Niveau ${userClanData.level || 1} • ${userClanData.members.length}/10 membres</div>
-                <div class="clan-members">
-                  ${userClanData.members.slice(0, 5).map(memberId => {
-                    const member = globalUsers.find(u => u.uid === memberId);
-                    return `<div class="clan-member" title="${member?.displayName || 'Membre'}">${member?.displayName?.charAt(0) || 'M'}</div>`;
-                  }).join('')}
-                  ${userClanData.members.length > 5 ? `<div class="clan-member">+${userClanData.members.length - 5}</div>` : ''}
-                </div>
-              </div>
-              <button class="ghost small-btn leave-clan" data-clan="${userClanData.id}">Quitter</button>
-            </div>
-          `;
-        } else {
-          userClan.innerHTML = '<div class="small">Vous n\'êtes dans aucun clan</div>';
-        }
-      }
-      
-      // Afficher la liste des clans
-      if (clansList) {
-        clansList.innerHTML = '';
-        
-        if (clans.length === 0) {
-          clansList.innerHTML = '<div class="small">Aucun clan disponible</div>';
-        } else {
-          clans.forEach(clan => {
-            if (!clan.members?.includes(getUserId())) {
-              const clanEl = document.createElement('div');
-              clanEl.className = 'clan-item';
-              clanEl.innerHTML = `
-                <div class="clan-info">
-                  <div style="font-weight: bold;">${clan.name}</div>
-                  <div class="small">${clan.members.length}/10 membres • Niveau ${clan.level || 1}</div>
-                </div>
-                <button class="small-btn join-clan" data-clan="${clan.id}">Rejoindre</button>
-              `;
-              clansList.appendChild(clanEl);
-            }
-          });
-        }
-      }
-      
-      // Afficher le partage de ressources
-      if (resourceSharing) {
-        const userClanData = clans.find(c => c.members?.includes(getUserId()));
-        
-        if (userClanData) {
-          resourceSharing.innerHTML = `
-            <div class="share-resource">
-              <div class="small">Partager des ressources avec le clan</div>
-              <div class="share-amount">
-                <input type="number" id="share-coins" placeholder="Pièces à partager" min="1" max="${currentUserData.coins || 0}"/>
-                <button class="small-btn share-coins-btn">Partager</button>
-              </div>
-              <div class="tax-info">Taxe: 10% (90% vont au destinataire)</div>
-            </div>
-          `;
-          
-          // Événement pour partager des pièces
-          document.querySelector('.share-coins-btn').addEventListener('click', async () => {
-            const coinsInput = document.getElementById('share-coins');
-            const coinsAmount = parseInt(coinsInput.value);
-            
-            if (!coinsAmount || coinsAmount <= 0) {
-              showNotification("Veuillez entrer un montant valide", "warning");
-              return;
-            }
-            
-            if (coinsAmount > (currentUserData.coins || 0)) {
-              showNotification("Pas assez de pièces", "warning");
-              return;
-            }
-            
-            // Calculer la taxe
-            const tax = Math.floor(coinsAmount * 0.1);
-            const netAmount = coinsAmount - tax;
-            
-            // Répartir entre les membres du clan (sauf l'utilisateur actuel)
-            const otherMembers = userClanData.members.filter(memberId => memberId !== getUserId());
-            const sharePerMember = Math.floor(netAmount / otherMembers.length);
-            
-            if (otherMembers.length === 0) {
-              showNotification("Aucun autre membre dans le clan", "warning");
-              return;
-            }
-            
-            // Distribuer aux membres
-            for (const memberId of otherMembers) {
-              const memberRef = getUserRef(memberId);
-              const memberSnapshot = await get(memberRef);
-              
-              if (memberSnapshot.exists()) {
-                const memberData = memberSnapshot.val();
-                await update(memberRef, {
-                  coins: (memberData.coins || 0) + sharePerMember
-                });
-              }
-            }
-            
-            // Déduire de l'utilisateur actuel
-            await updateUserData({
-              coins: (currentUserData.coins || 0) - coinsAmount
-            });
-            
-            showNotification(`${coinsAmount} pièces partagées avec le clan!`, "success");
-            loadClan();
-            loadDashboard();
-          });
-        } else {
-          resourceSharing.innerHTML = '<div class="small">Rejoignez un clan pour partager des ressources</div>';
-        }
-      }
-      
-      // Événements pour les boutons de clan
-      document.querySelectorAll('.join-clan').forEach(btn => {
-        btn.addEventListener('click', async function() {
-          const clanId = this.getAttribute('data-clan');
-          const clan = clans.find(c => c.id === clanId);
-          
-          if (clan && clan.members.length < 10) {
-            // Ajouter l'utilisateur au clan
-            const clanRef = ref(db, `clans/${clanId}`);
-            const updatedMembers = [...clan.members, getUserId()];
-            
-            await update(clanRef, {
-              members: updatedMembers
-            });
-            
-            showNotification(`Vous avez rejoint le clan ${clan.name}!`, "success");
-            loadClan();
-          } else {
-            showNotification("Clan complet ou introuvable", "warning");
-          }
-        });
-      });
-      
-      document.querySelectorAll('.leave-clan').forEach(btn => {
-        btn.addEventListener('click', async function() {
-          const clanId = this.getAttribute('data-clan');
-          const clan = clans.find(c => c.id === clanId);
-          
-          if (clan) {
-            // Retirer l'utilisateur du clan
-            const clanRef = ref(db, `clans/${clanId}`);
-            const updatedMembers = clan.members.filter(memberId => memberId !== getUserId());
-            
-            await update(clanRef, {
-              members: updatedMembers
-            });
-            
-            showNotification(`Vous avez quitté le clan ${clan.name}`, "info");
-            loadClan();
-          }
-        });
-      });
-    }
-    
-    // NOUVEAU: Charger les clans depuis Firebase
-    async function loadClans() {
-      const clansRef = ref(db, 'clans');
-      const snapshot = await get(clansRef);
-      
-      if (snapshot.exists()) {
-        const clansData = snapshot.val();
-        clans = Object.entries(clansData).map(([id, clan]) => ({
-          id,
-          ...clan
-        }));
-      } else {
-        clans = [];
-      }
-      return clans;
-    }
-    
-    // NOUVEAU: Créer un clan
-    async function createClan(name) {
-      if (!currentUserData) return false;
-      
-      // Vérifier le coût
-      if ((currentUserData.coins || 0) < 5000) {
-        showNotification("Pas assez de pièces pour créer un clan (5000 pièces requises)", "warning");
-        return false;
-      }
-      
-      const clanId = 'clan' + Date.now();
-      const clanData = {
-        id: clanId,
-        name: name,
-        level: 1,
-        members: [getUserId()],
-        createdBy: getUserId(),
-        createdAt: new Date().toISOString()
-      };
-      
-      const clanRef = ref(db, `clans/${clanId}`);
-      await set(clanRef, clanData);
-      
-      // Déduire le coût
-      await updateUserData({
-        coins: (currentUserData.coins || 0) - 5000
-      });
-      
-      showNotification(`Clan ${name} créé avec succès!`, "success");
-      return true;
-    }
-    
-    // NOUVEAU: Système de marché des joueurs
-    async function loadMarket() {
-      if (!await ensureUserData()) return;
-      
-      await loadAllUsers();
-      await loadMarketPlayers();
-      
-      const sellPlayer = document.getElementById('sell-player');
-      const upgradePlayer = document.getElementById('upgrade-player');
-      const marketPlayersEl = document.getElementById('market-players');
-      
-      // Afficher l'interface de vente
-      if (sellPlayer) {
-        const userCards = Object.values(currentUserData.cards || {});
-        sellPlayer.innerHTML = `
-          <div class="small">Sélectionnez un joueur à vendre</div>
-          <select id="player-to-sell" style="width: 100%; margin: 8px 0;">
-            <option value="">Choisir un joueur</option>
-            ${userCards.map(card => `
-              <option value="${card.id}" data-rarity="${card.rarity}">${card.name} (${card.rarity}) - ⚔️${card.attack} 🛡️${card.defense} ⚡${card.speed}</option>
-            `).join('')}
-          </select>
-          <div class="row">
-            <input type="number" id="sell-price" placeholder="Prix en pièces" min="100" style="flex: 1;"/>
-            <button class="small-btn" id="btn-sell-player">Vendre</button>
-          </div>
-        `;
-        
-        // Événement pour vendre un joueur
-        document.getElementById('btn-sell-player').addEventListener('click', sellPlayerOnMarket);
-      }
-      
-      // Afficher l'interface d'amélioration
-      if (upgradePlayer) {
-        const userCards = Object.values(currentUserData.cards || {});
-        upgradePlayer.innerHTML = `
-          <div class="small">Sélectionnez un joueur à améliorer</div>
-          <select id="player-to-upgrade" style="width: 100%; margin: 8px 0;">
-            <option value="">Choisir un joueur</option>
-            ${userCards.map(card => `
-              <option value="${card.id}" data-rarity="${card.rarity}">${card.name} (${card.rarity}) - Niv. ${card.level || 1}</option>
-            `).join('')}
-          </select>
-          <div id="upgrade-info" style="margin-top: 8px;">
-            <!-- Informations d'amélioration -->
-          </div>
-        `;
-        
-        // Événement pour changer de joueur à améliorer
-        document.getElementById('player-to-upgrade').addEventListener('change', showUpgradeInfo);
-      }
-      
-      // Afficher les joueurs en vente
-      if (marketPlayersEl) {
-        marketPlayersEl.innerHTML = '';
-        
-        if (marketPlayers.length === 0) {
-          marketPlayersEl.innerHTML = '<div class="small">Aucun joueur en vente</div>';
-        } else {
-          marketPlayers.forEach(player => {
-            if (player.sellerId !== getUserId()) {
-              const playerEl = document.createElement('div');
-              playerEl.className = 'player-card-market';
-              playerEl.innerHTML = `
-                <div class="player-info">
-                  <div style="font-weight: bold;">${player.name}</div>
-                  <div class="small">${player.rarity} • ${player.position} • Niv. ${player.level || 1}</div>
-                  <div class="card-stats">
-                    <span>⚔️ ${player.attack}</span>
-                    <span>🛡️ ${player.defense}</span>
-                    <span>⚡ ${player.speed}</span>
-                  </div>
-                </div>
-                <div class="player-price">
-                  <div>${player.price} 🪙</div>
-                  <button class="small-btn buy-player-btn" data-player="${player.id}">Acheter</button>
-                </div>
-              `;
-              marketPlayersEl.appendChild(playerEl);
-            }
-          });
-        }
-        
-        // Événements pour acheter des joueurs
-        document.querySelectorAll('.buy-player-btn').forEach(btn => {
-          btn.addEventListener('click', async function() {
-            const playerId = this.getAttribute('data-player');
-            const player = marketPlayers.find(p => p.id === playerId);
-            
-            if (!player) return;
-            
-            if ((currentUserData.coins || 0) < player.price) {
-              showNotification("Pas assez de pièces pour acheter ce joueur", "warning");
-              return;
-            }
-            
-            // Vérifier la limite de collection
-            const userCardsCount = Object.keys(currentUserData.cards || {}).length;
-            if (userCardsCount >= playerCollectionLimit) {
-              showNotification(`Limite de collection atteinte (${playerCollectionLimit} joueurs maximum)`, "warning");
-              return;
-            }
-            
-            // Acheter le joueur
-            await buyPlayerFromMarket(player);
-          });
-        });
-      }
-    }
-    
-    // NOUVEAU: Vendre un joueur sur le marché
-    async function sellPlayerOnMarket() {
-      const playerSelect = document.getElementById('player-to-sell');
-      const priceInput = document.getElementById('sell-price');
-      
-      const playerId = playerSelect.value;
-      const price = parseInt(priceInput.value);
-      
-      if (!playerId || !price || price < 100) {
-        showNotification("Veuillez sélectionner un joueur et entrer un prix valide (min. 100 pièces)", "warning");
-        return;
-      }
-      
-      const player = currentUserData.cards[playerId];
-      if (!player) return;
-      
-      // Vérifier que le joueur n'est pas dans l'équipe de départ
-      if ((currentUserData.starters || []).includes(playerId)) {
-        showNotification("Impossible de vendre un joueur de l'équipe de départ", "warning");
-        return;
-      }
-      
-      // Retirer le joueur de la collection
-      const updatedCards = { ...currentUserData.cards };
-      delete updatedCards[playerId];
-      
-      const updatedSubs = (currentUserData.subs || []).filter(id => id !== playerId);
-      
-      // Ajouter le joueur au marché
-      const marketPlayer = {
-        id: 'market_' + Date.now(),
-        ...player,
-        sellerId: getUserId(),
-        sellerName: currentUserData.displayName || 'Joueur',
-        price: price,
-        listedAt: new Date().toISOString()
-      };
-      
-      const marketRef = ref(db, `market/${marketPlayer.id}`);
-      await set(marketRef, marketPlayer);
-      
-      // Mettre à jour l'utilisateur
-      await updateUserData({
-        cards: updatedCards,
-        subs: updatedSubs,
-        playersSold: (currentUserData.playersSold || 0) + 1
-      });
-      
-      showNotification(`${player.name} mis en vente pour ${price} pièces!`, "success");
-      loadMarket();
-    }
-    
-    // NOUVEAU: Acheter un joueur du marché
-    async function buyPlayerFromMarket(player) {
-      // Déduire le prix
-      const updatedCoins = (currentUserData.coins || 0) - player.price;
-      
-      // Ajouter le joueur à la collection
-      const playerId = 'card' + Date.now();
-      const updatedCards = {
-        ...currentUserData.cards,
-        [playerId]: {
-          ...player,
-          id: playerId
-        }
-      };
-      
-      const updatedSubs = [...(currentUserData.subs || []), playerId];
-      
-      // Verser les pièces au vendeur (avec taxe de 10%)
-      const sellerRef = getUserRef(player.sellerId);
-      const sellerSnapshot = await get(sellerRef);
-      
-      if (sellerSnapshot.exists()) {
-        const sellerData = sellerSnapshot.val();
-        const sellerRevenue = Math.floor(player.price * 0.9); // 10% de taxe
-        
-        await update(sellerRef, {
-          coins: (sellerData.coins || 0) + sellerRevenue
-        });
-      }
-      
-      // Retirer le joueur du marché
-      const marketRef = ref(db, `market/${player.id}`);
-      await remove(marketRef);
-      
-      // Mettre à jour l'utilisateur actuel
-      await updateUserData({
-        coins: updatedCoins,
-        cards: updatedCards,
-        subs: updatedSubs
-      });
-      
-      showNotification(`${player.name} acheté pour ${player.price} pièces!`, "success");
-      loadMarket();
-    }
-    
-    // NOUVEAU: Charger les joueurs du marché
-    async function loadMarketPlayers() {
-      const marketRef = ref(db, 'market');
-      const snapshot = await get(marketRef);
-      
-      if (snapshot.exists()) {
-        const marketData = snapshot.val();
-        marketPlayers = Object.values(marketData);
-      } else {
-        marketPlayers = [];
-      }
-      return marketPlayers;
-    }
-    
-    // NOUVEAU: Afficher les informations d'amélioration
-    async function showUpgradeInfo() {
-      const playerSelect = document.getElementById('player-to-upgrade');
-      const upgradeInfo = document.getElementById('upgrade-info');
-      
-      const playerId = playerSelect.value;
-      if (!playerId) {
-        upgradeInfo.innerHTML = '';
-        return;
-      }
-      
-      const player = currentUserData.cards[playerId];
-      if (!player) return;
-      
-      const upgradeCost = calculateUpgradeCost(player);
-      const canUpgrade = (currentUserData.coins || 0) >= upgradeCost;
-      
-      upgradeInfo.innerHTML = `
-        <div class="upgrade-stats">
-          <div>
-            <div class="small">Attaque</div>
-            <div>${player.attack} → ${player.attack + 5}</div>
-          </div>
-          <div>
-            <div class="small">Défense</div>
-            <div>${player.defense} → ${player.defense + 3}</div>
-          </div>
-          <div>
-            <div class="small">Vitesse</div>
-            <div>${player.speed} → ${player.speed + 2}</div>
-          </div>
-        </div>
-        <div class="upgrade-cost">
-          <div>Coût:</div>
-          <div>${upgradeCost} 🪙</div>
-        </div>
-        <button class="upgrade-btn small-btn ${canUpgrade ? 'success' : 'ghost'}" id="btn-upgrade-player" ${!canUpgrade ? 'disabled' : ''}>
-          <i class="fas fa-arrow-up"></i> Améliorer
-        </button>
-      `;
-      
-      // Événement pour améliorer le joueur
-      document.getElementById('btn-upgrade-player').addEventListener('click', () => {
-        upgradePlayer(playerId);
-      });
-    }
-    
-    // NOUVEAU: Calculer le coût d'amélioration
-    function calculateUpgradeCost(player) {
-      const baseCost = 500;
-      const rarityMultiplier = {
-        'bronze': 1,
-        'silver': 2,
-        'gold': 4,
-        'legendary': 8
-      };
-      
-      const levelMultiplier = player.level || 1;
-      
-      return baseCost * (rarityMultiplier[player.rarity] || 1) * levelMultiplier;
-    }
-    
-    // NOUVEAU: Améliorer un joueur
-    async function upgradePlayer(playerId) {
-      const player = currentUserData.cards[playerId];
-      if (!player) return;
-      
-      const upgradeCost = calculateUpgradeCost(player);
-      
-      if ((currentUserData.coins || 0) < upgradeCost) {
-        showNotification("Pas assez de pièces pour améliorer ce joueur", "warning");
-        return;
-      }
-      
-      // Améliorer les statistiques
-      const updatedCards = {
-        ...currentUserData.cards,
-        [playerId]: {
-          ...player,
-          attack: player.attack + 5,
-          defense: player.defense + 3,
-          speed: player.speed + 2,
-          level: (player.level || 1) + 1
-        }
-      };
-      
-      // Déduire le coût
-      const updatedCoins = (currentUserData.coins || 0) - upgradeCost;
-      
-      // Mettre à jour l'utilisateur
-      await updateUserData({
-        coins: updatedCoins,
-        cards: updatedCards
-      });
-      
-      showNotification(`${player.name} amélioré au niveau ${(player.level || 1) + 1}!`, "success");
-      loadMarket();
-    }
-    
-    // NOUVEAU: Système de badges par accomplissements
+    // Système de badges par accomplissements
     async function loadBadges() {
       if (!await ensureUserData()) return;
       
@@ -3269,7 +2545,7 @@
       }
     }
     
-    // NOUVEAU: Charger les badges disponibles
+    // Charger les badges disponibles
     async function loadAvailableBadges() {
       // En temps normal, cela viendrait de Firebase
       // Pour l'instant, on les définit en dur
@@ -3282,13 +2558,13 @@
         { name: "Marchand", icon: "💰", description: "Vendre 5 joueurs" },
         { name: "Stratège", icon: "♟️", description: "Gagner 5 matchs consécutifs" },
         { name: "Social", icon: "👥", description: "Avoir 10 amis" },
-        { name: "Compétiteur", icon: "⚔️", description: "Participer à un championnat" }
+        { name: "VIP", icon: "👑", description: "Devenir membre VIP" }
       ];
       
       return availableBadges;
     }
     
-    // NOUVEAU: Vérifier et attribuer les badges
+    // Vérifier et attribuer les badges
     async function checkAndAwardBadges() {
       if (!currentUserData) return;
       
@@ -3330,6 +2606,11 @@
         newBadges.push("Social");
       }
       
+      // Badge VIP
+      if (!userBadges.includes("VIP") && currentUserData.vip) {
+        newBadges.push("VIP");
+      }
+      
       // Si de nouveaux badges ont été gagnés
       if (newBadges.length > 0) {
         const updatedBadges = [...userBadges, ...newBadges];
@@ -3343,7 +2624,7 @@
       }
     }
     
-    // NOUVEAU: Système VIP avec durée limitée
+    // Système VIP avec durée limitée
     async function buyVip() {
       if (!currentUserData) return;
       
@@ -3386,7 +2667,7 @@
       loadDashboard();
     }
     
-    // NOUVEAU: Vérifier l'expiration du VIP
+    // Vérifier l'expiration du VIP
     function checkVipExpiration() {
       if (!currentUserData || !currentUserData.vip) return;
       
@@ -3402,7 +2683,7 @@
       }
     }
     
-    // NOUVEAU: Afficher le statut VIP
+    // Afficher le statut VIP
     function displayVipStatus() {
       const vipStatus = document.getElementById('vip-status');
       if (!vipStatus) return;
@@ -3433,7 +2714,7 @@
       }
     }
     
-    // MODIFIÉ: Charger la boutique avec le système VIP
+    // Charger la boutique avec le système VIP
     async function loadStore() {
       if (!await ensureUserData()) return;
       
@@ -3441,101 +2722,11 @@
       displayVipStatus();
     }
     
-    // MODIFIÉ: Charger le match avec le système de championnat
+    // Charger le match
     async function loadMatch() {
       if (!await ensureUserData()) return;
       
       await loadAllUsers();
-      await loadChampionship();
-      await loadLiveMatches();
-      
-      const championshipInfo = document.getElementById('championship-info');
-      const liveMatches = document.getElementById('live-matches');
-      
-      // Afficher les informations du championnat
-      if (championshipInfo) {
-        if (championship) {
-          const isParticipating = championship.participants.includes(getUserId());
-          
-          championshipInfo.innerHTML = `
-            <div class="championship-item">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <div style="font-weight: bold;">${championship.name}</div>
-                  <div class="small">${championship.participants.length}/${championship.maxParticipants} participants</div>
-                </div>
-                ${isParticipating ? 
-                  '<div class="badge success">Participant</div>' : 
-                  '<button class="small-btn join-championship">Rejoindre</button>'
-                }
-              </div>
-              <div class="championship-progress">
-                <div class="small">Progression: ${championship.matches?.length || 0} matchs joués</div>
-                <div class="progress-container">
-                  <div class="progress-bar" style="width: ${Math.min(100, ((championship.matches?.length || 0) / 10) * 100)}%"></div>
-                </div>
-              </div>
-              <div class="championship-rewards">
-                <div class="reward-item">
-                  <div>🥇</div>
-                  <div class="small">5000 🪙</div>
-                </div>
-                <div class="reward-item">
-                  <div>🥈</div>
-                  <div class="small">3000 🪙</div>
-                </div>
-                <div class="reward-item">
-                  <div>🥉</div>
-                  <div class="small">1500 🪙</div>
-                </div>
-              </div>
-            </div>
-          `;
-          
-          // Événement pour rejoindre le championnat
-          if (!isParticipating) {
-            document.querySelector('.join-championship').addEventListener('click', joinChampionship);
-          }
-        } else {
-          championshipInfo.innerHTML = '<div class="small">Aucun championnat en cours</div>';
-        }
-      }
-      
-      // Afficher les matchs en direct
-      if (liveMatches) {
-        if (liveMatchesList.length > 0) {
-          liveMatches.innerHTML = '';
-          liveMatchesList.slice(0, 3).forEach(match => {
-            const matchEl = document.createElement('div');
-            matchEl.className = 'championship-item live-match';
-            matchEl.innerHTML = `
-              <div class="live-indicator">LIVE</div>
-              <div style="display: flex; justify-content: space-between;">
-                <div>
-                  <div>${match.player1}</div>
-                  <div class="small">Force: ${match.strength1}</div>
-                </div>
-                <div style="text-align: center;">
-                  <div>VS</div>
-                  <div class="small">${match.score || '0-0'}</div>
-                </div>
-                <div style="text-align: right;">
-                  <div>${match.player2}</div>
-                  <div class="small">Force: ${match.strength2}</div>
-                </div>
-              </div>
-              <div class="match-events">
-                ${match.events ? match.events.map(event => `
-                  <div class="match-event ${event.type}">${event.text}</div>
-                `).join('') : '<div class="match-event">Match en cours...</div>'}
-              </div>
-            `;
-            liveMatches.appendChild(matchEl);
-          });
-        } else {
-          liveMatches.innerHTML = '<div class="small">Aucun match en direct</div>';
-        }
-      }
       
       // Masquer les sections de résultat et d'adversaire
       const matchOpponent = document.getElementById('match-opponent');
@@ -3548,85 +2739,7 @@
       loadMatchHistory();
     }
     
-    // NOUVEAU: Système de championnat
-    async function loadChampionship() {
-      const championshipRef = ref(db, 'championship/current');
-      const snapshot = await get(championshipRef);
-      
-      if (snapshot.exists()) {
-        championship = snapshot.val();
-      } else {
-        championship = null;
-      }
-      return championship;
-    }
-    
-    // NOUVEAU: Rejoindre un championnat
-    async function joinChampionship() {
-      if (!currentUserData) return;
-      
-      await loadChampionship();
-      
-      if (!championship) {
-        showNotification("Aucun championnat en cours", "warning");
-        return;
-      }
-      
-      if (championship.participants.includes(getUserId())) {
-        showNotification("Vous participez déjà à ce championnat", "info");
-        return;
-      }
-      
-      if (championship.participants.length >= championship.maxParticipants) {
-        showNotification("Championnat complet", "warning");
-        return;
-      }
-      
-      // Ajouter le participant
-      const championshipRef = ref(db, 'championship/current');
-      const updatedParticipants = [...championship.participants, getUserId()];
-      
-      await update(championshipRef, {
-        participants: updatedParticipants
-      });
-      
-      showNotification("Vous avez rejoint le championnat!", "success");
-      loadMatch();
-    }
-    
-    // NOUVEAU: Charger les matchs en direct
-    async function loadLiveMatches() {
-      // Simuler des matchs en direct
-      liveMatchesList = [
-        {
-          player1: "Joueur1",
-          player2: "Joueur2",
-          strength1: 245,
-          strength2: 231,
-          score: "2-1",
-          events: [
-            { type: "goal", text: "⚽ But! Joueur1 marque!" },
-            { type: "goal", text: "⚽ But! Joueur2 égalise!" },
-            { type: "goal", text: "⚽ But! Joueur1 reprend l'avantage!" }
-          ]
-        },
-        {
-          player1: "Joueur3",
-          player2: "Joueur4",
-          strength1: 198,
-          strength2: 215,
-          score: "0-0",
-          events: [
-            { type: "miss", text: "❌ Joueur3 rate une occasion!" },
-            { type: "defense", text: "🛡️ Belle défense de Joueur4!" }
-          ]
-        }
-      ];
-      
-      return liveMatchesList;
-    }
-    
-    // CORRECTION: Fonctions pour les écrans manquants
+    // Charger l'équipe
     async function loadTeam() {
       if (!await ensureUserData()) return;
       
@@ -3679,9 +2792,10 @@
       }
       
       // Événements pour la sélection automatique
-      document.getElementById('btn-auto-best').addEventListener('click', autoSelectBestTeam);
+      document.getElementById('btn-auto-best')?.addEventListener('click', autoSelectBestTeam);
     }
 
+    // Charger le profil
     async function loadProfile() {
       if (!await ensureUserData()) return;
       
@@ -3700,7 +2814,7 @@
             <div class="badge ${currentUserData.vip ? 'vip-badge' : ''}">
               ${vipStatus}
             </div>
-            <div class="badge"><i class="fas fa-heart"></i> ${currentUserData.likes || 0} Likes</div>
+            <div class="badge"><i class="fas fa-trophy"></i> Niv. ${currentUserData.level || 1}</div>
           </div>
         </div>
         
@@ -3734,6 +2848,30 @@
         </div>
         
         <div class="panel">
+          <div class="small" style="margin-bottom: 8px;">Statistiques Détaillées</div>
+          <div class="row">
+            <div style="flex: 1;">
+              <div class="small">Matchs joués</div>
+              <div>${currentUserData.totalMatches || 0}</div>
+            </div>
+            <div style="flex: 1;">
+              <div class="small">Buts marqués</div>
+              <div>${currentUserData.totalGoals || 0}</div>
+            </div>
+          </div>
+          <div class="row" style="margin-top: 8px;">
+            <div style="flex: 1;">
+              <div class="small">Joueurs possédés</div>
+              <div>${Object.keys(currentUserData.cards || {}).length}</div>
+            </div>
+            <div style="flex: 1;">
+              <div class="small">Amis</div>
+              <div>${(currentUserData.friends || []).length}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="panel">
           <div class="small" style="margin-bottom: 8px;">Badges Obtenus</div>
           <div class="badges">
             ${(currentUserData.badges || []).map(badge => `
@@ -3760,7 +2898,7 @@
       });
     }
 
-    // CORRECTION: Système d'amis fonctionnel
+    // Système d'amis avec partage de ressources
     async function loadFriends() {
       if (!await ensureUserData()) return;
       
@@ -3769,6 +2907,7 @@
       const friendsList = document.getElementById('friends-list');
       const friendRequests = document.getElementById('friend-requests');
       const suggestedFriends = document.getElementById('suggested-friends');
+      const resourceSharing = document.getElementById('resource-sharing');
       
       // Afficher la liste d'amis
       if (friendsList) {
@@ -3789,8 +2928,8 @@
                 </div>
                 <div class="small">${friend.displayName || 'Joueur'}</div>
                 <div class="quick" style="width: 100%;">
-                  <button class="ghost small-btn view-profile" data-user="${friend.uid}">
-                    <i class="fas fa-eye"></i> Voir
+                  <button class="small-btn challenge-friend" data-user="${friend.uid}">
+                    <i class="fas fa-trophy"></i> Défier
                   </button>
                 </div>
               `;
@@ -3798,6 +2937,66 @@
             }
           });
         }
+      }
+      
+      // Afficher le partage de ressources
+      if (resourceSharing) {
+        resourceSharing.innerHTML = `
+          <div class="share-resource">
+            <div class="small">Partager des ressources avec un ami</div>
+            <select id="friend-to-share" style="width: 100%; margin: 8px 0;">
+              <option value="">Choisir un ami</option>
+              ${(currentUserData.friends || []).map(friendId => {
+                const friend = globalUsers.find(u => u.uid === friendId);
+                return friend ? `<option value="${friend.uid}">${friend.displayName}</option>` : '';
+              }).join('')}
+            </select>
+            <div class="share-amount">
+              <input type="number" id="share-amount" placeholder="Pièces à partager" min="1" max="${currentUserData.coins || 0}"/>
+              <button class="small-btn" id="btn-share-resources">Partager</button>
+            </div>
+            <div class="tax-info">Taxe: 10% (90% vont à votre ami)</div>
+          </div>
+        `;
+        
+        // Événement pour partager des ressources
+        document.getElementById('btn-share-resources')?.addEventListener('click', async () => {
+          const friendId = document.getElementById('friend-to-share').value;
+          const amount = parseInt(document.getElementById('share-amount').value);
+          
+          if (!friendId || !amount || amount <= 0) {
+            showNotification("Veuillez sélectionner un ami et entrer un montant valide", "warning");
+            return;
+          }
+          
+          if (amount > (currentUserData.coins || 0)) {
+            showNotification("Pas assez de pièces", "warning");
+            return;
+          }
+          
+          // Calculer la taxe
+          const tax = Math.floor(amount * 0.1);
+          const netAmount = amount - tax;
+          
+          // Réduire les pièces de l'utilisateur
+          await updateUserData({
+            coins: (currentUserData.coins || 0) - amount
+          });
+          
+          // Ajouter les pièces à l'ami
+          const friendRef = getUserRef(friendId);
+          const friendSnapshot = await get(friendRef);
+          
+          if (friendSnapshot.exists()) {
+            const friendData = friendSnapshot.val();
+            await update(friendRef, {
+              coins: (friendData.coins || 0) + netAmount
+            });
+          }
+          
+          showNotification(`${amount} pièces partagées! Votre ami a reçu ${netAmount} pièces (${tax} pièces de taxe).`, "success");
+          loadDashboard();
+        });
       }
       
       // Afficher les demandes d'amis
@@ -3858,7 +3057,7 @@
         }
       }
       
-      // CORRECTION: Ajout des événements pour les boutons d'amis
+      // Ajouter les événements pour les boutons d'amis
       document.querySelectorAll('.add-friend').forEach(btn => {
         btn.addEventListener('click', async function() {
           const userId = this.getAttribute('data-user');
@@ -3913,12 +3112,40 @@
         });
       });
       
-      document.querySelectorAll('.view-profile').forEach(btn => {
+      document.querySelectorAll('.challenge-friend').forEach(btn => {
         btn.addEventListener('click', function() {
           const userId = this.getAttribute('data-user');
           if (!userId) return;
           
-          viewUserProfile(userId);
+          // Trouver l'ami
+          const friend = globalUsers.find(u => u.uid === userId);
+          if (friend) {
+            currentOpponent = friend;
+            
+            // Afficher l'adversaire
+            const matchOpponent = document.getElementById('match-opponent');
+            const opponentInfo = document.getElementById('opponent-info');
+            
+            if (matchOpponent && opponentInfo) {
+              opponentInfo.innerHTML = `
+                <div class="leaderboard-item opponent-found">
+                  <div class="friend-avatar ${currentOpponent.vip ? 'vip' : ''}">
+                    ${currentOpponent.vip ? '👑' : '👤'}
+                  </div>
+                  <div>
+                    <div>${currentOpponent.displayName || 'Joueur'}</div>
+                    <div class="small">Niveau ${currentOpponent.level || 1} • ${currentOpponent.wins || 0} victoires</div>
+                  </div>
+                </div>
+              `;
+              matchOpponent.style.display = 'block';
+              
+              // Faire défiler jusqu'à la section adversaire
+              matchOpponent.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            showScreen('match');
+          }
         });
       });
     }
@@ -4019,169 +3246,7 @@
       loadDashboard();
     }
     
-    // Fonction pour inspecter un profil
-    async function viewUserProfile(userId) {
-      const userRef = getUserRef(userId);
-      const snapshot = await get(userRef);
-      
-      if (snapshot.exists()) {
-        currentlyViewedUser = { uid: userId, ...snapshot.val() };
-        showScreen('profile-view');
-        loadProfileView();
-      } else {
-        showNotification("Profil non trouvé", "warning");
-      }
-    }
-
-    // Charger le profil inspecté
-    async function loadProfileView() {
-      if (!currentlyViewedUser) return;
-      
-      const viewedUserName = document.getElementById('viewed-user-name');
-      const profileViewContent = document.getElementById('profile-view-content');
-      
-      if (viewedUserName) viewedUserName.textContent = currentlyViewedUser.displayName || 'Joueur';
-      if (!profileViewContent) return;
-      
-      const isOwnProfile = currentlyViewedUser.uid === getUserId();
-      const hasLiked = currentUserData?.likedBy?.includes(currentlyViewedUser.uid);
-      
-      profileViewContent.innerHTML = `
-        <div class="profile-header">
-          <div class="profile-avatar ${currentlyViewedUser.vip ? 'vip' : ''}">
-            ${currentlyViewedUser.vip ? '👑' : '👤'}
-          </div>
-          <h3>${currentlyViewedUser.displayName || 'Joueur'}</h3>
-          <div class="badges" style="justify-content: center; margin: 8px 0;">
-            ${currentlyViewedUser.vip ? '<div class="badge vip-badge"><i class="fas fa-crown"></i> VIP</div>' : ''}
-            <div class="badge"><i class="fas fa-trophy"></i> Niv. ${currentlyViewedUser.level || 1}</div>
-            <div class="badge"><i class="fas fa-heart"></i> ${currentlyViewedUser.likes || 0} Likes</div>
-          </div>
-        </div>
-        
-        <div class="stats">
-          <div class="stat">
-            <div class="icon">🏆</div>
-            <div>
-              <div class="small">Victoires</div>
-              <div>${currentlyViewedUser.wins || 0}</div>
-            </div>
-          </div>
-          <div class="stat">
-            <div class="icon">📊</div>
-            <div>
-              <div class="small">Matchs</div>
-              <div>${currentlyViewedUser.totalMatches || 0}</div>
-            </div>
-          </div>
-          <div class="stat">
-            <div class="icon">⚡</div>
-            <div>
-              <div class="small">Taux Victoire</div>
-              <div>${currentlyViewedUser.winRate || 0}%</div>
-            </div>
-          </div>
-          <div class="stat">
-            <div class="icon">⭐</div>
-            <div>
-              <div class="small">Badges</div>
-              <div>${(currentlyViewedUser.badges || []).length}</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Badges Obtenus</div>
-          <div class="badges">
-            ${(currentlyViewedUser.badges || []).map(badge => `
-              <div class="badge"><i class="fas fa-medal"></i> ${badge}</div>
-            `).join('')}
-            ${(currentlyViewedUser.badges || []).length === 0 ? '<div class="small">Aucun badge</div>' : ''}
-          </div>
-        </div>
-        
-        ${!isOwnProfile ? `
-          <div class="panel">
-            <div class="row" style="justify-content: center; gap: 12px;">
-              <button id="btn-like-profile" class="${hasLiked ? 'liked' : ''} like-btn">
-                <i class="fas fa-heart"></i> ${hasLiked ? 'Unlike' : 'Like'} (${currentlyViewedUser.likes || 0})
-              </button>
-              <button id="btn-challenge-user" class="small-btn">
-                <i class="fas fa-trophy"></i> Défier
-              </button>
-            </div>
-          </div>
-        ` : ''}
-        
-        <div class="panel">
-          <div class="small" style="margin-bottom: 8px;">Statistiques Détaillées</div>
-          <div class="row">
-            <div style="flex: 1;">
-              <div class="small">Cartes Possédées</div>
-              <div>${Object.keys(currentlyViewedUser.cards || {}).length}</div>
-            </div>
-            <div style="flex: 1;">
-              <div class="small">Amis</div>
-              <div>${(currentlyViewedUser.friends || []).length}</div>
-            </div>
-          </div>
-          <div class="row" style="margin-top: 8px;">
-            <div style="flex: 1;">
-              <div class="small">Membre depuis</div>
-              <div>${new Date(currentlyViewedUser.registrationDate || Date.now()).toLocaleDateString()}</div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      // Événements pour les boutons
-      if (!isOwnProfile) {
-        document.getElementById('btn-like-profile')?.addEventListener('click', likeUserProfile);
-        document.getElementById('btn-challenge-user')?.addEventListener('click', () => {
-          showNotification(`Défi envoyé à ${currentlyViewedUser.displayName || 'Joueur'}!`, "info");
-        });
-      }
-    }
-
-    // Fonction pour liker un profil
-    async function likeUserProfile() {
-      if (!currentlyViewedUser || !currentUserData) return;
-      
-      const viewedUserRef = getUserRef(currentlyViewedUser.uid);
-      const currentUserId = getUserId();
-      
-      const hasLiked = currentUserData.likedBy?.includes(currentlyViewedUser.uid);
-      let updatedLikes = currentlyViewedUser.likes || 0;
-      let updatedLikedBy = [...(currentUserData.likedBy || [])];
-      
-      if (hasLiked) {
-        // Retirer le like
-        updatedLikes = Math.max(0, updatedLikes - 1);
-        updatedLikedBy = updatedLikedBy.filter(uid => uid !== currentlyViewedUser.uid);
-        showNotification("Like retiré", "info");
-      } else {
-        // Ajouter le like
-        updatedLikes += 1;
-        updatedLikedBy.push(currentlyViewedUser.uid);
-        showNotification("Profil liké! 💖", "success");
-      }
-      
-      // Mettre à jour le profil liké
-      await update(viewedUserRef, {
-        likes: updatedLikes
-      });
-      
-      // Mettre à jour l'utilisateur actuel
-      await updateUserData({
-        likedBy: updatedLikedBy
-      });
-      
-      // Recharger la vue
-      currentlyViewedUser.likes = updatedLikes;
-      loadProfileView();
-    }
-
-    // CORRECTION: Système de fusion fonctionnel
+    // Système de fusion fonctionnel
     async function loadFusion() {
       if (!await ensureUserData()) return;
       
@@ -4218,7 +3283,7 @@
       document.getElementById('btn-fusion').disabled = true;
       document.getElementById('fusion-result').style.display = 'none';
       
-      // CORRECTION: Événements pour les cartes de fusion - version corrigée
+      // Événements pour les cartes de fusion
       document.querySelectorAll('.fusion-card').forEach(cardEl => {
         cardEl.addEventListener('click', function() {
           const cardId = this.getAttribute('data-card');
@@ -4242,7 +3307,7 @@
       });
     }
 
-    // CORRECTION: Fonctions utilitaires pour la fusion
+    // Fonctions utilitaires pour la fusion
     function updateFusionSlot(index, cardId) {
       const slot = document.getElementById(`fusion-slot-${index + 1}`);
       if (!slot) return;
@@ -4371,7 +3436,7 @@
       }, 3000);
     }
     
-    // CORRECTION: Dashboard admin avec tous les boutons fonctionnels
+    // Dashboard admin
     async function loadAdminDashboard() {
       if (!isAdmin) {
         showNotification("Accès refusé", "danger");
@@ -4380,7 +3445,6 @@
       }
       
       await loadAllUsers();
-      await loadChampionship();
       
       // Calculer les statistiques globales
       const totalUsers = globalUsers.length;
@@ -4398,68 +3462,38 @@
       if (adminTotalGems) adminTotalGems.textContent = totalGems;
       if (adminTotalCoins) adminTotalCoins.textContent = totalCoins;
       
-      // Afficher le classement réel avec likes
+      // Afficher le classement réel avec statistiques
       const adminLeaderboard = document.getElementById('admin-leaderboard');
       if (adminLeaderboard) {
         adminLeaderboard.innerHTML = '';
         
         const topUsers = [...globalUsers]
-          .sort((a, b) => (b.likes || 0) - (a.likes || 0) || (b.level || 1) - (a.level || 1))
+          .sort((a, b) => {
+            // Score basé sur les statistiques
+            const scoreA = (a.level || 1) * 1000 + (a.wins || 0) * 100 + (a.totalGoals || 0);
+            const scoreB = (b.level || 1) * 1000 + (b.wins || 0) * 100 + (b.totalGoals || 0);
+            return scoreB - scoreA;
+          })
           .slice(0, 10);
         
         topUsers.forEach((user, index) => {
           const rankClass = index < 3 ? `rank-${index+1}` : '';
+          const vipBadge = user.vip ? '👑 ' : '';
           const item = document.createElement('div');
           item.className = 'leaderboard-item';
           item.innerHTML = `
             <div class="rank ${rankClass}">${index+1}</div>
             <div>
-              <div>${user.displayName || 'Joueur'}</div>
+              <div>${vipBadge}${user.displayName || 'Joueur'}</div>
               <div class="small">Niv. ${user.level || 1}</div>
             </div>
             <div style="margin-left: auto; text-align: right;">
-              <div>${user.likes || 0} ❤️</div>
-              <div class="small">${user.wins || 0}V ${user.losses || 0}D</div>
+              <div>${user.wins || 0}V ${user.losses || 0}D</div>
+              <div class="small">${user.totalGoals || 0}⚽</div>
             </div>
           `;
           adminLeaderboard.appendChild(item);
         });
-      }
-      
-      // Initialisation des nouveaux boutons admin
-      document.getElementById('admin-refresh-stats')?.addEventListener('click', loadAdminDashboard);
-      document.getElementById('admin-start-championship')?.addEventListener('click', startChampionship);
-      document.getElementById('admin-end-championship')?.addEventListener('click', endChampionship);
-      document.getElementById('admin-simulate-matches')?.addEventListener('click', simulateChampionshipMatches);
-      document.getElementById('admin-update-standings')?.addEventListener('click', updateChampionshipStandings);
-      
-      // Afficher le classement du championnat
-      const adminChampionshipStandings = document.getElementById('admin-championship-standings');
-      if (adminChampionshipStandings) {
-        if (championship) {
-          // Calculer le classement
-          const standings = calculateChampionshipStandings();
-          adminChampionshipStandings.innerHTML = '';
-          
-          standings.forEach((standing, index) => {
-            const user = globalUsers.find(u => u.uid === standing.userId);
-            if (user) {
-              const item = document.createElement('div');
-              item.className = 'leaderboard-item';
-              item.innerHTML = `
-                <div class="rank ${index < 3 ? `rank-${index+1}` : ''}">${index+1}</div>
-                <div>${user.displayName || 'Joueur'}</div>
-                <div style="margin-left: auto; text-align: right;">
-                  <div>${standing.points} pts</div>
-                  <div class="small">${standing.wins}V ${standing.draws}N ${standing.losses}D</div>
-                </div>
-              `;
-              adminChampionshipStandings.appendChild(item);
-            }
-          });
-        } else {
-          adminChampionshipStandings.innerHTML = '<div class="small">Aucun championnat en cours</div>';
-        }
       }
       
       // Initialisation des onglets admin
@@ -4556,198 +3590,7 @@
       });
     }
     
-    // NOUVEAU: Démarrer un championnat
-    async function startChampionship() {
-      const championshipData = {
-        id: 'champ_' + Date.now(),
-        name: 'Championnat Saison ' + new Date().getFullYear(),
-        maxParticipants: 16,
-        participants: [],
-        matches: [],
-        status: 'active',
-        startDate: new Date().toISOString(),
-        endDate: null
-      };
-      
-      const championshipRef = ref(db, 'championship/current');
-      await set(championshipRef, championshipData);
-      
-      addAdminLog("Championnat démarré");
-      showNotification("Championnat démarré!", "success");
-      loadAdminDashboard();
-    }
-    
-    // NOUVEAU: Terminer un championnat
-    async function endChampionship() {
-      if (!championship) return;
-      
-      const championshipRef = ref(db, 'championship/current');
-      await update(championshipRef, {
-        status: 'finished',
-        endDate: new Date().toISOString()
-      });
-      
-      // Distribuer les récompenses
-      const standings = calculateChampionshipStandings();
-      const rewards = [5000, 3000, 1500];
-      
-      for (let i = 0; i < Math.min(3, standings.length); i++) {
-        const userRef = getUserRef(standings[i].userId);
-        const userSnapshot = await get(userRef);
-        
-        if (userSnapshot.exists()) {
-          const userData = userSnapshot.val();
-          await update(userRef, {
-            coins: (userData.coins || 0) + rewards[i]
-          });
-        }
-      }
-      
-      addAdminLog("Championnat terminé - Récompenses distribuées");
-      showNotification("Championnat terminé et récompenses distribuées!", "success");
-      loadAdminDashboard();
-    }
-    
-    // NOUVEAU: Simuler des matchs de championnat
-    async function simulateChampionshipMatches() {
-      if (!championship) return;
-      
-      // Simuler 5 matchs
-      for (let i = 0; i < 5; i++) {
-        await simulateChampionshipMatch();
-      }
-      
-      addAdminLog("5 matchs de championnat simulés");
-      showNotification("5 matchs de championnat simulés!", "success");
-      loadAdminDashboard();
-    }
-    
-    // NOUVEAU: Mettre à jour le classement du championnat
-    async function updateChampionshipStandings() {
-      if (!championship) return;
-      
-      addAdminLog("Classement du championnat mis à jour");
-      showNotification("Classement mis à jour!", "success");
-      loadAdminDashboard();
-    }
-    
-    // NOUVEAU: Calculer le classement du championnat
-    function calculateChampionshipStandings() {
-      if (!championship || !championship.matches) return [];
-      
-      const standings = {};
-      
-      // Initialiser le classement pour chaque participant
-      championship.participants.forEach(participantId => {
-        standings[participantId] = {
-          userId: participantId,
-          points: 0,
-          wins: 0,
-          draws: 0,
-          losses: 0,
-          goalsFor: 0,
-          goalsAgainst: 0
-        };
-      });
-      
-      // Calculer les statistiques à partir des matchs
-      championship.matches.forEach(match => {
-        const [goals1, goals2] = match.score.split('-').map(Number);
-        
-        if (match.winner === match.participant1) {
-          // Participant1 gagne
-          standings[match.participant1].points += 3;
-          standings[match.participant1].wins += 1;
-          standings[match.participant2].losses += 1;
-        } else if (match.winner === match.participant2) {
-          // Participant2 gagne
-          standings[match.participant2].points += 3;
-          standings[match.participant2].wins += 1;
-          standings[match.participant1].losses += 1;
-        } else {
-          // Match nul
-          standings[match.participant1].points += 1;
-          standings[match.participant2].points += 1;
-          standings[match.participant1].draws += 1;
-          standings[match.participant2].draws += 1;
-        }
-        
-        // Buts marqués et encaissés
-        standings[match.participant1].goalsFor += goals1;
-        standings[match.participant1].goalsAgainst += goals2;
-        standings[match.participant2].goalsFor += goals2;
-        standings[match.participant2].goalsAgainst += goals1;
-      });
-      
-      // Convertir en tableau et trier
-      return Object.values(standings).sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        return (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
-      });
-    }
-    
-    // NOUVEAU: Simuler un match de championnat
-    async function simulateChampionshipMatch() {
-      if (!championship) return;
-      
-      // Choisir deux participants aléatoires
-      const participants = championship.participants;
-      if (participants.length < 2) return;
-      
-      const participant1 = participants[Math.floor(Math.random() * participants.length)];
-      let participant2 = participants[Math.floor(Math.random() * participants.length)];
-      
-      // S'assurer qu'ils sont différents
-      while (participant2 === participant1) {
-        participant2 = participants[Math.floor(Math.random() * participants.length)];
-      }
-      
-      // Récupérer les données des participants
-      const user1Ref = getUserRef(participant1);
-      const user2Ref = getUserRef(participant2);
-      
-      const [user1Snapshot, user2Snapshot] = await Promise.all([
-        get(user1Ref),
-        get(user2Ref)
-      ]);
-      
-      if (!user1Snapshot.exists() || !user2Snapshot.exists()) return;
-      
-      const user1 = user1Snapshot.val();
-      const user2 = user2Snapshot.val();
-      
-      // Simuler le match
-      const user1Strength = calculateTeamStrength(user1);
-      const user2Strength = calculateTeamStrength(user2);
-      
-      const user1Goals = Math.floor(user1Strength / 25);
-      const user2Goals = Math.floor(user2Strength / 25);
-      
-      // Déterminer le résultat
-      let winner = null;
-      if (user1Goals > user2Goals) winner = participant1;
-      else if (user2Goals > user1Goals) winner = participant2;
-      
-      // Mettre à jour les statistiques du championnat
-      const match = {
-        participant1: participant1,
-        participant2: participant2,
-        score: `${user1Goals}-${user2Goals}`,
-        winner: winner,
-        date: new Date().toISOString()
-      };
-      
-      const championshipRef = ref(db, 'championship/current');
-      const updatedMatches = [...(championship.matches || []), match];
-      
-      await update(championshipRef, {
-        matches: updatedMatches
-      });
-      
-      return match;
-    }
-    
-    // CORRECTION: Système de sélection automatique d'équipe
+    // Système de sélection automatique d'équipe
     function autoSelectBestTeam() {
       if (!currentUserData || !currentUserData.cards) return;
       
@@ -4772,45 +3615,50 @@
       loadTeam();
     }
 
-    // CORRECTION: Calcul de la force d'équipe amélioré
+    // Calcul de la force d'équipe
     function calculateTeamStrength(userData) {
-      if (!userData?.cards || !userData?.starters) return 0;
+      if (!userData?.cards || !userData?.starters) return 50;
       
       let totalStrength = 0;
-      let positionCount = { ATT: 0, MID: 0, DEF: 0, GK: 0 };
+      let playerCount = 0;
       
+      // Calculer la force des titulaires
       userData.starters.forEach(cardId => {
-        const card = userData.cards[cardId];
+        const card = userData.cards?.[cardId];
         if (card) {
-          // Force de base
           let cardStrength = card.attack + card.defense + card.speed;
           
           // Bonus de rareté
           const rarityBonus = {
-            'bronze': 0,
-            'silver': 10,
-            'gold': 25,
-            'legendary': 50
+            'bronze': 1,
+            'silver': 1.2,
+            'gold': 1.5,
+            'legendary': 2
           };
-          cardStrength += rarityBonus[card.rarity] || 0;
+          cardStrength *= (rarityBonus[card.rarity] || 1);
           
           // Bonus de niveau
-          cardStrength += (card.level || 1) * 2;
+          cardStrength *= (1 + ((card.level || 1) - 1) * 0.1);
           
           totalStrength += cardStrength;
-          positionCount[card.position] = (positionCount[card.position] || 0) + 1;
+          playerCount++;
         }
       });
       
-      // Bonus d'équilibre d'équipe
-      const hasAllPositions = positionCount.ATT > 0 && positionCount.MID > 0 && 
-                             positionCount.DEF > 0 && positionCount.GK > 0;
-      if (hasAllPositions) totalStrength *= 1.1;
+      // Bonus d'équipe complète
+      if (playerCount >= 5) {
+        totalStrength *= 1.2;
+      }
+      
+      // Bonus VIP
+      if (userData.vip) {
+        totalStrength *= 1.1;
+      }
       
       return Math.round(totalStrength);
     }
 
-    // CORRECTION: Système de match contre joueurs réels
+    // Système de match contre joueurs réels
     async function findOpponent() {
       if (!await ensureUserData()) return;
       
@@ -4903,107 +3751,115 @@
       showNotification(`Adversaire trouvé: ${currentOpponent.displayName || 'Joueur'}`, "success");
     }
 
-    // Jouer un match
+    // Jouer un match - FONCTION CORRIGÉE
     async function playMatch() {
       if (!currentUserData || !currentOpponent) return;
       
-      // Consommer de l'énergie
-      const updatedEnergy = (currentUserData.energy || 0) - 5;
-      await updateUserData({ energy: updatedEnergy });
+      // Vérifier l'énergie
+      if ((currentUserData.energy || 0) < 5) {
+        showNotification("Pas assez d'énergie! (5 énergie requise)", "warning");
+        return;
+      }
       
-      // Simuler un match
+      // Dépenser l'énergie
+      const updatedEnergy = (currentUserData.energy || 0) - 5;
+      
+      // Calculer la force des équipes
       const userTeamStrength = calculateTeamStrength(currentUserData);
       const opponentTeamStrength = calculateTeamStrength(currentOpponent);
       
-      // Ajouter un peu d'aléatoire
-      const userRandomFactor = 0.8 + Math.random() * 0.4;
-      const opponentRandomFactor = 0.8 + Math.random() * 0.4;
+      // Simuler le match avec des événements
+      const matchEvents = [];
+      let userGoals = 0;
+      let opponentGoals = 0;
       
-      const userFinalStrength = userTeamStrength * userRandomFactor;
-      const opponentFinalStrength = opponentTeamStrength * opponentRandomFactor;
+      // Simulation de 5 actions
+      for (let i = 0; i < 5; i++) {
+        const action = Math.random();
+        
+        if (action < 0.3) {
+          // Attaque de l'utilisateur
+          if (Math.random() * 100 < (userTeamStrength / 10)) {
+            userGoals++;
+            matchEvents.push({
+              type: "goal",
+              text: `⚽ ${currentUserData.displayName} marque!`
+            });
+          } else {
+            matchEvents.push({
+              type: "miss",
+              text: `❌ ${currentUserData.displayName} rate une occasion`
+            });
+          }
+        } else if (action < 0.6) {
+          // Attaque de l'adversaire
+          if (Math.random() * 100 < (opponentTeamStrength / 10)) {
+            opponentGoals++;
+            matchEvents.push({
+              type: "goal",
+              text: `⚽ ${currentOpponent.displayName} marque!`
+            });
+          } else {
+            matchEvents.push({
+              type: "defense",
+              text: `🛡️ Belle défense de ${currentUserData.displayName}`
+            });
+          }
+        } else {
+          // Action neutre
+          matchEvents.push({
+            type: "info",
+            text: `⏱️ Action au milieu de terrain`
+          });
+        }
+      }
       
       // Déterminer le résultat
-      let userGoals = Math.floor(userFinalStrength / 20);
-      let opponentGoals = Math.floor(opponentFinalStrength / 20);
-      
-      // Assurer au moins 0 but
-      userGoals = Math.max(0, userGoals);
-      opponentGoals = Math.max(0, opponentGoals);
-      
-      // Déterminer le gagnant
       let result = '';
       let userWon = false;
+      let xpGained = 0;
+      let coinsGained = 0;
       
       if (userGoals > opponentGoals) {
         result = 'Victoire';
         userWon = true;
+        xpGained = 50;
+        coinsGained = 100;
       } else if (userGoals < opponentGoals) {
         result = 'Défaite';
-        userWon = false;
+        xpGained = 20;
+        coinsGained = 30;
       } else {
         result = 'Match nul';
+        xpGained = 35;
+        coinsGained = 50;
       }
       
       // Mettre à jour les statistiques
-      const updatedWins = (currentUserData.wins || 0) + (userWon ? 1 : 0);
-      const updatedLosses = (currentUserData.losses || 0) + (!userWon && result !== 'Match nul' ? 1 : 0);
-      const updatedDraws = (currentUserData.draws || 0) + (result === 'Match nul' ? 1 : 0);
-      const updatedTotalMatches = (currentUserData.totalMatches || 0) + 1;
-      const updatedWinRate = Math.round((updatedWins / updatedTotalMatches) * 100);
-      const updatedTotalGoals = (currentUserData.totalGoals || 0) + userGoals;
-      
-      // Récompenses
-      let coinsReward = 50;
-      let xpReward = 25;
-      
-      if (userWon) {
-        coinsReward = 100;
-        xpReward = 50;
-      } else if (result === 'Match nul') {
-        coinsReward = 75;
-        xpReward = 35;
-      }
-      
-      const updatedCoins = (currentUserData.coins || 0) + coinsReward;
-      const updatedXp = (currentUserData.xp || 0) + xpReward;
-      
-      // Vérifier le niveau up
-      let updatedLevel = currentUserData.level || 1;
-      let updatedXpToNextLevel = currentUserData.xpToNextLevel || 100;
-      
-      if (updatedXp >= updatedXpToNextLevel) {
-        updatedLevel += 1;
-        updatedXp = updatedXp - updatedXpToNextLevel;
-        updatedXpToNextLevel = Math.floor(updatedXpToNextLevel * 1.5);
-        showNotification(`Félicitations! Vous êtes maintenant niveau ${updatedLevel}!`, "success");
-      }
-      
-      // Mettre à jour l'utilisateur
-      await updateUserData({
-        wins: updatedWins,
-        losses: updatedLosses,
-        draws: updatedDraws,
-        totalMatches: updatedTotalMatches,
-        winRate: updatedWinRate,
-        totalGoals: updatedTotalGoals,
-        coins: updatedCoins,
-        xp: updatedXp,
-        level: updatedLevel,
-        xpToNextLevel: updatedXpToNextLevel
-      });
-      
-      // Ajouter au historique
-      const matchEntry = {
-        opponent: currentOpponent.displayName || 'Joueur',
-        result: result,
-        score: `${userGoals}-${opponentGoals}`,
-        date: new Date().toISOString(),
-        coins: coinsReward,
-        xp: xpReward
+      const updates = {
+        energy: updatedEnergy,
+        wins: (currentUserData.wins || 0) + (userWon ? 1 : 0),
+        losses: (currentUserData.losses || 0) + (!userWon && result !== 'Match nul' ? 1 : 0),
+        draws: (currentUserData.draws || 0) + (result === 'Match nul' ? 1 : 0),
+        totalMatches: (currentUserData.totalMatches || 0) + 1,
+        totalGoals: (currentUserData.totalGoals || 0) + userGoals,
+        coins: (currentUserData.coins || 0) + coinsGained,
+        xp: (currentUserData.xp || 0) + xpGained
       };
       
-      matchHistory.unshift(matchEntry);
-      if (matchHistory.length > 10) matchHistory = matchHistory.slice(0, 10);
+      // Calculer le taux de victoire
+      updates.winRate = Math.round((updates.wins / updates.totalMatches) * 100);
+      
+      // Vérifier le niveau up
+      if (updates.xp >= (currentUserData.xpToNextLevel || 100)) {
+        updates.level = (currentUserData.level || 1) + 1;
+        updates.xp = updates.xp - (currentUserData.xpToNextLevel || 100);
+        updates.xpToNextLevel = Math.floor((currentUserData.xpToNextLevel || 100) * 1.5);
+        showNotification(`🎉 Félicitations! Niveau ${updates.level} atteint!`, "success");
+      }
+      
+      // Mettre à jour Firebase
+      await updateUserData(updates);
       
       // Afficher le résultat
       const matchResult = document.getElementById('match-result');
@@ -5016,19 +3872,24 @@
             <div class="match-score">${userGoals} - ${opponentGoals}</div>
             <div class="team-lineup">
               <div class="team">
-                <div>${currentUserData.displayName || 'Vous'}</div>
-                <div class="small">Force: ${Math.round(userTeamStrength)}</div>
+                <div style="font-weight: bold;">${currentUserData.displayName}</div>
+                <div class="small">Force: ${userTeamStrength}</div>
               </div>
               <div class="vs">VS</div>
               <div class="team">
-                <div>${currentOpponent.displayName || 'Adversaire'}</div>
-                <div class="small">Force: ${Math.round(opponentTeamStrength)}</div>
+                <div style="font-weight: bold;">${currentOpponent.displayName}</div>
+                <div class="small">Force: ${opponentTeamStrength}</div>
               </div>
             </div>
-            <div class="rewards">
-              <div class="small">Récompenses:</div>
-              <div>+${coinsReward} 🪙</div>
-              <div>+${xpReward} ⭐ XP</div>
+            <div class="rewards" style="margin-top: 20px;">
+              <div class="small">Récompenses obtenues:</div>
+              <div>+${coinsGained} 🪙</div>
+              <div>+${xpGained} ⭐ XP</div>
+            </div>
+            <div class="match-events" style="margin-top: 15px;">
+              ${matchEvents.map(event => `
+                <div class="match-event ${event.type}">${event.text}</div>
+              `).join('')}
             </div>
           </div>
         `;
@@ -5039,8 +3900,21 @@
       const matchOpponent = document.getElementById('match-opponent');
       if (matchOpponent) matchOpponent.style.display = 'none';
       
-      // Recharger l'historique
-      loadMatchHistory();
+      // Ajouter à l'historique
+      const matchEntry = {
+        opponent: currentOpponent.displayName || 'Joueur',
+        result: result,
+        score: `${userGoals}-${opponentGoals}`,
+        date: new Date().toISOString(),
+        coins: coinsGained,
+        xp: xpGained
+      };
+      
+      // Recharger les données
+      setTimeout(() => {
+        loadDashboard();
+        loadMatchHistory();
+      }, 2000);
       
       showNotification(`Match terminé: ${result} ${userGoals}-${opponentGoals}`, "success");
     }
@@ -5068,6 +3942,344 @@
       }
     }
 
+    // Système de marché des joueurs
+    async function loadMarket() {
+      if (!await ensureUserData()) return;
+      
+      await loadAllUsers();
+      await loadMarketPlayers();
+      
+      const sellPlayer = document.getElementById('sell-player');
+      const upgradePlayer = document.getElementById('upgrade-player');
+      const marketPlayersEl = document.getElementById('market-players');
+      
+      // Afficher l'interface de vente
+      if (sellPlayer) {
+        const userCards = Object.values(currentUserData.cards || {});
+        sellPlayer.innerHTML = `
+          <div class="small">Sélectionnez un joueur à vendre</div>
+          <select id="player-to-sell" style="width: 100%; margin: 8px 0;">
+            <option value="">Choisir un joueur</option>
+            ${userCards.map(card => `
+              <option value="${card.id}" data-rarity="${card.rarity}">${card.name} (${card.rarity}) - ⚔️${card.attack} 🛡️${card.defense} ⚡${card.speed}</option>
+            `).join('')}
+          </select>
+          <div class="row">
+            <input type="number" id="sell-price" placeholder="Prix en pièces" min="100" style="flex: 1;"/>
+            <button class="small-btn" id="btn-sell-player">Vendre</button>
+          </div>
+        `;
+        
+        // Événement pour vendre un joueur
+        document.getElementById('btn-sell-player').addEventListener('click', sellPlayerOnMarket);
+      }
+      
+      // Afficher l'interface d'amélioration
+      if (upgradePlayer) {
+        const userCards = Object.values(currentUserData.cards || {});
+        upgradePlayer.innerHTML = `
+          <div class="small">Sélectionnez un joueur à améliorer</div>
+          <select id="player-to-upgrade" style="width: 100%; margin: 8px 0;">
+            <option value="">Choisir un joueur</option>
+            ${userCards.map(card => `
+              <option value="${card.id}" data-rarity="${card.rarity}">${card.name} (${card.rarity}) - Niv. ${card.level || 1}</option>
+            `).join('')}
+          </select>
+          <div id="upgrade-info" style="margin-top: 8px;">
+            <!-- Informations d'amélioration -->
+          </div>
+        `;
+        
+        // Événement pour changer de joueur à améliorer
+        document.getElementById('player-to-upgrade').addEventListener('change', showUpgradeInfo);
+      }
+      
+      // Afficher les joueurs en vente
+      if (marketPlayersEl) {
+        marketPlayersEl.innerHTML = '';
+        
+        if (marketPlayers.length === 0) {
+          marketPlayersEl.innerHTML = '<div class="small">Aucun joueur en vente</div>';
+        } else {
+          marketPlayers.forEach(player => {
+            if (player.sellerId !== getUserId()) {
+              const playerEl = document.createElement('div');
+              playerEl.className = 'player-card-market';
+              playerEl.innerHTML = `
+                <div class="player-info">
+                  <div style="font-weight: bold;">${player.name}</div>
+                  <div class="small">${player.rarity} • ${player.position} • Niv. ${player.level || 1}</div>
+                  <div class="card-stats">
+                    <span>⚔️ ${player.attack}</span>
+                    <span>🛡️ ${player.defense}</span>
+                    <span>⚡ ${player.speed}</span>
+                  </div>
+                </div>
+                <div class="player-price">
+                  <div>${player.price} 🪙</div>
+                  <button class="small-btn buy-player-btn" data-player="${player.id}">Acheter</button>
+                </div>
+              `;
+              marketPlayersEl.appendChild(playerEl);
+            }
+          });
+        }
+        
+        // Événements pour acheter des joueurs
+        document.querySelectorAll('.buy-player-btn').forEach(btn => {
+          btn.addEventListener('click', async function() {
+            const playerId = this.getAttribute('data-player');
+            const player = marketPlayers.find(p => p.id === playerId);
+            
+            if (!player) return;
+            
+            // Acheter le joueur
+            await buyPlayerFromMarket(player);
+          });
+        });
+      }
+    }
+    
+    // Vendre un joueur sur le marché
+    async function sellPlayerOnMarket() {
+      const playerSelect = document.getElementById('player-to-sell');
+      const priceInput = document.getElementById('sell-price');
+      
+      const playerId = playerSelect.value;
+      const price = parseInt(priceInput.value);
+      
+      if (!playerId || !price || price < 100) {
+        showNotification("Veuillez sélectionner un joueur et entrer un prix valide (min. 100 pièces)", "warning");
+        return;
+      }
+      
+      const player = currentUserData.cards[playerId];
+      if (!player) return;
+      
+      // Vérifier que le joueur n'est pas dans l'équipe de départ
+      if ((currentUserData.starters || []).includes(playerId)) {
+        showNotification("Impossible de vendre un joueur de l'équipe de départ", "warning");
+        return;
+      }
+      
+      // Retirer le joueur de la collection
+      const updatedCards = { ...currentUserData.cards };
+      delete updatedCards[playerId];
+      
+      const updatedSubs = (currentUserData.subs || []).filter(id => id !== playerId);
+      
+      // Ajouter le joueur au marché
+      const marketPlayer = {
+        id: 'market_' + Date.now(),
+        ...player,
+        sellerId: getUserId(),
+        sellerName: currentUserData.displayName || 'Joueur',
+        price: price,
+        listedAt: new Date().toISOString()
+      };
+      
+      const marketRef = ref(db, `market/${marketPlayer.id}`);
+      await set(marketRef, marketPlayer);
+      
+      // Mettre à jour l'utilisateur
+      await updateUserData({
+        cards: updatedCards,
+        subs: updatedSubs,
+        playersSold: (currentUserData.playersSold || 0) + 1
+      });
+      
+      showNotification(`${player.name} mis en vente pour ${price} pièces!`, "success");
+      loadMarket();
+    }
+    
+    // Acheter un joueur du marché - CORRIGÉ POUR AJOUTER À L'ÉQUIPE
+    async function buyPlayerFromMarket(player) {
+      if (!currentUserData) return;
+      
+      if ((currentUserData.coins || 0) < player.price) {
+        showNotification("Pas assez de pièces pour acheter ce joueur", "warning");
+        return;
+      }
+      
+      // Vérifier la limite de collection
+      const userCardsCount = Object.keys(currentUserData.cards || {}).length;
+      if (userCardsCount >= 50) {
+        showNotification("Limite de collection atteinte (50 joueurs maximum)", "warning");
+        return;
+      }
+      
+      // Créer un nouvel ID pour le joueur
+      const newPlayerId = 'card' + Date.now() + Math.random().toString(36).substr(2, 9);
+      
+      // Ajouter le joueur à la collection
+      const updatedCards = {
+        ...currentUserData.cards,
+        [newPlayerId]: {
+          ...player,
+          id: newPlayerId,
+          sellerId: undefined,
+          sellerName: undefined,
+          price: undefined,
+          listedAt: undefined
+        }
+      };
+      
+      // AJOUT IMPORTANT: Ajouter automatiquement à l'équipe (dans les remplaçants)
+      const updatedSubs = [...(currentUserData.subs || [])];
+      if (updatedSubs.length < 10) {
+        updatedSubs.push(newPlayerId);
+      } else {
+        // Si les remplaçants sont pleins, remplacer le dernier
+        updatedSubs[9] = newPlayerId;
+      }
+      
+      // Déduire le prix
+      const updatedCoins = (currentUserData.coins || 0) - player.price;
+      
+      // Verser les pièces au vendeur (avec taxe de 10%)
+      if (player.sellerId) {
+        const sellerRef = getUserRef(player.sellerId);
+        const sellerSnapshot = await get(sellerRef);
+        
+        if (sellerSnapshot.exists()) {
+          const sellerData = sellerSnapshot.val();
+          const sellerRevenue = Math.floor(player.price * 0.9);
+          
+          await update(sellerRef, {
+            coins: (sellerData.coins || 0) + sellerRevenue
+          });
+        }
+      }
+      
+      // Retirer le joueur du marché
+      const marketRef = ref(db, `market/${player.id}`);
+      await remove(marketRef);
+      
+      // Mettre à jour l'utilisateur actuel
+      await updateUserData({
+        coins: updatedCoins,
+        cards: updatedCards,
+        subs: updatedSubs
+      });
+      
+      showNotification(`${player.name} acheté pour ${player.price} pièces et ajouté à votre équipe!`, "success");
+      loadMarket();
+      loadTeam();
+    }
+    
+    // Charger les joueurs du marché
+    async function loadMarketPlayers() {
+      const marketRef = ref(db, 'market');
+      const snapshot = await get(marketRef);
+      
+      if (snapshot.exists()) {
+        const marketData = snapshot.val();
+        marketPlayers = Object.values(marketData);
+      } else {
+        marketPlayers = [];
+      }
+      return marketPlayers;
+    }
+    
+    // Afficher les informations d'amélioration
+    async function showUpgradeInfo() {
+      const playerSelect = document.getElementById('player-to-upgrade');
+      const upgradeInfo = document.getElementById('upgrade-info');
+      
+      const playerId = playerSelect.value;
+      if (!playerId) {
+        upgradeInfo.innerHTML = '';
+        return;
+      }
+      
+      const player = currentUserData.cards[playerId];
+      if (!player) return;
+      
+      const upgradeCost = calculateUpgradeCost(player);
+      const canUpgrade = (currentUserData.coins || 0) >= upgradeCost;
+      
+      upgradeInfo.innerHTML = `
+        <div class="upgrade-stats">
+          <div>
+            <div class="small">Attaque</div>
+            <div>${player.attack} → ${player.attack + 5}</div>
+          </div>
+          <div>
+            <div class="small">Défense</div>
+            <div>${player.defense} → ${player.defense + 3}</div>
+          </div>
+          <div>
+            <div class="small">Vitesse</div>
+            <div>${player.speed} → ${player.speed + 2}</div>
+          </div>
+        </div>
+        <div class="upgrade-cost">
+          <div>Coût:</div>
+          <div>${upgradeCost} 🪙</div>
+        </div>
+        <button class="upgrade-btn small-btn ${canUpgrade ? 'success' : 'ghost'}" id="btn-upgrade-player" ${!canUpgrade ? 'disabled' : ''}>
+          <i class="fas fa-arrow-up"></i> Améliorer
+        </button>
+      `;
+      
+      // Événement pour améliorer le joueur
+      document.getElementById('btn-upgrade-player')?.addEventListener('click', () => {
+        upgradePlayer(playerId);
+      });
+    }
+    
+    // Calculer le coût d'amélioration
+    function calculateUpgradeCost(player) {
+      const baseCost = 500;
+      const rarityMultiplier = {
+        'bronze': 1,
+        'silver': 2,
+        'gold': 4,
+        'legendary': 8
+      };
+      
+      const levelMultiplier = player.level || 1;
+      
+      return baseCost * (rarityMultiplier[player.rarity] || 1) * levelMultiplier;
+    }
+    
+    // Améliorer un joueur
+    async function upgradePlayer(playerId) {
+      const player = currentUserData.cards[playerId];
+      if (!player) return;
+      
+      const upgradeCost = calculateUpgradeCost(player);
+      
+      if ((currentUserData.coins || 0) < upgradeCost) {
+        showNotification("Pas assez de pièces pour améliorer ce joueur", "warning");
+        return;
+      }
+      
+      // Améliorer les statistiques
+      const updatedCards = {
+        ...currentUserData.cards,
+        [playerId]: {
+          ...player,
+          attack: player.attack + 5,
+          defense: player.defense + 3,
+          speed: player.speed + 2,
+          level: (player.level || 1) + 1
+        }
+      };
+      
+      // Déduire le coût
+      const updatedCoins = (currentUserData.coins || 0) - upgradeCost;
+      
+      // Mettre à jour l'utilisateur
+      await updateUserData({
+        coins: updatedCoins,
+        cards: updatedCards
+      });
+      
+      showNotification(`${player.name} amélioré au niveau ${(player.level || 1) + 1}!`, "success");
+      loadMarket();
+    }
+    
     // Gestionnaire d'état d'authentification
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -5086,7 +4298,7 @@
       }
     });
     
-    // CORRECTION: Initialisation complète des événements - version corrigée
+    // Initialisation complète des événements
     document.addEventListener('DOMContentLoaded', function() {
       // Événements de connexion
       const btnLogin = document.getElementById('btn-login');
@@ -5170,10 +4382,6 @@
       const navAdmin = document.getElementById('nav-admin');
       if (navAdmin) navAdmin.addEventListener('click', () => showScreen('admin'));
       
-      // CORRECTION: Navigation vers les nouveaux écrans
-      const navClan = document.getElementById('nav-clan');
-      if (navClan) navClan.addEventListener('click', () => showScreen('clan'));
-      
       const navMarket = document.getElementById('nav-market');
       if (navMarket) navMarket.addEventListener('click', () => showScreen('market'));
       
@@ -5201,13 +4409,6 @@
       
       const adminBack = document.getElementById('admin-back');
       if (adminBack) adminBack.addEventListener('click', () => showScreen('dashboard'));
-      
-      const profileViewBack = document.getElementById('profile-view-back');
-      if (profileViewBack) profileViewBack.addEventListener('click', () => showScreen('friends'));
-      
-      // CORRECTION: Boutons retour pour les nouveaux écrans
-      const clanBack = document.getElementById('clan-back');
-      if (clanBack) clanBack.addEventListener('click', () => showScreen('dashboard'));
       
       const marketBack = document.getElementById('market-back');
       if (marketBack) marketBack.addEventListener('click', () => showScreen('dashboard'));
@@ -5251,7 +4452,7 @@
         });
       });
       
-      // CORRECTION: Bouton VIP fonctionnel
+      // Bouton VIP fonctionnel
       const btnBuyVip = document.getElementById('btn-buy-vip');
       if (btnBuyVip) {
         btnBuyVip.addEventListener('click', buyVip);
@@ -5307,102 +4508,14 @@
         });
       }
       
-      // CORRECTION: Fusion fonctionnelle
+      // Fusion fonctionnelle
       const btnFusion = document.getElementById('btn-fusion');
       if (btnFusion) {
         btnFusion.addEventListener('click', executeFusion);
       }
       
-      // Événement pour créer un clan
-      document.getElementById('btn-create-clan')?.addEventListener('click', async () => {
-        const clanName = document.getElementById('clan-name')?.value;
-        if (!clanName) {
-          showNotification("Veuillez entrer un nom de clan", "warning");
-          return;
-        }
-        
-        const success = await createClan(clanName);
-        if (success) {
-          document.getElementById('clan-name').value = '';
-          loadClan();
-        }
-      });
-      
-      // CORRECTION: Événements pour les boutons de sélection automatique
-      document.getElementById('btn-auto-best')?.addEventListener('click', autoSelectBestTeam);
-      
-      // CORRECTION: Masquer le footer au chargement initial
+      // Masquer le footer au chargement initial
       if (footer) footer.classList.remove('visible');
-    });
-
-    // CORRECTION: Script de diagnostic et réparation
-    function diagnoseAndFix() {
-      console.log('🔍 Diagnostic des bugs...');
-      
-      const issues = [];
-      
-      // Vérifier la navigation
-      const missingScreens = ['clan', 'market', 'badges'];
-      missingScreens.forEach(screen => {
-        if (!screens[screen]) {
-          issues.push(`Écran ${screen} manquant`);
-        }
-      });
-      
-      // Vérifier les écouteurs d'événements
-      const criticalButtons = [
-        'btn-buy-vip', 'btn-fusion', 'btn-find-opponent',
-        'btn-play-match', 'btn-daily-reward', 'btn-auto-best'
-      ];
-      
-      criticalButtons.forEach(btnId => {
-        const btn = document.getElementById(btnId);
-        if (!btn) {
-          issues.push(`Bouton critique manquant: ${btnId}`);
-        }
-      });
-      
-      // Vérifier Firebase
-      if (!auth?.currentUser && currentUserData) {
-        issues.push('Incohérence des données d authentification');
-      }
-      
-      console.log('Problèmes détectés:', issues);
-      
-      // Appliquer les correctifs automatiques
-      if (issues.length > 0) {
-        console.log('🛠️ Application des correctifs...');
-        applyEmergencyFixes();
-      }
-      
-      return issues;
-    }
-
-    function applyEmergencyFixes() {
-      // Correction de la navigation
-      const originalShowScreen = showScreen;
-      showScreen = function(name) {
-        originalShowScreen(name);
-        
-        // Charger les écrans manquants
-        if (name === 'clan' && typeof loadClan === 'function') loadClan();
-        if (name === 'market' && typeof loadMarket === 'function') loadMarket();
-        if (name === 'badges' && typeof loadBadges === 'function') loadBadges();
-      };
-      
-      // Réattacher les événements critiques
-      setTimeout(() => {
-        const vipBtn = document.getElementById('btn-buy-vip');
-        if (vipBtn && !vipBtn._fixed) {
-          vipBtn.addEventListener('click', buyVip);
-          vipBtn._fixed = true;
-        }
-      }, 1000);
-    }
-
-    // Lancer le diagnostic au chargement
-    document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(diagnoseAndFix, 2000);
     });
   </script>
 </body>

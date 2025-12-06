@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1032,6 +1033,145 @@ main {
         height: 300px;
     }
 }
+
+/* ============ NOUVEAUX STYLES POUR LES AMÉLIORATIONS ============ */
+.fusion-effect {
+    animation: fusionGlow 1s ease-in-out;
+    border-color: gold !important;
+    box-shadow: 0 0 20px gold;
+}
+
+@keyframes fusionGlow {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.auto-select-btn {
+    background: linear-gradient(135deg, #00eaff, #6d00ff);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.match-event {
+    background: rgba(26,26,37,0.8);
+    border: 1px solid #6d00ff;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 12px;
+    animation: slideIn 0.3s ease;
+}
+
+.division-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+.bronze-division { background: #cd7f32; color: white; }
+.silver-division { background: #c0c0c0; color: black; }
+.gold-division { background: gold; color: black; }
+.elite-division { background: #8e38ff; color: white; }
+.ultimate-division { background: linear-gradient(135deg, gold, #ffaa00); color: black; }
+
+.daily-reward-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.match-action {
+    position: absolute;
+    font-size: 20px;
+    animation: floatUp 2s ease-out forwards;
+    z-index: 1000;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-100px); opacity: 0; }
+}
+
+.fusion-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: gold;
+    color: black;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.player-count {
+    font-size: 10px;
+    color: #00eaff;
+    margin-top: 5px;
+}
+
+.synergy-bonus {
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    padding: 5px;
+    margin-top: 5px;
+    font-size: 10px;
+}
+
+.team-power-display {
+    background: rgba(109, 0, 255, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px 0;
+    text-align: center;
+}
+
+.team-power-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00eaff;
+}
+
+.match-simulation-container {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 20px;
+    border: 1px solid #6d00ff;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.league-rewards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.league-reward-item {
+    background: rgba(26,26,37,0.8);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #6d00ff;
+}
 </style>
 
 <!-- Font Awesome Icons -->
@@ -1129,6 +1269,12 @@ main {
             </div>
         </div>
         
+        <div class="team-power-display">
+            <div class="stat-label">Puissance d'Équipe</div>
+            <div class="team-power-value" id="team-power-value">0</div>
+            <div class="stat-label" id="synergy-bonus">Bonus Synergie: +0</div>
+        </div>
+        
         <div class="quick-actions">
             <button class="quick-btn" id="quick-play">
                 <i class="fas fa-play"></i>
@@ -1176,6 +1322,11 @@ main {
                 <button class="formation-btn" data-formation="3-5-2">3-5-2</button>
                 <button class="formation-btn" data-formation="5-3-2">5-3-2</button>
             </div>
+            
+            <button class="auto-select-btn" id="auto-select-team">
+                <i class="fas fa-robot"></i>
+                Sélection Automatique
+            </button>
         </div>
         
         <div class="pitch-container">
@@ -1291,7 +1442,7 @@ main {
         <h2 class="page-title">LIGUE HEBDO</h2>
         
         <div class="league-info">
-            <h3 style="color: #00eaff; margin-bottom: 10px;">Ligue Diamant</h3>
+            <h3 style="color: #00eaff; margin-bottom: 10px;" id="league-division">Ligue Bronze</h3>
             <div class="league-timer" id="league-timer">
                 Reset dans: 2j 14h 30m
             </div>
@@ -1299,9 +1450,9 @@ main {
                 <div class="league-progress-fill" id="league-progress" style="width: 65%;"></div>
             </div>
             <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-                <span>Promotion: 1800 pts</span>
-                <span id="current-points">1,170 pts</span>
-                <span>Relégation: 800 pts</span>
+                <span id="promotion-points">Promotion: 500 pts</span>
+                <span id="current-points">250 pts</span>
+                <span id="relegation-points">Relégation: 0 pts</span>
             </div>
         </div>
         
@@ -1309,6 +1460,24 @@ main {
             <button id="play-league-match" style="background: linear-gradient(135deg, #00eaff, #6d00ff); border: none; color: white; padding: 15px 40px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px;">
                 <i class="fas fa-play-circle"></i> Jouer un Match de Ligue
             </button>
+        </div>
+        
+        <div class="league-rewards">
+            <div class="league-reward-item">
+                <div>🏆</div>
+                <div>Promotion</div>
+                <div style="font-size: 12px; color: #00eaff;">+500 coins</div>
+            </div>
+            <div class="league-reward-item">
+                <div>💰</div>
+                <div>Top 10</div>
+                <div style="font-size: 12px; color: #00eaff;">+1000 coins</div>
+            </div>
+            <div class="league-reward-item">
+                <div>💎</div>
+                <div>Top 3</div>
+                <div style="font-size: 12px; color: #00eaff;">+50 gems</div>
+            </div>
         </div>
         
         <h3 style="margin: 25px 0 15px 0; color: #00eaff;">Matches de la Semaine</h3>
@@ -1434,16 +1603,8 @@ main {
         <div id="match-result-content" style="text-align: center;">
             <!-- Match result will appear here -->
         </div>
-    </div>
-</div>
-
-<!-- Fusion Animation Modal -->
-<div id="fusion-modal" class="modal">
-    <div class="modal-content">
-        <button class="close-modal">&times;</button>
-        <h2 style="color: #00eaff; text-align: center; margin-bottom: 20px;">Fusion Réussie!</h2>
-        <div id="fusion-content" style="text-align: center;">
-            <!-- Fusion animation will appear here -->
+        <div id="match-events" style="margin-top: 20px; max-height: 200px; overflow-y: auto;" class="match-simulation-container">
+            <!-- Match events will appear here -->
         </div>
     </div>
 </div>
@@ -1471,39 +1632,113 @@ const firebaseConfig = {
 let firebaseApp, firebaseAuth, firebaseDb;
 let currentUser = null;
 
-// Définir les données par défaut AVEC LE SYSTÈME DE FUSION
+// Système de divisions
+const divisions = [
+    { id: 1, name: "Bronze", minPoints: 0, maxPoints: 999, promotion: 1000, relegation: 0, reward: { coins: 500, gems: 10 } },
+    { id: 2, name: "Argent", minPoints: 1000, maxPoints: 1999, promotion: 2000, relegation: 500, reward: { coins: 1000, gems: 25 } },
+    { id: 3, name: "Or", minPoints: 2000, maxPoints: 2999, promotion: 3000, relegation: 1500, reward: { coins: 2000, gems: 50 } },
+    { id: 4, name: "Elite", minPoints: 3000, maxPoints: 3999, promotion: 4000, relegation: 2500, reward: { coins: 5000, gems: 100 } },
+    { id: 5, name: "Ultimate League", minPoints: 4000, maxPoints: 999999, promotion: 999999, relegation: 3500, reward: { coins: 10000, gems: 250 } }
+];
+
+// Nouvelle structure de données utilisateur avec les améliorations
 const defaultUserData = {
     coins: 1000,
     gems: 50,
     tokens: 0,
     level: 1,
     xp: 0,
-    // NOUVELLE STRUCTURE: joueurs avec compteur et niveau
-    players: {
-        "GK001": { count: 1, level: 1 },
-        "DEF001": { count: 1, level: 1 },
-        "DEF002": { count: 1, level: 1 },
-        "MID001": { count: 1, level: 1 },
-        "MID002": { count: 1, level: 1 },
-        "ATT001": { count: 1, level: 1 },
-        "ATT002": { count: 1, level: 1 }
+    // Nouvelle structure pour la collection avec anti-doublon
+    collection: {
+        "GK001": { 
+            id: "GK001", 
+            overall: 87, 
+            baseOverall: 87,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "DEF001": { 
+            id: "DEF001", 
+            overall: 89, 
+            baseOverall: 89,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "DEF002": { 
+            id: "DEF002", 
+            overall: 88, 
+            baseOverall: 88,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "DEF003": { 
+            id: "DEF003", 
+            overall: 87, 
+            baseOverall: 87,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "MID001": { 
+            id: "MID001", 
+            overall: 91, 
+            baseOverall: 91,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "MID002": { 
+            id: "MID002", 
+            overall: 88, 
+            baseOverall: 88,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "ATT001": { 
+            id: "ATT001", 
+            overall: 91, 
+            baseOverall: 91,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "ATT003": { 
+            id: "ATT003", 
+            overall: 91, 
+            baseOverall: 91,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "ATT005": { 
+            id: "ATT005", 
+            overall: 89, 
+            baseOverall: 89,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        }
     },
-    // Équipe avec niveau individuel
     team: {
-        GK: { id: "GK001", level: 1 },
-        RB: { id: "DEF002", level: 1 },
-        CB1: { id: "DEF001", level: 1 },
-        CB2: { id: "DEF002", level: 1 },
-        LB: { id: "DEF001", level: 1 },
-        CM1: { id: "MID001", level: 1 },
-        CM2: { id: "MID002", level: 1 },
-        CM3: { id: "MID001", level: 1 },
-        RW: { id: "ATT003", level: 1 },
-        ST: { id: "ATT001", level: 1 },
-        LW: { id: "ATT005", level: 1 }
+        GK: "GK001",
+        RB: "DEF003",
+        CB1: "DEF001",
+        CB2: "DEF002",
+        LB: "DEF001",
+        CM1: "MID001",
+        CM2: "MID002",
+        CM3: "MID001",
+        RW: "ATT003",
+        ST: "ATT001",
+        LW: "ATT005"
     },
     formation: "4-3-3",
     leaguePoints: 1000,
+    division: 1, // 1: Bronze, 2: Argent, 3: Or, 4: Elite, 5: Ultimate
     matchesPlayed: 0,
     wins: 0,
     draws: 0,
@@ -1514,27 +1749,45 @@ const defaultUserData = {
     joinDate: new Date().toISOString(),
     weeklyMatches: [],
     ranking: 9999,
-    // NOUVEAU: Dernière récompense quotidienne
-    lastDailyReward: null
+    // Système de récompense quotidienne
+    lastDailyClaim: null,
+    // Historique des matchs détaillés
+    matchHistory: [],
+    // Team ID pour classement
+    teamID: null
 };
 
 let userData = { ...defaultUserData };
 
-// Base de données des joueurs de football
+// Base de données des joueurs de football (augmentée)
 const footballPlayersDB = {
     common: [
         // Gardiens
         { id: "GK001", name: "Mike Maignan", position: "GK", overall: 87, rarity: "common", nation: "France", club: "AC Milan", att: 40, def: 85, phy: 88, pac: 65, dri: 60, sho: 45, pas: 55 },
         { id: "GK002", name: "Gianluigi Donnarumma", position: "GK", overall: 86, rarity: "common", nation: "Italie", club: "PSG", att: 35, def: 86, phy: 90, pac: 60, dri: 55, sho: 40, pas: 50 },
+        { id: "GK003", name: "Alisson Becker", position: "GK", overall: 89, rarity: "common", nation: "Brésil", club: "Liverpool", att: 45, def: 88, phy: 86, pac: 65, dri: 58, sho: 42, pas: 60 },
         
         // Défenseurs
         { id: "DEF001", name: "Virgil van Dijk", position: "CB", overall: 89, rarity: "common", nation: "Pays-Bas", club: "Liverpool", att: 60, def: 90, phy: 92, pac: 75, dri: 70, sho: 65, pas: 72 },
         { id: "DEF002", name: "Ruben Dias", position: "CB", overall: 88, rarity: "common", nation: "Portugal", club: "Man City", att: 55, def: 89, phy: 85, pac: 70, dri: 68, sho: 60, pas: 70 },
         { id: "DEF003", name: "Trent Alexander-Arnold", position: "RB", overall: 87, rarity: "common", nation: "Angleterre", club: "Liverpool", att: 75, def: 82, phy: 78, pac: 82, dri: 84, sho: 76, pas: 90 },
+        { id: "DEF004", name: "Jules Koundé", position: "CB", overall: 85, rarity: "common", nation: "France", club: "Barcelona", att: 52, def: 86, phy: 80, pac: 82, dri: 75, sho: 55, pas: 68 },
+        { id: "DEF005", name: "Theo Hernandez", position: "LB", overall: 86, rarity: "common", nation: "France", club: "AC Milan", att: 72, def: 82, phy: 85, pac: 93, dri: 84, sho: 72, pas: 78 },
+        { id: "DEF006", name: "Marquinhos", position: "CB", overall: 87, rarity: "common", nation: "Brésil", club: "PSG", att: 58, def: 88, phy: 83, pac: 78, dri: 72, sho: 62, pas: 74 },
+        { id: "DEF007", name: "João Cancelo", position: "RB", overall: 86, rarity: "common", nation: "Portugal", club: "Barcelona", att: 70, def: 80, phy: 76, pac: 80, dri: 86, sho: 70, pas: 84 },
+        { id: "DEF008", name: "David Alaba", position: "CB", overall: 86, rarity: "common", nation: "Autriche", club: "Real Madrid", att: 65, def: 85, phy: 78, pac: 82, dri: 80, sho: 68, pas: 82 },
         
         // Milieux
         { id: "MID001", name: "Kevin De Bruyne", position: "CM", overall: 91, rarity: "common", nation: "Belgique", club: "Man City", att: 88, def: 65, phy: 82, pac: 75, dri: 88, sho: 89, pas: 94 },
         { id: "MID002", name: "Luka Modrić", position: "CM", overall: 88, rarity: "common", nation: "Croatie", club: "Real Madrid", att: 82, def: 70, phy: 75, pac: 72, dri: 90, sho: 82, pas: 89 },
+        { id: "MID003", name: "Frenkie de Jong", position: "CM", overall: 87, rarity: "common", nation: "Pays-Bas", club: "Barcelona", att: 75, def: 78, phy: 80, pac: 80, dri: 88, sho: 72, pas: 86 },
+        { id: "MID004", name: "Bernardo Silva", position: "CM", overall: 87, rarity: "common", nation: "Portugal", club: "Man City", att: 78, def: 68, phy: 72, pac: 78, dri: 90, sho: 76, pas: 86 },
+        { id: "MID005", name: "Pedri", position: "CM", overall: 86, rarity: "common", nation: "Espagne", club: "Barcelona", att: 74, def: 65, phy: 68, pac: 75, dri: 89, sho: 72, pas: 85 },
+        { id: "MID006", name: "Bruno Fernandes", position: "CAM", overall: 88, rarity: "common", nation: "Portugal", club: "Man United", att: 86, def: 62, phy: 75, pac: 72, dri: 84, sho: 86, pas: 89 },
+        { id: "MID007", name: "N'Golo Kanté", position: "CDM", overall: 87, rarity: "common", nation: "France", club: "Al Ittihad", att: 65, def: 85, phy: 82, pac: 78, dri: 78, sho: 66, pas: 75 },
+        { id: "MID008", name: "Casemiro", position: "CDM", overall: 87, rarity: "common", nation: "Brésil", club: "Man United", att: 68, def: 86, phy: 88, pac: 65, dri: 75, sho: 72, pas: 76 },
+        { id: "MID009", name: "Toni Kroos", position: "CM", overall: 88, rarity: "common", nation: "Allemagne", club: "Real Madrid", att: 78, def: 72, phy: 75, pac: 58, dri: 82, sho: 82, pas: 91 },
+        { id: "MID010", name: "Martin Ødegaard", position: "CAM", overall: 87, rarity: "common", nation: "Norvège", club: "Arsenal", att: 82, def: 60, phy: 68, pac: 74, dri: 88, sho: 80, pas: 87 },
         
         // Attaquants
         { id: "ATT001", name: "Kylian Mbappé", position: "ST", overall: 91, rarity: "common", nation: "France", club: "PSG", att: 92, def: 35, phy: 82, pac: 97, dri: 92, sho: 90, pas: 80 },
@@ -1546,26 +1799,43 @@ const footballPlayersDB = {
         { id: "ATT007", name: "Karim Benzema", position: "ST", overall: 89, rarity: "common", nation: "France", club: "Al Ittihad", att: 90, def: 45, phy: 82, pac: 77, dri: 88, sho: 89, pas: 83 },
         { id: "ATT008", name: "Robert Lewandowski", position: "ST", overall: 89, rarity: "common", nation: "Pologne", club: "Barcelona", att: 91, def: 44, phy: 84, pac: 76, dri: 85, sho: 91, pas: 79 },
         { id: "ATT009", name: "Mohamed Salah", position: "RW", overall: 88, rarity: "common", nation: "Égypte", club: "Liverpool", att: 89, def: 45, phy: 80, pac: 90, dri: 88, sho: 88, pas: 81 },
-        { id: "ATT010", name: "Son Heung-min", position: "LW", overall: 88, rarity: "common", nation: "Corée du Sud", club: "Tottenham", att: 88, def: 42, phy: 76, pac: 89, dri: 86, sho: 88, pas: 82 }
+        { id: "ATT010", name: "Son Heung-min", position: "LW", overall: 88, rarity: "common", nation: "Corée du Sud", club: "Tottenham", att: 88, def: 42, phy: 76, pac: 89, dri: 86, sho: 88, pas: 82 },
+        { id: "ATT011", name: "Vinícius Júnior", position: "LW", overall: 89, rarity: "common", nation: "Brésil", club: "Real Madrid", att: 88, def: 32, phy: 75, pac: 95, dri: 91, sho: 83, pas: 78 },
+        { id: "ATT012", name: "Jude Bellingham", position: "CAM", overall: 90, rarity: "common", nation: "Angleterre", club: "Real Madrid", att: 86, def: 72, phy: 88, pac: 82, dri: 89, sho: 84, pas: 86 },
+        { id: "ATT013", name: "Phil Foden", position: "RW", overall: 88, rarity: "common", nation: "Angleterre", club: "Man City", att: 86, def: 52, phy: 70, pac: 80, dri: 89, sho: 84, pas: 85 },
+        { id: "ATT014", name: "Antoine Griezmann", position: "CF", overall: 87, rarity: "common", nation: "France", club: "Atlético Madrid", att: 85, def: 58, phy: 72, pac: 78, dri: 87, sho: 84, pas: 84 },
+        { id: "ATT015", name: "Ousmane Dembélé", position: "RW", overall: 86, rarity: "common", nation: "France", club: "PSG", att: 82, def: 40, phy: 65, pac: 93, dri: 90, sho: 78, pas: 82 }
     ],
     rare: [
-        { id: "R001", name: "Jude Bellingham", position: "CM", overall: 90, rarity: "rare", nation: "Angleterre", club: "Real Madrid", att: 86, def: 72, phy: 88, pac: 82, dri: 89, sho: 84, pas: 86 },
-        { id: "R002", name: "Vinícius Júnior", position: "LW", overall: 89, rarity: "rare", nation: "Brésil", club: "Real Madrid", att: 88, def: 32, phy: 75, pac: 95, dri: 91, sho: 83, pas: 78 },
-        { id: "R003", name: "Phil Foden", position: "CAM", overall: 88, rarity: "rare", nation: "Angleterre", club: "Man City", att: 86, def: 52, phy: 70, pac: 80, dri: 89, sho: 84, pas: 85 },
-        { id: "R004", name: "Rodri", position: "CDM", overall: 90, rarity: "rare", nation: "Espagne", club: "Man City", att: 72, def: 88, phy: 87, pac: 65, dri: 78, sho: 72, pas: 84 },
-        { id: "R005", name: "Joshua Kimmich", position: "CDM", overall: 88, rarity: "rare", nation: "Allemagne", club: "Bayern Munich", att: 75, def: 85, phy: 82, pac: 72, dri: 83, sho: 76, pas: 88 }
+        { id: "R001", name: "Jude Bellingham (Rare)", position: "CM", overall: 92, rarity: "rare", nation: "Angleterre", club: "Real Madrid", att: 88, def: 75, phy: 90, pac: 84, dri: 91, sho: 86, pas: 88 },
+        { id: "R002", name: "Vinícius Júnior (Rare)", position: "LW", overall: 91, rarity: "rare", nation: "Brésil", club: "Real Madrid", att: 90, def: 35, phy: 78, pac: 97, dri: 93, sho: 85, pas: 80 },
+        { id: "R003", name: "Phil Foden (Rare)", position: "CAM", overall: 90, rarity: "rare", nation: "Angleterre", club: "Man City", att: 88, def: 55, phy: 74, pac: 82, dri: 91, sho: 86, pas: 87 },
+        { id: "R004", name: "Rodri (Rare)", position: "CDM", overall: 91, rarity: "rare", nation: "Espagne", club: "Man City", att: 74, def: 90, phy: 89, pac: 68, dri: 80, sho: 74, pas: 86 },
+        { id: "R005", name: "Joshua Kimmich (Rare)", position: "CDM", overall: 90, rarity: "rare", nation: "Allemagne", club: "Bayern Munich", att: 77, def: 87, phy: 84, pac: 74, dri: 85, sho: 78, pas: 90 },
+        { id: "R006", name: "Virgil van Dijk (Rare)", position: "CB", overall: 91, rarity: "rare", nation: "Pays-Bas", club: "Liverpool", att: 62, def: 92, phy: 94, pac: 77, dri: 72, sho: 67, pas: 74 },
+        { id: "R007", name: "Kevin De Bruyne (Rare)", position: "CM", overall: 93, rarity: "rare", nation: "Belgique", club: "Man City", att: 90, def: 68, phy: 84, pac: 77, dri: 90, sho: 91, pas: 96 },
+        { id: "R008", name: "Kylian Mbappé (Rare)", position: "ST", overall: 93, rarity: "rare", nation: "France", club: "PSG", att: 94, def: 38, phy: 84, pac: 98, dri: 94, sho: 92, pas: 82 },
+        { id: "R009", name: "Erling Haaland (Rare)", position: "ST", overall: 93, rarity: "rare", nation: "Norvège", club: "Man City", att: 95, def: 48, phy: 96, pac: 91, dri: 82, sho: 96, pas: 67 },
+        { id: "R010", name: "Lionel Messi (Rare)", position: "RW", overall: 93, rarity: "rare", nation: "Argentine", club: "Inter Miami", att: 92, def: 40, phy: 74, pac: 83, dri: 97, sho: 92, pas: 93 }
     ],
     epic: [
         { id: "E001", name: "Pelé", position: "ST", overall: 95, rarity: "epic", nation: "Brésil", club: "Légende", att: 96, def: 40, phy: 85, pac: 95, dri: 97, sho: 95, pas: 90 },
         { id: "E002", name: "Diego Maradona", position: "CAM", overall: 95, rarity: "epic", nation: "Argentine", club: "Légende", att: 92, def: 50, phy: 80, pac: 90, dri: 98, sho: 88, pas: 92 },
         { id: "E003", name: "Zinedine Zidane", position: "CAM", overall: 94, rarity: "epic", nation: "France", club: "Légende", att: 88, def: 65, phy: 85, pac: 75, dri: 92, sho: 85, pas: 93 },
         { id: "E004", name: "Ronaldo Nazário", position: "ST", overall: 94, rarity: "epic", nation: "Brésil", club: "Légende", att: 95, def: 30, phy: 90, pac: 96, dri: 92, sho: 94, pas: 75 },
-        { id: "E005", name: "Johan Cruyff", position: "CF", overall: 93, rarity: "epic", nation: "Pays-Bas", club: "Légende", att: 90, def: 55, phy: 75, pac: 85, dri: 95, sho: 86, pas: 92 }
+        { id: "E005", name: "Johan Cruyff", position: "CF", overall: 93, rarity: "epic", nation: "Pays-Bas", club: "Légende", att: 90, def: 55, phy: 75, pac: 85, dri: 95, sho: 86, pas: 92 },
+        { id: "E006", name: "Franz Beckenbauer", position: "CB", overall: 94, rarity: "epic", nation: "Allemagne", club: "Légende", att: 70, def: 94, phy: 85, pac: 80, dri: 85, sho: 75, pas: 88 },
+        { id: "E007", name: "Paolo Maldini", position: "CB", overall: 93, rarity: "epic", nation: "Italie", club: "Légende", att: 60, def: 95, phy: 82, pac: 85, dri: 80, sho: 60, pas: 75 },
+        { id: "E008", name: "Zico", position: "CAM", overall: 93, rarity: "epic", nation: "Brésil", club: "Légende", att: 90, def: 45, phy: 72, pac: 82, dri: 94, sho: 90, pas: 92 },
+        { id: "E009", name: "Garrincha", position: "RW", overall: 92, rarity: "epic", nation: "Brésil", club: "Légende", att: 88, def: 30, phy: 80, pac: 95, dri: 96, sho: 85, pas: 82 },
+        { id: "E010", name: "Ferenc Puskás", position: "ST", overall: 92, rarity: "epic", nation: "Hongrie", club: "Légende", att: 94, def: 35, phy: 82, pac: 80, dri: 88, sho: 95, pas: 85 }
     ],
     legendary: [
         { id: "L001", name: "Lionel Messi (Prime)", position: "RW", overall: 98, rarity: "legendary", nation: "Argentine", club: "Légende", att: 96, def: 35, phy: 75, pac: 88, dri: 99, sho: 94, pas: 95 },
         { id: "L002", name: "Cristiano Ronaldo (Prime)", position: "ST", overall: 97, rarity: "legendary", nation: "Portugal", club: "Légende", att: 97, def: 40, phy: 90, pac: 92, dri: 91, sho: 96, pas: 84 },
-        { id: "L003", name: "Pelé (Prime)", position: "ST", overall: 98, rarity: "legendary", nation: "Brésil", club: "Légende", att: 98, def: 42, phy: 88, pac: 97, dri: 98, sho: 96, pas: 92 }
+        { id: "L003", name: "Pelé (Prime)", position: "ST", overall: 98, rarity: "legendary", nation: "Brésil", club: "Légende", att: 98, def: 42, phy: 88, pac: 97, dri: 98, sho: 96, pas: 92 },
+        { id: "L004", name: "Diego Maradona (Prime)", position: "CAM", overall: 97, rarity: "legendary", nation: "Argentine", club: "Légende", att: 94, def: 52, phy: 82, pac: 92, dri: 99, sho: 90, pas: 94 },
+        { id: "L005", name: "Ronaldo Nazário (Prime)", position: "ST", overall: 96, rarity: "legendary", nation: "Brésil", club: "Légende", att: 97, def: 32, phy: 92, pac: 98, dri: 94, sho: 96, pas: 77 }
     ]
 };
 
@@ -1676,7 +1946,7 @@ async function handleAuthStateChanged(user) {
         updateDashboard();
         updateTeamDisplay();
         updateCollectionDisplay();
-        updateLeagueTimer();
+        updateLeagueSystem();
         updateGlobalRanking();
         updateProfile();
         
@@ -1693,44 +1963,41 @@ async function handleAuthStateChanged(user) {
     hideLoading();
 }
 
-// Charger les données utilisateur - AVEC NOUVELLE STRUCTURE
+// Charger les données utilisateur
 async function loadUserData(userId) {
     try {
         const snapshot = await firebaseDb.ref(`users/${userId}`).once('value');
         
         if (snapshot.exists()) {
-            // Fusionner les données chargées avec les valeurs par défaut
             const loadedData = snapshot.val();
             
-            // S'assurer que toutes les propriétés essentielles existent
+            // Migration: convertir l'ancienne structure de collection si nécessaire
+            if (loadedData.players && !loadedData.collection) {
+                console.log("Migration de l'ancienne structure de collection...");
+                loadedData.collection = {};
+                Object.keys(loadedData.players).forEach(playerId => {
+                    const player = findPlayerById(playerId);
+                    if (player) {
+                        loadedData.collection[playerId] = {
+                            id: playerId,
+                            overall: player.overall,
+                            baseOverall: player.overall,
+                            fusionLevel: 0,
+                            count: 1,
+                            rarity: player.rarity
+                        };
+                    }
+                });
+                delete loadedData.players;
+            }
+            
+            // Fusionner avec les valeurs par défaut
             userData = {
-                coins: loadedData.coins || defaultUserData.coins,
-                gems: loadedData.gems || defaultUserData.gems,
-                tokens: loadedData.tokens || defaultUserData.tokens,
-                level: loadedData.level || defaultUserData.level,
-                xp: loadedData.xp || defaultUserData.xp,
-                
-                // Nouvelle structure pour les joueurs
-                players: loadedData.players || defaultUserData.players,
-                
-                // Équipe avec conversion depuis ancien format si nécessaire
-                team: convertTeamFormat(loadedData.team) || defaultUserData.team,
-                
-                formation: loadedData.formation || defaultUserData.formation,
-                leaguePoints: loadedData.leaguePoints || defaultUserData.leaguePoints,
-                matchesPlayed: loadedData.matchesPlayed || defaultUserData.matchesPlayed,
-                wins: loadedData.wins || defaultUserData.wins,
-                draws: loadedData.draws || defaultUserData.draws,
-                losses: loadedData.losses || defaultUserData.losses,
-                goalsScored: loadedData.goalsScored || defaultUserData.goalsScored,
-                goalsConceded: loadedData.goalsConceded || defaultUserData.goalsConceded,
-                badges: loadedData.badges || defaultUserData.badges,
-                joinDate: loadedData.joinDate || defaultUserData.joinDate,
-                weeklyMatches: loadedData.weeklyMatches || defaultUserData.weeklyMatches,
-                ranking: loadedData.ranking || defaultUserData.ranking,
-                
-                // Récompense quotidienne
-                lastDailyReward: loadedData.lastDailyReward || null
+                ...defaultUserData,
+                ...loadedData,
+                collection: loadedData.collection || defaultUserData.collection,
+                team: loadedData.team || defaultUserData.team,
+                teamID: loadedData.teamID || `team_${userId.substring(0, 8)}`
             };
             
             console.log("Données utilisateur chargées avec succès");
@@ -1738,41 +2005,26 @@ async function loadUserData(userId) {
         } else {
             // Données par défaut pour les nouveaux utilisateurs
             userData = { ...defaultUserData };
+            userData.teamID = `team_${userId.substring(0, 8)}`;
             await saveUserData();
         }
         
         // Mettre à jour l'interface
         updateUI();
         updateCollectionDisplay();
+        updateLeagueSystem();
+        
+        // Vérifier si récompense quotidienne disponible
+        checkDailyRewardAvailability();
         
     } catch (error) {
         console.error("Erreur de chargement des données:", error);
         showNotification("Erreur de chargement des données", "error");
+        
+        // Données par défaut en cas d'erreur
+        userData = { ...defaultUserData };
+        userData.teamID = `team_${userId.substring(0, 8)}`;
     }
-}
-
-// Convertir l'ancien format d'équipe au nouveau format
-function convertTeamFormat(oldTeam) {
-    if (!oldTeam) return null;
-    
-    // Si c'est déjà le nouveau format (avec level), le retourner tel quel
-    if (oldTeam.GK && typeof oldTeam.GK === 'object' && oldTeam.GK.level) {
-        return oldTeam;
-    }
-    
-    // Convertir l'ancien format (string) au nouveau format (objet avec level)
-    const newTeam = {};
-    for (const position in oldTeam) {
-        const playerId = oldTeam[position];
-        if (playerId) {
-            newTeam[position] = {
-                id: playerId,
-                level: 1
-            };
-        }
-    }
-    
-    return newTeam;
 }
 
 // Sauvegarder les données utilisateur
@@ -1780,6 +2032,9 @@ async function saveUserData() {
     if (!currentUser) return;
     
     try {
+        // Calculer la puissance d'équipe avant sauvegarde
+        userData.teamPower = calculateTeamPower();
+        
         await firebaseDb.ref(`users/${currentUser.uid}`).set(userData);
         console.log("Données sauvegardées avec succès");
         
@@ -1819,7 +2074,9 @@ function updateDashboard() {
     // Utiliser des valeurs par défaut pour éviter undefined
     const wins = userData.wins || 0;
     const leaguePoints = userData.leaguePoints || 0;
-    const playersCount = userData.players ? Object.keys(userData.players).length : 0;
+    const playersCount = userData.collection ? Object.keys(userData.collection).length : 0;
+    const teamPower = calculateTeamPower();
+    const synergyBonus = calculateSynergyBonus();
     
     // Mettre à jour les statistiques
     document.getElementById("stat-level").textContent = userData.level || 1;
@@ -1827,8 +2084,14 @@ function updateDashboard() {
     document.getElementById("stat-league-points").textContent = leaguePoints.toLocaleString();
     document.getElementById("stat-players").textContent = playersCount;
     
+    // Mettre à jour la puissance d'équipe
+    document.getElementById("team-power-value").textContent = Math.round(teamPower);
+    document.getElementById("synergy-bonus").textContent = `Bonus Synergie: +${synergyBonus}`;
+    
     // Mettre à jour la progression de la ligue
-    const progress = leaguePoints >= 1800 ? 100 : leaguePoints <= 800 ? 0 : ((leaguePoints - 800) / (1800 - 800)) * 100;
+    const division = divisions[userData.division - 1] || divisions[0];
+    const progress = division.maxPoints > division.minPoints ? 
+        ((leaguePoints - division.minPoints) / (division.maxPoints - division.minPoints)) * 100 : 0;
     document.getElementById("league-progress").style.width = `${Math.min(Math.max(progress, 0), 100)}%`;
     document.getElementById("current-points").textContent = leaguePoints.toLocaleString() + " pts";
 }
@@ -1944,10 +2207,8 @@ function initializeEventHandlers() {
         }
     });
     
-    // Bouton paramètres
-    document.getElementById("open-settings").addEventListener("click", () => {
-        showNotification("Paramètres - Fonctionnalité à venir!", "info");
-    });
+    // Bouton Sélection Automatique
+    document.getElementById("auto-select-team").addEventListener("click", autoSelectTeam);
 }
 
 // Gérer la connexion
@@ -2004,6 +2265,7 @@ async function handleRegister() {
         
         // Initialiser les données utilisateur
         userData = { ...defaultUserData };
+        userData.teamID = `team_${currentUser.uid.substring(0, 8)}`;
         await saveUserData();
         showNotification("Compte créé avec succès!", "success");
         
@@ -2056,21 +2318,26 @@ function updateTeamDisplay() {
         slot.dataset.index = index;
         
         // Chercher le joueur dans cette position
-        const teamPlayer = userData.team ? userData.team[pos.pos] : null;
+        const playerId = userData.team ? userData.team[pos.pos] : null;
         
-        if (teamPlayer && teamPlayer.id) {
-            const player = findPlayerById(teamPlayer.id);
-            if (player) {
-                // Calculer l'OVR avec bonus de niveau
-                const boostedOverall = calculateBoostedOVR(player, teamPlayer.level);
-                
+        if (playerId) {
+            const playerData = getPlayerFromCollection(playerId);
+            if (playerData) {
                 slot.innerHTML = `
                     <div class="position">${pos.pos}</div>
-                    <div class="rating">${boostedOverall}</div>
-                    <div style="font-size: 8px;">${player.name.split(' ')[0]}</div>
-                    <div style="font-size: 8px; color: gold;">Lv.${teamPlayer.level}</div>
+                    <div class="rating">${playerData.overall}</div>
+                    <div style="font-size: 8px;">${playerData.name.split(' ')[0]}</div>
                 `;
-                slot.title = `${player.name} - OVR ${boostedOverall} (Niveau ${teamPlayer.level})`;
+                slot.title = `${playerData.name} - ${playerData.overall}`;
+                
+                // Afficher badge de fusion si applicable
+                const collectionData = userData.collection[playerId];
+                if (collectionData && collectionData.fusionLevel > 0) {
+                    const fusionBadge = document.createElement("div");
+                    fusionBadge.className = "fusion-badge";
+                    fusionBadge.textContent = `+${collectionData.fusionLevel}`;
+                    slot.appendChild(fusionBadge);
+                }
             }
         } else {
             slot.classList.add("empty");
@@ -2085,88 +2352,63 @@ function updateTeamDisplay() {
     });
     
     // Remplir la liste des joueurs disponibles
-    const playerIds = userData.players ? Object.keys(userData.players) : [];
-    playerIds.forEach(playerId => {
-        const playerData = userData.players[playerId];
-        if (playerData && playerData.count > 0) {
-            const player = findPlayerById(playerId);
-            if (player && !isPlayerInTeam(playerId)) {
+    if (userData.collection) {
+        Object.keys(userData.collection).forEach(playerId => {
+            const playerData = getPlayerFromCollection(playerId);
+            if (playerData && (!userData.team || !Object.values(userData.team).includes(playerId))) {
                 const playerItem = document.createElement("div");
                 playerItem.className = "player-item";
                 playerItem.dataset.playerId = playerId;
                 
-                // Calculer l'OVR avec bonus de niveau
-                const boostedOverall = calculateBoostedOVR(player, playerData.level);
+                const collectionData = userData.collection[playerId];
+                const fusionBadge = collectionData.fusionLevel > 0 ? `<span style="color:gold; margin-left:5px;">+${collectionData.fusionLevel}</span>` : '';
                 
                 playerItem.innerHTML = `
                     <div class="player-info-small">
-                        <div class="player-name">${player.name}</div>
-                        <div class="player-details">${player.position} | ${player.club}</div>
-                        <div class="player-details">Niv. ${playerData.level} | x${playerData.count}</div>
+                        <div class="player-name">${playerData.name}${fusionBadge}</div>
+                        <div class="player-details">${playerData.position} | ${playerData.club}</div>
                     </div>
-                    <div class="player-rating">${boostedOverall}</div>
+                    <div class="player-rating">${playerData.overall}</div>
                 `;
                 playerItem.addEventListener("click", () => openPlayerDetails(playerId));
                 availableList.appendChild(playerItem);
             }
-        }
-    });
+        });
+    }
     
     // Remplir la liste de l'équipe actuelle
     if (userData.team) {
-        Object.entries(userData.team).forEach(([position, teamPlayer]) => {
-            if (teamPlayer && teamPlayer.id) {
-                const player = findPlayerById(teamPlayer.id);
-                if (player) {
+        Object.entries(userData.team).forEach(([position, playerId]) => {
+            if (playerId) {
+                const playerData = getPlayerFromCollection(playerId);
+                if (playerData) {
                     const playerItem = document.createElement("div");
                     playerItem.className = "player-item";
                     playerItem.dataset.position = position;
-                    playerItem.dataset.playerId = teamPlayer.id;
+                    playerItem.dataset.playerId = playerId;
                     
-                    // Calculer l'OVR avec bonus de niveau
-                    const boostedOverall = calculateBoostedOVR(player, teamPlayer.level);
+                    const collectionData = userData.collection[playerId];
+                    const fusionBadge = collectionData && collectionData.fusionLevel > 0 ? `<span style="color:gold; margin-left:5px;">+${collectionData.fusionLevel}</span>` : '';
                     
                     playerItem.innerHTML = `
                         <div class="player-info-small">
-                            <div class="player-name">${player.name}</div>
-                            <div class="player-details">${position} | ${player.club}</div>
-                            <div class="player-details">Niveau ${teamPlayer.level}</div>
+                            <div class="player-name">${playerData.name}${fusionBadge}</div>
+                            <div class="player-details">${position} | ${playerData.club}</div>
                         </div>
-                        <div class="player-rating">${boostedOverall}</div>
+                        <div class="player-rating">${playerData.overall}</div>
                     `;
                     playerItem.addEventListener("click", () => {
-                        // Retirer le joueur de l'équipe
                         userData.team[position] = null;
                         updateTeamDisplay();
-                        showNotification(`${player.name} retiré de l'équipe`, "info");
                     });
                     currentList.appendChild(playerItem);
                 }
             }
         });
     }
-}
-
-// Calculer l'OVR avec bonus de niveau
-function calculateBoostedOVR(player, level) {
-    if (!player || !level) return player?.overall || 0;
     
-    // Chaque niveau ajoute 1-2 points à l'OVR
-    const boost = Math.min((level - 1) * 1.5, 10); // Max +10 points
-    return Math.min(99, Math.round(player.overall + boost));
-}
-
-// Vérifier si un joueur est dans l'équipe
-function isPlayerInTeam(playerId) {
-    if (!userData.team) return false;
-    
-    for (const position in userData.team) {
-        const teamPlayer = userData.team[position];
-        if (teamPlayer && teamPlayer.id === playerId) {
-            return true;
-        }
-    }
-    return false;
+    // Mettre à jour la puissance d'équipe
+    updateDashboard();
 }
 
 // Ouvrir la sélection de joueur pour une position
@@ -2174,48 +2416,50 @@ function openPlayerSelection(position) {
     // Créer une liste modale des joueurs disponibles pour cette position
     let modalContent = `<h3 style="color: #00eaff; margin-bottom: 15px;">Sélectionner un joueur pour ${position}</h3>`;
     
-    const playerIds = userData.players ? Object.keys(userData.players) : [];
-    const availablePlayers = [];
-    
-    playerIds.forEach(playerId => {
-        const playerData = userData.players[playerId];
-        if (playerData && playerData.count > 0 && !isPlayerInTeam(playerId)) {
-            const player = findPlayerById(playerId);
-            if (player) {
+    if (!userData.collection || Object.keys(userData.collection).length === 0) {
+        modalContent += `<p style="text-align: center; color: #aaa;">Aucun joueur disponible</p>`;
+    } else {
+        const availablePlayers = [];
+        
+        Object.keys(userData.collection).forEach(playerId => {
+            const playerData = getPlayerFromCollection(playerId);
+            if (playerData && (!userData.team || !Object.values(userData.team).includes(playerId))) {
                 // Vérifier si le joueur peut jouer à cette position
-                if (isPlayerCompatibleWithPosition(player, position)) {
+                if (isPlayerCompatibleWithPosition(playerData, position)) {
                     availablePlayers.push({
-                        player,
-                        playerData,
-                        boostedOverall: calculateBoostedOVR(player, playerData.level)
+                        id: playerId,
+                        player: playerData,
+                        collectionData: userData.collection[playerId]
                     });
                 }
             }
-        }
-    });
-    
-    if (availablePlayers.length === 0) {
-        modalContent += `<p style="text-align: center; color: #aaa;">Aucun joueur disponible pour cette position</p>`;
-    } else {
-        // Trier par OVR décroissant
-        availablePlayers.sort((a, b) => b.boostedOverall - a.boostedOverall);
-        
-        availablePlayers.forEach(item => {
-            const { player, playerData, boostedOverall } = item;
-            modalContent += `
-                <div class="player-item" style="margin-bottom: 10px; cursor: pointer;" onclick="selectPlayerForPosition('${player.id}', '${position}')">
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                        <div>
-                            <strong>${player.name}</strong><br>
-                            <small>${player.position} | ${player.club} | OVR: ${boostedOverall} | Niv. ${playerData.level}</small>
-                        </div>
-                        <button style="background: #00eaff; border: none; color: #0a0a0f; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
-                            Sélectionner
-                        </button>
-                    </div>
-                </div>
-            `;
         });
+        
+        if (availablePlayers.length === 0) {
+            modalContent += `<p style="text-align: center; color: #aaa;">Aucun joueur disponible pour cette position</p>`;
+        } else {
+            // Trier par OVR décroissant
+            availablePlayers.sort((a, b) => b.player.overall - a.player.overall);
+            
+            availablePlayers.forEach(data => {
+                const fusionBadge = data.collectionData.fusionLevel > 0 ? 
+                    `<span style="color:gold; margin-left:5px;">+${data.collectionData.fusionLevel}</span>` : '';
+                
+                modalContent += `
+                    <div class="player-item" style="margin-bottom: 10px; cursor: pointer;" onclick="selectPlayerForPosition('${data.id}', '${position}')">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div>
+                                <strong>${data.player.name}</strong>${fusionBadge}<br>
+                                <small>${data.player.position} | ${data.player.club} | OVR: ${data.player.overall}</small>
+                            </div>
+                            <button style="background: #00eaff; border: none; color: #0a0a0f; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                                Sélectionner
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
     }
     
     document.getElementById("player-modal-content").innerHTML = modalContent;
@@ -2225,45 +2469,38 @@ function openPlayerSelection(position) {
 // Sélectionner un joueur pour une position
 function selectPlayerForPosition(playerId, position) {
     if (!userData.team) userData.team = {};
-    
-    const playerData = userData.players[playerId];
-    if (!playerData || playerData.count === 0) {
-        showNotification("Ce joueur n'est pas disponible!", "error");
-        return;
-    }
-    
-    userData.team[position] = {
-        id: playerId,
-        level: playerData.level || 1
-    };
-    
+    userData.team[position] = playerId;
     updateTeamDisplay();
     document.getElementById("player-modal").style.display = "none";
     
-    const player = findPlayerById(playerId);
-    showNotification(`${player.name} ajouté à la position ${position}`, "success");
+    const playerData = getPlayerFromCollection(playerId);
+    if (playerData) {
+        showNotification(`${playerData.name} ajouté à la position ${position}`, "success");
+    }
 }
 
 // Vérifier si un joueur est compatible avec une position
 function isPlayerCompatibleWithPosition(player, position) {
     const positionGroups = {
         GK: ["GK"],
-        DEF: ["RB", "RWB", "CB", "LB", "LWB"],
-        MID: ["CDM", "CM", "CAM", "RM", "LM"],
-        ATT: ["RW", "LW", "ST", "CF"]
+        RB: ["RB", "RWB"],
+        RWB: ["RB", "RWB"],
+        CB: ["CB"],
+        LB: ["LB", "LWB"],
+        LWB: ["LB", "LWB"],
+        CDM: ["CDM", "CM"],
+        CM: ["CM", "CDM", "CAM"],
+        CAM: ["CAM", "CM"],
+        RM: ["RM", "RW"],
+        LM: ["LM", "LW"],
+        RW: ["RW", "RM"],
+        LW: ["LW", "LM"],
+        ST: ["ST", "CF"],
+        CF: ["CF", "ST"]
     };
     
-    for (const [group, positions] of Object.entries(positionGroups)) {
-        if (positions.includes(position)) {
-            // Pour simplifier, on vérifie si la position du joueur correspond au groupe
-            const playerGroup = Object.entries(positionGroups).find(([g, pos]) => 
-                pos.includes(player.position)
-            );
-            return playerGroup && playerGroup[0] === group;
-        }
-    }
-    
-    return false;
+    const compatiblePositions = positionGroups[position] || [];
+    return compatiblePositions.includes(player.position);
 }
 
 // Sauvegarder l'équipe
@@ -2272,83 +2509,112 @@ function saveTeam() {
     showNotification("Équipe sauvegardée avec succès!", "success");
 }
 
+// Obtenir un joueur depuis la collection
+function getPlayerFromCollection(playerId) {
+    if (userData.collection && userData.collection[playerId]) {
+        const collectionData = userData.collection[playerId];
+        const basePlayer = findPlayerById(playerId);
+        if (basePlayer) {
+            return {
+                ...basePlayer,
+                overall: collectionData.overall,
+                fusionLevel: collectionData.fusionLevel
+            };
+        }
+    }
+    return findPlayerById(playerId);
+}
+
 // Mettre à jour l'affichage de la collection
 function updateCollectionDisplay(filter = "all") {
     const container = document.getElementById("collection-players");
     container.innerHTML = '';
     
-    const playerIds = userData.players ? Object.keys(userData.players) : [];
-    
-    playerIds.forEach(playerId => {
-        const playerData = userData.players[playerId];
-        if (playerData && playerData.count > 0) {
-            const player = findPlayerById(playerId);
-            if (player) {
-                // Appliquer les filtres
-                if (filter !== "all") {
-                    if (filter === "common" && player.rarity !== "common") return;
-                    if (filter === "rare" && player.rarity !== "rare") return;
-                    if (filter === "epic" && player.rarity !== "epic") return;
-                    if (filter === "legendary" && player.rarity !== "legendary") return;
-                    if (filter === "att" && !["ST", "CF", "RW", "LW"].includes(player.position)) return;
-                    if (filter === "mid" && !["CM", "CAM", "CDM", "RM", "LM"].includes(player.position)) return;
-                    if (filter === "def" && !["CB", "RB", "LB", "RWB", "LWB"].includes(player.position)) return;
-                    if (filter === "gk" && player.position !== "GK") return;
-                }
-                
-                const playerCard = document.createElement("div");
-                playerCard.className = `player-card player-rare-${player.rarity}`;
-                playerCard.dataset.playerId = playerId;
-                
-                // Rareté en étoiles
-                let stars = "";
-                switch(player.rarity) {
-                    case "common": stars = "★"; break;
-                    case "rare": stars = "★★"; break;
-                    case "epic": stars = "★★★"; break;
-                    case "legendary": stars = "★★★★"; break;
-                }
-                
-                // Calculer l'OVR avec bonus
-                const boostedOverall = calculateBoostedOVR(player, playerData.level);
-                
-                playerCard.innerHTML = `
-                    <div class="player-photo">
-                        ${player.name.split(' ')[0].charAt(0)}${player.name.split(' ')[1] ? player.name.split(' ')[1].charAt(0) : ''}
-                        ${playerData.count > 1 ? `<div style="position: absolute; top: -5px; right: -5px; background: gold; color: #000; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 10px;">x${playerData.count}</div>` : ''}
-                    </div>
-                    <h4>${player.name}</h4>
-                    <div style="font-size: 12px; color: #aaa;">${player.position} | ${player.club}</div>
-                    <div style="font-size: 14px; font-weight: bold; margin: 5px 0; color: ${player.rarity === 'common' ? '#aaa' : player.rarity === 'rare' ? '#00eaff' : player.rarity === 'epic' ? '#8e38ff' : 'gold'}">
-                        ${stars} OVR ${boostedOverall}
-                    </div>
-                    <div style="font-size: 11px; color: gold;">Niv. ${playerData.level}</div>
-                    <div class="player-stats">
-                        <div class="stat-item">
-                            <div class="stat-value-small">${player.pac}</div>
-                            <div class="stat-label-small">PAC</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value-small">${player.sho}</div>
-                            <div class="stat-label-small">SHO</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value-small">${player.pas}</div>
-                            <div class="stat-label-small">PAS</div>
-                        </div>
-                    </div>
-                `;
-                
-                playerCard.addEventListener("click", () => openPlayerDetails(playerId));
-                container.appendChild(playerCard);
-            }
-        }
-    });
-    
-    if (container.children.length === 0) {
+    if (!userData.collection || Object.keys(userData.collection).length === 0) {
         container.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #aaa;">
-                ${filter === "all" ? "Aucun joueur dans votre collection" : "Aucun joueur ne correspond aux filtres sélectionnés"}
+                Aucun joueur dans votre collection
+            </div>
+        `;
+        return;
+    }
+    
+    let hasFilteredPlayers = false;
+    
+    Object.values(userData.collection).forEach(collectionData => {
+        const player = findPlayerById(collectionData.id);
+        if (!player) return;
+        
+        // Appliquer les filtres
+        if (filter !== "all") {
+            if (filter === "common" && player.rarity !== "common") return;
+            if (filter === "rare" && player.rarity !== "rare") return;
+            if (filter === "epic" && player.rarity !== "epic") return;
+            if (filter === "legendary" && player.rarity !== "legendary") return;
+            if (filter === "att" && !["ST", "CF", "RW", "LW"].includes(player.position)) return;
+            if (filter === "mid" && !["CM", "CAM", "CDM", "RM", "LM"].includes(player.position)) return;
+            if (filter === "def" && !["CB", "RB", "LB", "RWB", "LWB"].includes(player.position)) return;
+            if (filter === "gk" && player.position !== "GK") return;
+        }
+        
+        hasFilteredPlayers = true;
+        
+        const playerCard = document.createElement("div");
+        playerCard.className = `player-card player-rare-${player.rarity}`;
+        playerCard.dataset.playerId = player.id;
+        
+        // Rareté en étoiles
+        let stars = "";
+        switch(player.rarity) {
+            case "common": stars = "★"; break;
+            case "rare": stars = "★★"; break;
+            case "epic": stars = "★★★"; break;
+            case "legendary": stars = "★★★★"; break;
+        }
+        
+        // Badge de fusion
+        const fusionBadge = collectionData.fusionLevel > 0 ? 
+            `<div class="fusion-badge">+${collectionData.fusionLevel}</div>` : '';
+        
+        // Compteur de copies pour fusion
+        const fusionCount = collectionData.count > 0 ? 
+            `<div class="player-count">Copies: ${collectionData.count}/${getFusionRequirement(collectionData.fusionLevel)}</div>` : '';
+        
+        playerCard.innerHTML = `
+            ${fusionBadge}
+            <div class="player-photo">
+                ${player.name.split(' ')[0].charAt(0)}${player.name.split(' ')[1] ? player.name.split(' ')[1].charAt(0) : ''}
+            </div>
+            <h4>${player.name}</h4>
+            <div style="font-size: 12px; color: #aaa;">${player.position} | ${player.club}</div>
+            <div style="font-size: 14px; font-weight: bold; margin: 5px 0; color: ${player.rarity === 'common' ? '#aaa' : player.rarity === 'rare' ? '#00eaff' : player.rarity === 'epic' ? '#8e38ff' : 'gold'}">
+                ${stars} OVR ${collectionData.overall}
+            </div>
+            ${fusionCount}
+            <div class="player-stats">
+                <div class="stat-item">
+                    <div class="stat-value-small">${player.pac}</div>
+                    <div class="stat-label-small">PAC</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value-small">${player.sho}</div>
+                    <div class="stat-label-small">SHO</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value-small">${player.pas}</div>
+                    <div class="stat-label-small">PAS</div>
+                </div>
+            </div>
+        `;
+        
+        playerCard.addEventListener("click", () => openPlayerDetails(player.id));
+        container.appendChild(playerCard);
+    });
+    
+    if (!hasFilteredPlayers) {
+        container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #aaa;">
+                Aucun joueur ne correspond aux filtres sélectionnés
             </div>
         `;
     }
@@ -2356,35 +2622,35 @@ function updateCollectionDisplay(filter = "all") {
 
 // Ouvrir les détails d'un joueur
 function openPlayerDetails(playerId) {
-    const player = findPlayerById(playerId);
-    if (!player) return;
-    
-    const playerData = userData.players[playerId];
+    const playerData = getPlayerFromCollection(playerId);
     if (!playerData) return;
     
-    // Calculer l'OVR avec bonus
-    const boostedOverall = calculateBoostedOVR(player, playerData.level);
-    const isInTeam = isPlayerInTeam(playerId);
-    const teamPosition = isInTeam ? getPlayerPositionInTeam(playerId) : null;
+    const collectionData = userData.collection[playerId];
     
     let modalContent = `
         <div style="text-align: center;">
-            <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #6d00ff, #00eaff); display: inline-flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 20px; position: relative;">
-                ${player.name.split(' ')[0].charAt(0)}${player.name.split(' ')[1] ? player.name.split(' ')[1].charAt(0) : ''}
-                ${playerData.count > 1 ? `<div style="position: absolute; top: -5px; right: -5px; background: gold; color: #000; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; font-size: 12px;">x${playerData.count}</div>` : ''}
+            <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #6d00ff, #00eaff); display: inline-flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 20px;">
+                ${playerData.name.split(' ')[0].charAt(0)}${playerData.name.split(' ')[1] ? playerData.name.split(' ')[1].charAt(0) : ''}
             </div>
-            <h3 style="color: #00eaff; margin-bottom: 10px;">${player.name}</h3>
+            <h3 style="color: #00eaff; margin-bottom: 10px;">${playerData.name}</h3>
             <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
                 <div style="background: rgba(0,234,255,0.1); padding: 8px 15px; border-radius: 20px;">
-                    ${player.position}
+                    ${playerData.position}
                 </div>
                 <div style="background: rgba(109,0,255,0.1); padding: 8px 15px; border-radius: 20px;">
-                    ${player.club}
+                    ${playerData.club}
                 </div>
                 <div style="background: rgba(255,215,0,0.1); padding: 8px 15px; border-radius: 20px; color: gold;">
-                    OVR ${boostedOverall}
+                    OVR ${playerData.overall}
                 </div>
             </div>
+            
+            ${collectionData && collectionData.fusionLevel > 0 ? `
+                <div style="background: rgba(255,215,0,0.1); border: 2px solid gold; border-radius: 10px; padding: 10px; margin-bottom: 15px;">
+                    <div style="color: gold; font-weight: bold;">Niveau de Fusion: +${collectionData.fusionLevel}</div>
+                    <div style="font-size: 12px; color: #aaa;">OVR original: ${playerData.baseOverall || playerData.overall - collectionData.fusionLevel}</div>
+                </div>
+            ` : ''}
             
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0;">
                 <div style="text-align: left;">
@@ -2392,27 +2658,27 @@ function openPlayerDetails(playerId) {
                     <div style="background: rgba(26,26,37,0.8); padding: 15px; border-radius: 10px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                             <span>Pace:</span>
-                            <span style="font-weight: bold; color: #00eaff;">${player.pac}</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.pac}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                             <span>Shooting:</span>
-                            <span style="font-weight: bold; color: #00eaff;">${player.sho}</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.sho}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                             <span>Passing:</span>
-                            <span style="font-weight: bold; color: #00eaff;">${player.pas}</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.pas}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                             <span>Dribbling:</span>
-                            <span style="font-weight: bold; color: #00eaff;">${player.dri}</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.dri}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                             <span>Defending:</span>
-                            <span style="font-weight: bold; color: #00eaff;">${player.def}</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.def}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
                             <span>Physical:</span>
-                            <span style="font-weight: bold; color: #00eaff;">${player.phy}</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.phy}</span>
                         </div>
                     </div>
                 </div>
@@ -2422,21 +2688,20 @@ function openPlayerDetails(playerId) {
                     <div style="background: rgba(26,26,37,0.8); padding: 15px; border-radius: 10px;">
                         <div style="margin-bottom: 8px;">
                             <div style="color: #aaa; font-size: 12px;">Nationalité</div>
-                            <div style="font-weight: bold;">${player.nation}</div>
+                            <div style="font-weight: bold;">${playerData.nation}</div>
                         </div>
                         <div style="margin-bottom: 8px;">
                             <div style="color: #aaa; font-size: 12px;">Rareté</div>
-                            <div style="font-weight: bold; color: ${player.rarity === 'common' ? '#aaa' : player.rarity === 'rare' ? '#00eaff' : player.rarity === 'epic' ? '#8e38ff' : 'gold'}">
-                                ${player.rarity.charAt(0).toUpperCase() + player.rarity.slice(1)}
+                            <div style="font-weight: bold; color: ${playerData.rarity === 'common' ? '#aaa' : playerData.rarity === 'rare' ? '#00eaff' : playerData.rarity === 'epic' ? '#8e38ff' : 'gold'}">
+                                ${playerData.rarity.charAt(0).toUpperCase() + playerData.rarity.slice(1)}
                             </div>
-                        </div>
-                        <div style="margin-bottom: 8px;">
-                            <div style="color: #aaa; font-size: 12px;">Niveau</div>
-                            <div style="font-weight: bold; color: gold;">${playerData.level}</div>
                         </div>
                         <div>
                             <div style="color: #aaa; font-size: 12px;">Dans votre collection</div>
-                            <div style="font-weight: bold; color: #00eaff;">${playerData.count} exemplaire(s)</div>
+                            <div style="font-weight: bold; color: #00eaff;">
+                                ${collectionData ? (collectionData.count || 1) : 1} exemplaire(s)
+                                ${collectionData && collectionData.count > 0 ? `(${collectionData.count}/${getFusionRequirement(collectionData.fusionLevel)} pour fusion)` : ''}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2444,23 +2709,13 @@ function openPlayerDetails(playerId) {
     `;
     
     // Vérifier si le joueur est dans l'équipe
-    if (isInTeam && teamPosition) {
-        const teamPlayer = userData.team[teamPosition];
+    const isInTeam = userData.team && Object.values(userData.team).includes(playerId);
+    if (isInTeam) {
         modalContent += `
             <div style="margin-top: 20px; padding: 15px; background: rgba(0,255,0,0.1); border-radius: 10px; border: 2px solid #00ff00;">
                 <i class="fas fa-check-circle" style="color: #00ff00; margin-right: 10px;"></i>
-                Ce joueur est actuellement dans votre équipe (${teamPosition}) - Niveau ${teamPlayer.level}
+                Ce joueur est actuellement dans votre équipe
             </div>
-        `;
-    }
-    
-    // Bouton pour fusionner si on a plusieurs exemplaires
-    if (playerData.count >= 2 && isInTeam) {
-        modalContent += `
-            <button onclick="fusePlayerManually('${playerId}')" 
-                    style="margin-top: 20px; background: gold; border: none; color: #000; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; width: 100%;">
-                <i class="fas fa-sync-alt"></i> Fusionner (${playerData.count-1} copie(s) disponible(s))
-            </button>
         `;
     }
     
@@ -2470,113 +2725,97 @@ function openPlayerDetails(playerId) {
     document.getElementById("player-modal").style.display = "flex";
 }
 
-// Obtenir la position d'un joueur dans l'équipe
-function getPlayerPositionInTeam(playerId) {
-    if (!userData.team) return null;
-    
-    for (const position in userData.team) {
-        const teamPlayer = userData.team[position];
-        if (teamPlayer && teamPlayer.id === playerId) {
-            return position;
-        }
+// Trouver un joueur par son ID
+function findPlayerById(playerId) {
+    for (const rarity in footballPlayersDB) {
+        const player = footballPlayersDB[rarity].find(p => p.id === playerId);
+        if (player) return player;
     }
     return null;
 }
 
-// Fusionner manuellement un joueur
-function fusePlayerManually(playerId) {
-    const playerData = userData.players[playerId];
-    if (!playerData || playerData.count < 2) {
-        showNotification("Pas assez de copies pour fusionner!", "error");
-        return;
+// 1. FIX BUG PACKS - Système amélioré avec collection
+async function addPlayerToCollection(playerId) {
+    if (!userData.collection) userData.collection = {};
+    
+    const player = findPlayerById(playerId);
+    if (!player) return;
+    
+    if (userData.collection[playerId]) {
+        // Doublon -> Augmenter le compteur
+        userData.collection[playerId].count = (userData.collection[playerId].count || 0) + 1;
+        
+        // Vérifier si on peut fusionner
+        const fusionRequirement = getFusionRequirement(userData.collection[playerId].fusionLevel);
+        if (userData.collection[playerId].count >= fusionRequirement) {
+            // Fusion automatique
+            await autoFusionPlayer(playerId);
+        } else {
+            showNotification(`${player.name} déjà possédé! Copies: ${userData.collection[playerId].count}/${fusionRequirement}`, "info");
+        }
+    } else {
+        // Nouveau joueur -> Ajout à la collection
+        userData.collection[playerId] = {
+            id: playerId,
+            overall: player.overall,
+            baseOverall: player.overall,
+            fusionLevel: 0,
+            count: 1,
+            rarity: player.rarity
+        };
+        
+        showNotification(`Nouveau joueur: ${player.name} (OVR ${player.overall})`, "success");
     }
     
-    const position = getPlayerPositionInTeam(playerId);
-    if (!position) {
-        showNotification("Ce joueur n'est pas dans votre équipe!", "error");
-        return;
-    }
-    
-    // Réduire le compteur
-    playerData.count--;
-    
-    // Augmenter le niveau du joueur dans l'équipe
-    userData.team[position].level++;
-    
-    // Mettre à jour le niveau maximum dans la collection
-    if (playerData.level < userData.team[position].level) {
-        playerData.level = userData.team[position].level;
-    }
-    
-    // Sauvegarder
-    saveUserData();
-    updateTeamDisplay();
+    await saveUserData();
     updateCollectionDisplay();
-    
-    // Afficher l'animation de fusion
-    showFusionAnimation(playerId, userData.team[position].level);
-    
-    // Fermer le modal
-    document.getElementById("player-modal").style.display = "none";
+    updateTeamDisplay();
 }
 
-// Afficher l'animation de fusion
-function showFusionAnimation(playerId, newLevel) {
+// Fusion automatique
+async function autoFusionPlayer(playerId) {
     const player = findPlayerById(playerId);
-    const fusionContent = document.getElementById("fusion-content");
+    const playerInCollection = userData.collection[playerId];
     
-    fusionContent.innerHTML = `
-        <div style="font-size: 48px; margin-bottom: 20px;">
-            <i class="fas fa-sync-alt fa-spin" style="color: gold;"></i>
-        </div>
-        <h3 style="color: gold; margin-bottom: 20px;">Fusion Réussie!</h3>
-        
-        <div style="display: flex; align-items: center; justify-content: center; gap: 30px; margin: 30px 0;">
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #6d00ff, #00eaff); display: inline-flex; align-items: center; justify-content: center; font-size: 24px;">
-                    ${player.name.split(' ')[0].charAt(0)}${player.name.split(' ')[1] ? player.name.split(' ')[1].charAt(0) : ''}
-                </div>
-                <div style="margin-top: 10px; font-weight: bold;">${player.name}</div>
-                <div style="font-size: 14px; color: #aaa;">Niveau ${newLevel-1}</div>
-            </div>
-            
-            <div style="font-size: 36px; color: gold;">+</div>
-            
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #ffaa00, gold); display: inline-flex; align-items: center; justify-content: center; font-size: 24px;">
-                    <i class="fas fa-plus"></i>
-                </div>
-                <div style="margin-top: 10px; font-weight: bold;">Copie</div>
-                <div style="font-size: 14px; color: #aaa;">Fusion</div>
-            </div>
-            
-            <div style="font-size: 36px; color: gold;">→</div>
-            
-            <div style="text-align: center;">
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, gold, #ffaa00); display: inline-flex; align-items: center; justify-content: center; font-size: 24px; border: 3px solid gold;">
-                    ${player.name.split(' ')[0].charAt(0)}${player.name.split(' ')[1] ? player.name.split(' ')[1].charAt(0) : ''}
-                </div>
-                <div style="margin-top: 10px; font-weight: bold;">${player.name}</div>
-                <div style="font-size: 16px; color: gold; font-weight: bold;">Niveau ${newLevel}!</div>
-            </div>
-        </div>
-        
-        <div style="background: rgba(255,215,0,0.1); border-radius: 10px; padding: 15px; margin-top: 20px; border: 2px solid gold;">
-            <div style="font-weight: bold; color: gold;">Bonus de niveau:</div>
-            <div style="font-size: 14px; color: #aaa;">OVR augmenté de +${Math.min((newLevel - 1) * 1.5, 10).toFixed(1)} points</div>
-        </div>
-        
-        <button onclick="document.getElementById('fusion-modal').style.display='none'" 
-                style="margin-top: 30px; background: gold; border: none; color: #000; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
-            Continuer
-        </button>
-    `;
+    if (!player || !playerInCollection) return;
     
-    document.getElementById("fusion-modal").style.display = "flex";
+    // Calculer le boost selon la rareté
+    const boost = getFusionBoost(player.rarity);
+    
+    // Améliorer le joueur
+    playerInCollection.overall = Math.min(99, playerInCollection.overall + boost);
+    playerInCollection.fusionLevel++;
+    playerInCollection.count = 0;
+    
+    // Afficher effet de fusion
+    showNotification(`Fusion réussie! ${player.name} +${boost} OVR (Niveau ${playerInCollection.fusionLevel})`, "success");
+    
+    // Effet visuel
+    const playerCard = document.querySelector(`[data-player-id="${playerId}"]`);
+    if (playerCard) {
+        playerCard.classList.add('fusion-effect');
+        setTimeout(() => playerCard.classList.remove('fusion-effect'), 1000);
+    }
+    
+    await saveUserData();
+}
+
+function getFusionRequirement(fusionLevel) {
+    return 2 + fusionLevel; // 2, 3, 4...
+}
+
+function getFusionBoost(rarity) {
+    const boosts = {
+        common: 1,
+        rare: 2,
+        epic: 3,
+        legendary: 5
+    };
+    return boosts[rarity] || 1;
 }
 
 // Acheter un pack
-function buyPack(packType) {
+async function buyPack(packType) {
     const packPrices = {
         bronze: { coins: 500, gems: 0 },
         silver: { coins: 1500, gems: 0 },
@@ -2619,14 +2858,14 @@ function buyPack(packType) {
             const randomPlayer = playerList[Math.floor(Math.random() * playerList.length)];
             players.push({ ...randomPlayer });
             
-            // Ajouter à la collection avec fusion automatique
-            addPlayerToCollection(randomPlayer.id);
+            // Ajouter à la collection
+            await addPlayerToCollection(randomPlayer.id);
         }
     } else {
         const playerList = footballPlayersDB[content.guaranteed];
         const randomPlayer = playerList[Math.floor(Math.random() * playerList.length)];
         players.push({ ...randomPlayer });
-        addPlayerToCollection(randomPlayer.id);
+        await addPlayerToCollection(randomPlayer.id);
     }
     
     // Générer les joueurs restants
@@ -2653,60 +2892,20 @@ function buyPack(packType) {
         const randomPlayer = playerList[Math.floor(Math.random() * playerList.length)];
         players.push({ ...randomPlayer });
         
-        // Ajouter à la collection avec fusion automatique
-        addPlayerToCollection(randomPlayer.id);
+        // Ajouter à la collection
+        await addPlayerToCollection(randomPlayer.id);
     }
     
     // Ajouter de l'XP
     addXP(25);
     
     // Sauvegarder et mettre à jour
-    saveUserData();
+    await saveUserData();
     updateDashboard();
     updateCollectionDisplay();
     
     // Afficher les résultats
     showPackResults(players, packType);
-}
-
-// Ajouter un joueur à la collection AVEC FUSION AUTOMATIQUE
-function addPlayerToCollection(playerId) {
-    if (!userData.players) userData.players = {};
-    if (!userData.players[playerId]) {
-        userData.players[playerId] = { count: 1, level: 1 };
-    } else {
-        // Doublon - augmenter le compteur
-        const playerData = userData.players[playerId];
-        playerData.count++;
-        
-        // Fusion automatique si le joueur est dans l'équipe
-        if (isPlayerInTeam(playerId)) {
-            // Trouver la position du joueur dans l'équipe
-            for (const position in userData.team) {
-                const teamPlayer = userData.team[position];
-                if (teamPlayer && teamPlayer.id === playerId) {
-                    // Utiliser une copie pour la fusion
-                    if (playerData.count >= 2) {
-                        playerData.count--;
-                        teamPlayer.level++;
-                        
-                        // Mettre à jour le niveau maximum dans la collection
-                        if (playerData.level < teamPlayer.level) {
-                            playerData.level = teamPlayer.level;
-                        }
-                        
-                        // Notification
-                        const player = findPlayerById(playerId);
-                        showNotification(`Fusion automatique: ${player.name} +1 niveau (Niv. ${teamPlayer.level})`, "success");
-                    }
-                    break;
-                }
-            }
-        }
-    }
-    
-    // Vérifier les badges
-    checkBadges();
 }
 
 // Afficher les résultats d'un pack
@@ -2723,30 +2922,13 @@ function showPackResults(players, packType) {
     const resultsContainer = document.getElementById("pack-results");
     resultsContainer.innerHTML = '';
     
-    let hasFusion = false;
-    let fusionPlayers = [];
-    
     players.forEach((player, index) => {
         setTimeout(() => {
             const playerCard = document.createElement("div");
             playerCard.className = "player-card";
-            
-            // Vérifier si c'est un doublon et si le joueur est dans l'équipe
-            const playerData = userData.players[player.id];
-            const isDuplicate = playerData && playerData.count > 1;
-            const isInTeam = isPlayerInTeam(player.id);
-            
-            if (isDuplicate && isInTeam) {
-                playerCard.style.borderColor = "#00ff00";
-                playerCard.style.boxShadow = "0 0 20px #00ff00";
-                hasFusion = true;
-                fusionPlayers.push(player);
-            } else {
-                playerCard.style.borderColor = player.rarity === "common" ? "#aaa" : 
-                                              player.rarity === "rare" ? "#00eaff" : 
-                                              player.rarity === "epic" ? "#8e38ff" : "gold";
-            }
-            
+            playerCard.style.borderColor = player.rarity === "common" ? "#aaa" : 
+                                          player.rarity === "rare" ? "#00eaff" : 
+                                          player.rarity === "epic" ? "#8e38ff" : "gold";
             playerCard.style.animation = "none";
             playerCard.style.opacity = "0";
             playerCard.style.transform = "scale(0.8)";
@@ -2761,16 +2943,14 @@ function showPackResults(players, packType) {
             }
             
             playerCard.innerHTML = `
-                <div class="player-photo" style="width: 60px; height: 60px; font-size: 24px; position: relative;">
+                <div class="player-photo" style="width: 60px; height: 60px; font-size: 24px;">
                     ${player.name.split(' ')[0].charAt(0)}${player.name.split(' ')[1] ? player.name.split(' ')[1].charAt(0) : ''}
-                    ${isDuplicate && isInTeam ? '<div style="position: absolute; top: -5px; right: -5px; background: #00ff00; color: #000; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px;">F</div>' : ''}
                 </div>
                 <h4 style="font-size: 14px;">${player.name}</h4>
                 <div style="font-size: 11px; color: #aaa;">${player.position}</div>
                 <div style="font-size: 12px; font-weight: bold; margin: 5px 0; color: ${player.rarity === 'common' ? '#aaa' : player.rarity === 'rare' ? '#00eaff' : player.rarity === 'epic' ? '#8e38ff' : 'gold'}">
                     ${stars} OVR ${player.overall}
                 </div>
-                ${isDuplicate && isInTeam ? '<div style="color: #00ff00; font-size: 11px; margin-top: 5px;">✓ Fusion automatique</div>' : ''}
             `;
             
             resultsContainer.appendChild(playerCard);
@@ -2784,30 +2964,6 @@ function showPackResults(players, packType) {
             
         }, index * 200);
     });
-    
-    // Afficher un message spécial pour la fusion
-    if (hasFusion) {
-        setTimeout(() => {
-            const fusionMessage = document.createElement("div");
-            fusionMessage.style.gridColumn = "1/-1";
-            fusionMessage.style.textAlign = "center";
-            fusionMessage.style.padding = "15px";
-            fusionMessage.style.background = "rgba(0,255,0,0.1)";
-            fusionMessage.style.borderRadius = "10px";
-            fusionMessage.style.border = "2px solid #00ff00";
-            fusionMessage.style.marginTop = "20px";
-            fusionMessage.innerHTML = `
-                <h4 style="color: #00ff00; margin-bottom: 5px;">
-                    <i class="fas fa-sync-alt"></i> Fusion automatique
-                </h4>
-                <p style="font-size: 14px; color: #aaa;">
-                    Les joueurs doublons ont été fusionnés automatiquement!
-                    Vos joueurs dans l'équipe ont gagné +1 niveau.
-                </p>
-            `;
-            resultsContainer.appendChild(fusionMessage);
-        }, players.length * 200 + 500);
-    }
     
     document.getElementById("pack-modal").style.display = "flex";
 }
@@ -2828,29 +2984,6 @@ function buyCurrency(amount, price) {
     showNotification(`Achat réussi! +${amount} coins`, "success");
 }
 
-// Réclamer la récompense quotidienne - CORRIGÉ
-function claimDailyReward() {
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Vérifier si le joueur a déjà réclamé sa récompense aujourd'hui
-    if (userData.lastDailyReward === today) {
-        showNotification("Vous avez déjà réclamé votre récompense aujourd'hui!", "error");
-        return;
-    }
-    
-    const rewardCoins = 100 + ((userData.level || 1) * 10);
-    const rewardGems = Math.floor((userData.level || 1) / 3) + 1;
-    
-    userData.coins = (userData.coins || 0) + rewardCoins;
-    userData.gems = (userData.gems || 0) + rewardGems;
-    userData.lastDailyReward = today;
-    
-    saveUserData();
-    updateDashboard();
-    
-    showNotification(`Récompense quotidienne: +${rewardCoins} coins, +${rewardGems} gems!`, "success");
-}
-
 // Jouer un match rapide
 function playQuickMatch() {
     playMatch(false);
@@ -2861,7 +2994,7 @@ function playLeagueMatch() {
     playMatch(true);
 }
 
-// Jouer un match
+// 2. SIMULATION DE MATCH AMÉLIORÉE
 function playMatch(isLeagueMatch) {
     // Vérifier que l'équipe est complète
     if (!userData.team) {
@@ -2869,56 +3002,288 @@ function playMatch(isLeagueMatch) {
         return;
     }
     
-    const emptyPositions = Object.values(userData.team).filter(player => !player || !player.id).length;
+    const emptyPositions = Object.values(userData.team).filter(id => !id).length;
     if (emptyPositions > 0) {
         showNotification(`Votre équipe n'est pas complète! ${emptyPositions} position(s) vacante(s).`, "error");
         return;
     }
     
-    // Calculer la force de l'équipe avec bonus de niveau
-    let teamStrength = 0;
-    let playerCount = 0;
+    // Calculer la force de l'équipe
+    const playerPower = calculateTeamPower();
     
-    Object.values(userData.team).forEach(teamPlayer => {
-        if (teamPlayer && teamPlayer.id) {
-            const player = findPlayerById(teamPlayer.id);
-            if (player) {
-                const boostedOverall = calculateBoostedOVR(player, teamPlayer.level);
-                teamStrength += boostedOverall;
-                playerCount++;
-            }
+    // Générer une force adverse basée sur la puissance du joueur
+    const opponentPower = playerPower + (Math.random() * 20 - 10); // +/- 10 points
+    const opponentPowerRounded = Math.max(60, Math.min(99, Math.round(opponentPower)));
+    
+    // Simuler le match détaillé
+    const simulationResult = simulateDetailedMatch(playerPower, opponentPowerRounded);
+    
+    // Traiter le résultat
+    processMatchResult(simulationResult, isLeagueMatch);
+    
+    // Afficher le résultat avec détails
+    showDetailedMatchResult(simulationResult, playerPower, opponentPowerRounded);
+}
+
+function calculateTeamPower() {
+    if (!userData.team) return 0;
+    
+    let totalPower = 0;
+    let count = 0;
+    
+    Object.values(userData.team).forEach(playerId => {
+        const playerData = getPlayerFromCollection(playerId);
+        if (playerData) {
+            totalPower += playerData.overall;
+            count++;
         }
     });
     
-    if (playerCount === 0) {
-        showNotification("Votre équipe est vide!", "error");
-        return;
+    // Ajouter bonus de synergie
+    const synergyBonus = calculateSynergyBonus();
+    const avgPower = count > 0 ? totalPower / count : 0;
+    
+    return avgPower + synergyBonus;
+}
+
+function calculateSynergyBonus() {
+    if (!userData.team) return 0;
+    
+    let bonus = 0;
+    const players = [];
+    const nationalities = {};
+    const clubs = {};
+    
+    // Collecter les données des joueurs
+    Object.values(userData.team).forEach(playerId => {
+        const playerData = getPlayerFromCollection(playerId);
+        if (playerData) {
+            players.push(playerData);
+            
+            // Compter les nationalités
+            nationalities[playerData.nation] = (nationalities[playerData.nation] || 0) + 1;
+            
+            // Compter les clubs
+            clubs[playerData.club] = (clubs[playerData.club] || 0) + 1;
+        }
+    });
+    
+    // Bonus par nation
+    Object.values(nationalities).forEach(count => {
+        if (count >= 3) bonus += 1;
+        if (count >= 5) bonus += 2;
+        if (count >= 7) bonus += 3;
+    });
+    
+    // Bonus par club
+    Object.values(clubs).forEach(count => {
+        if (count >= 4) bonus += 2;
+        if (count >= 7) bonus += 3;
+        if (count >= 9) bonus += 4;
+    });
+    
+    // Bonus par rareté
+    const rarities = {};
+    players.forEach(player => {
+        rarities[player.rarity] = (rarities[player.rarity] || 0) + 1;
+    });
+    
+    if (rarities.legendary && rarities.legendary >= 3) bonus += 3;
+    if (rarities.epic && rarities.epic >= 5) bonus += 2;
+    
+    return Math.min(bonus, 10); // Limiter le bonus maximum à 10
+}
+
+function simulateDetailedMatch(playerPower, opponentPower) {
+    const events = [];
+    let playerScore = 0;
+    let opponentScore = 0;
+    
+    // Simulation par minute (90 minutes)
+    for (let minute = 1; minute <= 90; minute++) {
+        // Chance d'action chaque minute (30%)
+        if (Math.random() < 0.3) {
+            const action = getRandomMatchAction();
+            const actionResult = simulateMatchAction(action, playerPower, opponentPower, minute);
+            
+            events.push({
+                minute: minute,
+                action: action,
+                result: actionResult.result,
+                details: actionResult.details,
+                goalFor: actionResult.goalFor
+            });
+            
+            if (actionResult.goalFor === 'player') playerScore++;
+            if (actionResult.goalFor === 'opponent') opponentScore++;
+        }
+        
+        // Pause à la mi-temps
+        if (minute === 45) {
+            events.push({
+                minute: 45,
+                action: "PAUSE",
+                result: "Mi-temps",
+                details: "Les équipes se dirigent vers les vestiaires",
+                goalFor: null
+            });
+        }
     }
     
-    const avgStrength = teamStrength / playerCount;
+    // Ajouter le coup de sifflet final
+    events.push({
+        minute: 90,
+        action: "FIN",
+        result: "Fin du match",
+        details: "L'arbitre siffle la fin de la rencontre",
+        goalFor: null
+    });
     
-    // Générer une force adverse basée sur le niveau du joueur
-    const opponentStrength = avgStrength + (Math.random() * 10 - 5); // +/- 5 points
+    return {
+        playerScore: playerScore,
+        opponentScore: opponentScore,
+        events: events,
+        playerPower: playerPower,
+        opponentPower: opponentPower
+    };
+}
+
+function getRandomMatchAction() {
+    const actions = [
+        { type: "PASS", weight: 0.3 },
+        { type: "TACKLE", weight: 0.2 },
+        { type: "SHOT", weight: 0.2 },
+        { type: "COUNTER", weight: 0.15 },
+        { type: "CORNER", weight: 0.08 },
+        { type: "FREE_KICK", weight: 0.07 }
+    ];
     
-    // Simuler le match
-    const playerScore = Math.floor(Math.random() * 4); // 0-3 buts
-    const opponentScore = Math.floor(Math.random() * 4); // 0-3 buts
+    const totalWeight = actions.reduce((sum, action) => sum + action.weight, 0);
+    let random = Math.random() * totalWeight;
     
-    // Ajuster selon la force relative
-    const strengthDiff = avgStrength - opponentStrength;
-    const adjustedPlayerScore = Math.max(0, Math.min(5, playerScore + Math.floor(strengthDiff / 10)));
-    const adjustedOpponentScore = Math.max(0, Math.min(5, opponentScore - Math.floor(strengthDiff / 10)));
+    for (const action of actions) {
+        if (random < action.weight) {
+            return action.type;
+        }
+        random -= action.weight;
+    }
     
-    // Déterminer le résultat
+    return "PASS";
+}
+
+function simulateMatchAction(actionType, playerPower, opponentPower, minute) {
+    const powerDiff = playerPower - opponentPower;
+    const playerChance = 50 + (powerDiff * 0.8); // Ajuster l'impact de la différence de puissance
+    
+    let result = '';
+    let details = '';
+    let goalFor = null;
+    
+    switch(actionType) {
+        case 'SHOT':
+            if (Math.random() * 100 < playerChance) {
+                // Le joueur tire
+                const shotQuality = 30 + (playerPower * 0.5) + (Math.random() * 20);
+                if (shotQuality > 85) {
+                    result = 'BUT!';
+                    goalFor = 'player';
+                    details = 'Tir précis dans la lucarne! Magnifique but!';
+                } else if (shotQuality > 70) {
+                    result = 'Tir arrêté';
+                    details = 'Le gardien fait une belle parade';
+                } else if (shotQuality > 50) {
+                    result = 'Tir sur le poteau';
+                    details = 'Le ballon heurte le poteau!';
+                } else {
+                    result = 'Tir manqué';
+                    details = 'Le tir passe au-dessus de la barre';
+                }
+            } else {
+                // L'adversaire contre-attaque
+                const counterChance = 20 + (opponentPower * 0.3);
+                if (Math.random() * 100 < counterChance) {
+                    result = 'CONTRE-ATTAQUE!';
+                    goalFor = 'opponent';
+                    details = 'Contre-attaque rapide aboutie!';
+                } else {
+                    result = 'Contre raté';
+                    details = 'La contre-attaque est mal ajustée';
+                }
+            }
+            break;
+            
+        case 'PASS':
+            if (Math.random() * 100 < playerChance) {
+                const passQuality = 40 + (playerPower * 0.4) + (Math.random() * 20);
+                if (passQuality > 80) {
+                    result = 'Passe décisive';
+                    details = 'Passe magistrale qui découpe la défense';
+                } else if (passQuality > 60) {
+                    result = 'Passe réussie';
+                    details = 'Belle circulation de balle';
+                } else {
+                    result = 'Passe interceptée';
+                    details = 'La passe est coupée par un défenseur';
+                }
+            } else {
+                result = 'Perte de balle';
+                details = 'Mauvaise passe qui donne le ballon à l\'adversaire';
+            }
+            break;
+            
+        case 'TACKLE':
+            if (Math.random() * 100 < playerChance) {
+                result = 'Tacle réussi';
+                details = 'Récupération propre du ballon';
+            } else {
+                const foulChance = 30;
+                if (Math.random() * 100 < foulChance) {
+                    result = 'Faute';
+                    details = 'Tacle trop appuyé, l\'arbitre siffle la faute';
+                } else {
+                    result = 'Tacle raté';
+                    details = 'Le joueur est dribblé';
+                }
+            }
+            break;
+            
+        case 'CORNER':
+            if (Math.random() * 100 < playerChance) {
+                const cornerSuccess = 40 + (playerPower * 0.3);
+                if (Math.random() * 100 < cornerSuccess) {
+                    result = 'Corner dangereux';
+                    details = 'Centre précis qui trouve un attaquant';
+                } else {
+                    result = 'Corner dégagé';
+                    details = 'Le gardien sort et punch le ballon';
+                }
+            } else {
+                result = 'Corner mal tiré';
+                details = 'Le corner sort directement';
+            }
+            break;
+            
+        default:
+            result = 'Action';
+            details = 'Échange de balle au milieu du terrain';
+    }
+    
+    return { result, details, goalFor };
+}
+
+function processMatchResult(simulationResult, isLeagueMatch) {
+    const playerScore = simulationResult.playerScore;
+    const opponentScore = simulationResult.opponentScore;
+    
     let result, points, coins, xp;
     
-    if (adjustedPlayerScore > adjustedOpponentScore) {
+    if (playerScore > opponentScore) {
         result = "VICTOIRE";
         points = isLeagueMatch ? 3 : 1;
-        coins = 200;
-        xp = 50;
+        coins = 200 + (playerScore * 25);
+        xp = 50 + (playerScore * 5);
         userData.wins = (userData.wins || 0) + 1;
-    } else if (adjustedPlayerScore < adjustedOpponentScore) {
+    } else if (playerScore < opponentScore) {
         result = "DÉFAITE";
         points = 0;
         coins = 50;
@@ -2927,15 +3292,15 @@ function playMatch(isLeagueMatch) {
     } else {
         result = "MATCH NUL";
         points = isLeagueMatch ? 1 : 0;
-        coins = 100;
-        xp = 30;
+        coins = 100 + (playerScore * 15);
+        xp = 30 + (playerScore * 3);
         userData.draws = (userData.draws || 0) + 1;
     }
     
     // Mettre à jour les statistiques
     userData.matchesPlayed = (userData.matchesPlayed || 0) + 1;
-    userData.goalsScored = (userData.goalsScored || 0) + adjustedPlayerScore;
-    userData.goalsConceded = (userData.goalsConceded || 0) + adjustedOpponentScore;
+    userData.goalsScored = (userData.goalsScored || 0) + playerScore;
+    userData.goalsConceded = (userData.goalsConceded || 0) + opponentScore;
     userData.coins = (userData.coins || 0) + coins;
     
     if (isLeagueMatch) {
@@ -2945,8 +3310,9 @@ function playMatch(isLeagueMatch) {
         const matchRecord = {
             date: new Date().toISOString(),
             result: result,
-            score: `${adjustedPlayerScore}-${adjustedOpponentScore}`,
-            points: points
+            score: `${playerScore}-${opponentScore}`,
+            points: points,
+            opponentPower: simulationResult.opponentPower
         };
         
         if (!userData.weeklyMatches) {
@@ -2958,6 +3324,9 @@ function playMatch(isLeagueMatch) {
         if (userData.weeklyMatches.length > 10) {
             userData.weeklyMatches = userData.weeklyMatches.slice(-10);
         }
+        
+        // Vérifier promotion/relégation
+        checkPromotionRelegation();
     }
     
     // Ajouter XP et vérifier le niveau
@@ -2966,43 +3335,46 @@ function playMatch(isLeagueMatch) {
     // Vérifier les badges
     checkBadges();
     
-    // Sauvegarder et mettre à jour
+    // Sauvegarder
     saveUserData();
     updateDashboard();
     updateWeeklyMatches();
+    updateLeagueSystem();
     
-    // Afficher le résultat
-    showMatchResult(result, adjustedPlayerScore, adjustedOpponentScore, coins, xp, isLeagueMatch ? points : 0);
+    return { result, playerScore, opponentScore, coins, xp, points };
 }
 
-// Afficher le résultat d'un match
-function showMatchResult(result, playerScore, opponentScore, coins, xp, points) {
+function showDetailedMatchResult(simulationResult, playerPower, opponentPower) {
+    const matchResult = processMatchResult(simulationResult, true);
     const resultContent = document.getElementById("match-result-content");
+    const eventsContainer = document.getElementById("match-events");
     
     let resultColor = "#00eaff";
     let resultIcon = "⚽";
     
-    if (result === "VICTOIRE") {
+    if (matchResult.result === "VICTOIRE") {
         resultColor = "#00ff00";
         resultIcon = "🏆";
-    } else if (result === "DÉFAITE") {
+    } else if (matchResult.result === "DÉFAITE") {
         resultColor = "#ff4444";
         resultIcon = "😢";
     }
     
     resultContent.innerHTML = `
         <div style="font-size: 48px; margin-bottom: 20px;">${resultIcon}</div>
-        <h3 style="color: ${resultColor}; margin-bottom: 20px; font-size: 28px;">${result}!</h3>
+        <h3 style="color: ${resultColor}; margin-bottom: 20px; font-size: 28px;">${matchResult.result}!</h3>
         
         <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin: 30px 0;">
             <div style="text-align: center;">
                 <div style="font-size: 14px; color: #aaa;">Votre Équipe</div>
-                <div style="font-size: 48px; font-weight: bold; color: #00eaff;">${playerScore}</div>
+                <div style="font-size: 48px; font-weight: bold; color: #00eaff;">${matchResult.playerScore}</div>
+                <div style="font-size: 12px; color: #aaa;">Puissance: ${Math.round(playerPower)}</div>
             </div>
             <div style="font-size: 24px; font-weight: bold;">-</div>
             <div style="text-align: center;">
                 <div style="font-size: 14px; color: #aaa;">Adversaire</div>
-                <div style="font-size: 48px; font-weight: bold; color: #ff4444;">${opponentScore}</div>
+                <div style="font-size: 48px; font-weight: bold; color: #ff4444;">${matchResult.opponentScore}</div>
+                <div style="font-size: 12px; color: #aaa;">Puissance: ${Math.round(opponentPower)}</div>
             </div>
         </div>
         
@@ -3011,28 +3383,77 @@ function showMatchResult(result, playerScore, opponentScore, coins, xp, points) 
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
                 <div style="text-align: center;">
                     <div style="font-size: 12px; color: #aaa;">Coins</div>
-                    <div style="font-size: 24px; font-weight: bold; color: gold;">+${coins}</div>
+                    <div style="font-size: 24px; font-weight: bold; color: gold;">+${matchResult.coins}</div>
                 </div>
                 <div style="text-align: center;">
                     <div style="font-size: 12px; color: #aaa;">XP</div>
-                    <div style="font-size: 24px; font-weight: bold; color: #00eaff;">+${xp}</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #00eaff;">+${matchResult.xp}</div>
                 </div>
-                ${points > 0 ? `
+                ${matchResult.points > 0 ? `
                 <div style="text-align: center; grid-column: 1/-1;">
                     <div style="font-size: 12px; color: #aaa;">Points de Ligue</div>
-                    <div style="font-size: 24px; font-weight: bold; color: #8e38ff;">+${points}</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #8e38ff;">+${matchResult.points}</div>
                 </div>
                 ` : ''}
             </div>
         </div>
-        
-        <button onclick="document.getElementById('match-modal').style.display='none'" 
-                style="margin-top: 30px; background: #00eaff; border: none; color: #0a0a0f; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
-            Continuer
-        </button>
     `;
     
+    // Afficher les événements du match
+    eventsContainer.innerHTML = '<h4 style="color: #00eaff; margin-bottom: 10px;">Résumé du Match</h4>';
+    simulationResult.events.forEach(event => {
+        if (event.action === "PAUSE" || event.action === "FIN") {
+            const eventDiv = document.createElement("div");
+            eventDiv.className = "match-event";
+            eventDiv.style.background = "rgba(109,0,255,0.2)";
+            eventDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: bold; color: #00eaff;">${event.minute}'</span>
+                    <span style="font-weight: bold;">${event.result}</span>
+                </div>
+                <div style="font-size: 11px; color: #aaa; margin-top: 5px;">${event.details}</div>
+            `;
+            eventsContainer.appendChild(eventDiv);
+        } else if (event.goalFor) {
+            const eventDiv = document.createElement("div");
+            eventDiv.className = "match-event";
+            eventDiv.style.background = event.goalFor === 'player' ? "rgba(0,255,0,0.1)" : "rgba(255,0,0,0.1)";
+            eventDiv.style.borderColor = event.goalFor === 'player' ? "#00ff00" : "#ff4444";
+            eventDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: bold; color: ${event.goalFor === 'player' ? '#00ff00' : '#ff4444'};">${event.minute}' ⚽ BUT!</span>
+                    <span style="font-weight: bold;">${event.result}</span>
+                </div>
+                <div style="font-size: 11px; color: #aaa; margin-top: 5px;">${event.details}</div>
+            `;
+            eventsContainer.appendChild(eventDiv);
+        } else {
+            const eventDiv = document.createElement("div");
+            eventDiv.className = "match-event";
+            eventDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: bold; color: #00eaff;">${event.minute}' ${getActionIcon(event.action)}</span>
+                    <span>${event.result}</span>
+                </div>
+                <div style="font-size: 11px; color: #aaa; margin-top: 5px;">${event.details}</div>
+            `;
+            eventsContainer.appendChild(eventDiv);
+        }
+    });
+    
     document.getElementById("match-modal").style.display = "flex";
+}
+
+function getActionIcon(action) {
+    const icons = {
+        "PASS": "↔️",
+        "SHOT": "⚽",
+        "TACKLE": "🛡️",
+        "COUNTER": "⚡",
+        "CORNER": "↩️",
+        "FREE_KICK": "🎯"
+    };
+    return icons[action] || "🔄";
 }
 
 // Ajouter de l'XP
@@ -3048,6 +3469,284 @@ function addXP(amount) {
         userData.gems = (userData.gems || 0) + Math.floor(userData.level / 2);
         
         showNotification(`Level Up! Vous êtes maintenant niveau ${userData.level}`, "success");
+    }
+}
+
+// 3. FIX BUG RÉCOMPENSE QUOTIDIENNE
+async function claimDailyReward() {
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (userData.lastDailyClaim === today) {
+        showNotification("Vous avez déjà réclamé votre récompense aujourd'hui!", "error");
+        document.getElementById("quick-daily").classList.add("daily-reward-disabled");
+        return;
+    }
+    
+    const rewardCoins = 100 + ((userData.level || 1) * 10);
+    const rewardGems = Math.floor((userData.level || 1) / 3) + 1;
+    
+    userData.coins = (userData.coins || 0) + rewardCoins;
+    userData.gems = (userData.gems || 0) + rewardGems;
+    userData.lastDailyClaim = today;
+    
+    await saveUserData();
+    updateDashboard();
+    
+    showNotification(`Récompense quotidienne: +${rewardCoins} coins, +${rewardGems} gems!`, "success");
+    
+    // Désactiver le bouton pour aujourd'hui
+    document.getElementById("quick-daily").classList.add("daily-reward-disabled");
+}
+
+function checkDailyRewardAvailability() {
+    const today = new Date().toISOString().split('T')[0];
+    if (userData.lastDailyClaim === today) {
+        document.getElementById("quick-daily").classList.add("daily-reward-disabled");
+    }
+}
+
+// 4. CLASSEMENT AVEC VRAIS JOUEURS
+async function updateGlobalRanking() {
+    try {
+        const usersSnapshot = await firebaseDb.ref('users').once('value');
+        const allUsers = usersSnapshot.val() || {};
+        
+        const rankingArray = [];
+        
+        // Convertir en tableau et calculer le classement
+        Object.keys(allUsers).forEach(userId => {
+            const user = allUsers[userId];
+            if (user && user.leaguePoints !== undefined && user.teamID) {
+                rankingArray.push({
+                    id: userId,
+                    teamID: user.teamID,
+                    name: user.name || userId.substring(0, 8),
+                    points: user.leaguePoints || 0,
+                    level: user.level || 1,
+                    wins: user.wins || 0,
+                    division: user.division || 1,
+                    teamPower: user.teamPower || 0,
+                    matchesPlayed: user.matchesPlayed || 0
+                });
+            }
+        });
+        
+        // Trier par points (puis par puissance d'équipe en cas d'égalité)
+        rankingArray.sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            return (b.teamPower || 0) - (a.teamPower || 0);
+        });
+        
+        // Mettre à jour l'affichage
+        const rankingContainer = document.getElementById("global-ranking");
+        rankingContainer.innerHTML = '';
+        
+        rankingArray.forEach((player, index) => {
+            const rankItem = document.createElement("div");
+            const isYou = player.id === currentUser.uid;
+            rankItem.className = `ranking-item ${isYou ? "you" : ""}`;
+            
+            const divisionName = divisions[player.division - 1]?.name || 'Bronze';
+            
+            rankItem.innerHTML = `
+                <div class="rank rank-${index + 1}">${index + 1}</div>
+                <div class="player-rank-info">
+                    <div class="player-rank-name">${player.name}</div>
+                    <div class="player-rank-team">${divisionName} | Niv. ${player.level} | ${player.wins}V</div>
+                </div>
+                <div class="player-rank-points">${player.points.toLocaleString()}</div>
+            `;
+            
+            rankingContainer.appendChild(rankItem);
+            
+            if (isYou) {
+                userData.ranking = index + 1;
+                document.getElementById("your-ranking").innerHTML = `
+                    <div style="font-size: 36px; color: #00eaff;">#${index + 1}</div>
+                    <div style="font-size: 14px; color: #aaa;">sur ${rankingArray.length} joueurs</div>
+                    <div style="font-size: 12px; color: #aaa; margin-top: 5px;">Division: ${divisionName}</div>
+                `;
+            }
+        });
+        
+    } catch (error) {
+        console.error("Erreur de chargement du classement:", error);
+        // Fallback au classement simulé
+        showNotification("Classement en maintenance, utilisation du classement simulé", "warning");
+        updateGlobalRankingFallback();
+    }
+}
+
+function updateGlobalRankingFallback() {
+    // Classement simulé en cas d'erreur
+    const rankingContainer = document.getElementById("global-ranking");
+    rankingContainer.innerHTML = '';
+    
+    // Classement simulé
+    const mockRanking = [
+        { name: "Champion123", points: 2450, level: 25, wins: 120, division: 4 },
+        { name: "FootballPro", points: 2380, level: 24, wins: 115, division: 4 },
+        { name: "GoldenBoot", points: 2310, level: 23, wins: 110, division: 3 },
+        { name: currentUser ? currentUser.email.split('@')[0] : "Joueur", points: userData.leaguePoints || 0, level: userData.level || 1, wins: userData.wins || 0, division: userData.division || 1 },
+        { name: "Striker99", points: 2150, level: 22, wins: 105, division: 3 },
+        { name: "DefenseKing", points: 2080, level: 21, wins: 100, division: 3 },
+        { name: "MidfieldMaestro", points: 2010, level: 20, wins: 95, division: 3 },
+        { name: "GoalieGod", points: 1950, level: 19, wins: 90, division: 2 },
+        { name: "TacticalGenius", points: 1880, level: 18, wins: 85, division: 2 },
+        { name: "UltimateManager", points: 1810, level: 17, wins: 80, division: 2 }
+    ];
+    
+    // Trier par points
+    mockRanking.sort((a, b) => b.points - a.points);
+    
+    mockRanking.forEach((player, index) => {
+        const rankItem = document.createElement("div");
+        const isYou = player.name === (currentUser ? currentUser.email.split('@')[0] : "Joueur");
+        rankItem.className = `ranking-item ${isYou ? "you" : ""}`;
+        
+        const divisionName = divisions[player.division - 1]?.name || 'Bronze';
+        
+        rankItem.innerHTML = `
+            <div class="rank rank-${index + 1}">${index + 1}</div>
+            <div class="player-rank-info">
+                <div class="player-rank-name">${player.name}</div>
+                <div class="player-rank-team">${divisionName} | Niv. ${player.level} | ${player.wins}V</div>
+            </div>
+            <div class="player-rank-points">${player.points.toLocaleString()}</div>
+        `;
+        
+        rankingContainer.appendChild(rankItem);
+        
+        if (isYou) {
+            userData.ranking = index + 1;
+            document.getElementById("your-ranking").innerHTML = `
+                <div style="font-size: 36px; color: #00eaff;">#${index + 1}</div>
+                <div style="font-size: 14px; color: #aaa;">sur ${mockRanking.length} joueurs</div>
+                <div style="font-size: 12px; color: #aaa; margin-top: 5px;">Division: ${divisionName}</div>
+            `;
+        }
+    });
+}
+
+// 6. SÉLECTION AUTOMATIQUE D'ÉQUIPE
+function autoSelectTeam() {
+    if (!userData.collection || Object.keys(userData.collection).length === 0) {
+        showNotification("Aucun joueur dans votre collection!", "error");
+        return;
+    }
+    
+    const formation = formations[userData.formation || "4-3-3"];
+    const newTeam = {};
+    
+    // Trier les joueurs par OVR
+    const sortedPlayers = Object.values(userData.collection)
+        .map(collectionData => {
+            const player = findPlayerById(collectionData.id);
+            if (!player) return null;
+            return {
+                id: collectionData.id,
+                player: player,
+                overall: collectionData.overall,
+                position: player.position,
+                collectionData: collectionData
+            };
+        })
+        .filter(p => p !== null)
+        .sort((a, b) => b.overall - a.overall);
+    
+    // Fonction pour trouver le meilleur joueur pour une position
+    function findBestPlayerForPosition(position) {
+        for (const playerData of sortedPlayers) {
+            if (!Object.values(newTeam).includes(playerData.id) && 
+                isPlayerCompatibleWithPosition(playerData.player, position)) {
+                return playerData;
+            }
+        }
+        return null;
+    }
+    
+    // Pour chaque position dans la formation
+    formation.positions.forEach(pos => {
+        const bestPlayer = findBestPlayerForPosition(pos.pos);
+        if (bestPlayer) {
+            newTeam[pos.pos] = bestPlayer.id;
+        } else {
+            // Si aucun joueur trouvé, chercher un joueur compatible de n'importe quelle position
+            for (const playerData of sortedPlayers) {
+                if (!Object.values(newTeam).includes(playerData.id)) {
+                    newTeam[pos.pos] = playerData.id;
+                    break;
+                }
+            }
+        }
+    });
+    
+    userData.team = newTeam;
+    updateTeamDisplay();
+    showNotification("Équipe sélectionnée automatiquement!", "success");
+}
+
+// 7. SYSTÈME DE LIGUE AMÉLIORÉ
+function updateLeagueSystem() {
+    const divisionIndex = Math.min(Math.max((userData.division || 1) - 1, 0), divisions.length - 1);
+    const division = divisions[divisionIndex];
+    const points = userData.leaguePoints || 0;
+    
+    // Mettre à jour l'affichage de la division
+    const divisionClass = division.name.toLowerCase().replace(' ', '-');
+    document.getElementById("league-division").innerHTML = `
+        Ligue <span class="division-badge ${divisionClass}-division">${division.name}</span>
+    `;
+    
+    // Mettre à jour les seuils
+    document.getElementById("promotion-points").textContent = `Promotion: ${division.promotion} pts`;
+    document.getElementById("relegation-points").textContent = `Relégation: ${division.relegation} pts`;
+    document.getElementById("current-points").textContent = `${points} pts`;
+    
+    // Calculer la progression
+    const range = division.maxPoints - division.minPoints;
+    const progress = range > 0 ? ((points - division.minPoints) / range) * 100 : 0;
+    document.getElementById("league-progress").style.width = `${Math.min(Math.max(progress, 0), 100)}%`;
+}
+
+function checkPromotionRelegation() {
+    const currentDivision = divisions[userData.division - 1] || divisions[0];
+    const points = userData.leaguePoints || 0;
+    
+    // Promotion
+    if (points >= currentDivision.promotion && userData.division < divisions.length) {
+        userData.division++;
+        const newDivision = divisions[userData.division - 1];
+        showNotification(`Félicitations! Promotion en ${newDivision.name}!`, "success");
+        awardDivisionReward(newDivision);
+    }
+    
+    // Relégation
+    if (points < currentDivision.relegation && userData.division > 1) {
+        userData.division--;
+        const newDivision = divisions[userData.division - 1];
+        showNotification(`Relégation en ${newDivision.name}.`, "warning");
+    }
+    
+    // Sauvegarder les changements
+    saveUserData();
+    updateLeagueSystem();
+}
+
+function awardDivisionReward(division) {
+    if (!division.reward) return;
+    
+    const reward = division.reward;
+    userData.coins += reward.coins;
+    userData.gems += reward.gems;
+    
+    showNotification(`Récompense de promotion: ${reward.coins} coins, ${reward.gems} gems!`, "success");
+    
+    // Ajouter un badge si c'est la Ultimate League
+    if (division.name === "Ultimate League" && !userData.badges.includes("badge_league")) {
+        userData.badges.push("badge_league");
+        showNotification("Nouveau badge débloqué: Ligue Diamant!", "success");
+        updateBadgesDisplay();
     }
 }
 
@@ -3095,7 +3794,10 @@ function updateWeeklyMatches() {
         return;
     }
     
-    userData.weeklyMatches.forEach((match, index) => {
+    // Afficher les 10 derniers matchs
+    const recentMatches = userData.weeklyMatches.slice(-10).reverse();
+    
+    recentMatches.forEach((match, index) => {
         const matchCard = document.createElement("div");
         matchCard.className = `match-card match-result ${match.result.toLowerCase()}`;
         
@@ -3116,126 +3818,6 @@ function updateWeeklyMatches() {
         `;
         
         container.appendChild(matchCard);
-    });
-}
-
-// Mettre à jour le classement global - AVEC VRAIS JOUEURS
-async function updateGlobalRanking() {
-    try {
-        const snapshot = await firebaseDb.ref('users').once('value');
-        const rankingContainer = document.getElementById("global-ranking");
-        rankingContainer.innerHTML = '';
-        
-        if (!snapshot.exists()) {
-            rankingContainer.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #aaa;">
-                    Aucun joueur dans le classement
-                </div>
-            `;
-            return;
-        }
-        
-        const allUsers = [];
-        snapshot.forEach(childSnapshot => {
-            const user = childSnapshot.val();
-            if (user && user.leaguePoints !== undefined) {
-                allUsers.push({
-                    uid: childSnapshot.key,
-                    name: user.email ? user.email.split('@')[0] : "Joueur",
-                    points: user.leaguePoints || 0,
-                    level: user.level || 1,
-                    wins: user.wins || 0
-                });
-            }
-        });
-        
-        // Trier par points décroissants
-        allUsers.sort((a, b) => b.points - a.points);
-        
-        // Afficher les 50 premiers
-        const topUsers = allUsers.slice(0, 50);
-        
-        topUsers.forEach((player, index) => {
-            const rankItem = document.createElement("div");
-            const isYou = currentUser && player.uid === currentUser.uid;
-            rankItem.className = `ranking-item ${isYou ? "you" : ""}`;
-            
-            rankItem.innerHTML = `
-                <div class="rank ${index < 3 ? `rank-${index + 1}` : ''}">${index + 1}</div>
-                <div class="player-rank-info">
-                    <div class="player-rank-name">${player.name}</div>
-                    <div class="player-rank-team">Niv. ${player.level} | ${player.wins} victoires</div>
-                </div>
-                <div class="player-rank-points">${player.points.toLocaleString()}</div>
-            `;
-            
-            rankingContainer.appendChild(rankItem);
-            
-            // Mettre à jour la position de l'utilisateur
-            if (isYou) {
-                userData.ranking = index + 1;
-                document.getElementById("your-ranking").innerHTML = `
-                    <div style="font-size: 36px; color: #00eaff;">#${index + 1}</div>
-                    <div style="font-size: 14px; color: #aaa;">sur ${allUsers.length} joueurs</div>
-                `;
-            }
-        });
-        
-        // Sauvegarder le classement
-        saveUserData();
-        
-    } catch (error) {
-        console.error("Erreur de chargement du classement:", error);
-        // Afficher un classement simulé en cas d'erreur
-        showMockRanking();
-    }
-}
-
-// Afficher un classement simulé (fallback)
-function showMockRanking() {
-    const rankingContainer = document.getElementById("global-ranking");
-    rankingContainer.innerHTML = '';
-    
-    // Classement simulé
-    const mockRanking = [
-        { name: "Champion123", points: 2450, level: 25, wins: 120 },
-        { name: "FootballPro", points: 2380, level: 24, wins: 115 },
-        { name: "GoldenBoot", points: 2310, level: 23, wins: 110 },
-        { name: currentUser ? currentUser.email.split('@')[0] : "Joueur", points: userData.leaguePoints || 0, level: userData.level || 1, wins: userData.wins || 0 },
-        { name: "Striker99", points: 2150, level: 22, wins: 105 },
-        { name: "DefenseKing", points: 2080, level: 21, wins: 100 },
-        { name: "MidfieldMaestro", points: 2010, level: 20, wins: 95 },
-        { name: "GoalieGod", points: 1950, level: 19, wins: 90 },
-        { name: "TacticalGenius", points: 1880, level: 18, wins: 85 },
-        { name: "UltimateManager", points: 1810, level: 17, wins: 80 }
-    ];
-    
-    // Trier par points
-    mockRanking.sort((a, b) => b.points - a.points);
-    
-    mockRanking.forEach((player, index) => {
-        const rankItem = document.createElement("div");
-        const isYou = player.name === (currentUser ? currentUser.email.split('@')[0] : "Joueur");
-        rankItem.className = `ranking-item ${isYou ? "you" : ""}`;
-        
-        rankItem.innerHTML = `
-            <div class="rank ${index < 3 ? `rank-${index + 1}` : ''}">${index + 1}</div>
-            <div class="player-rank-info">
-                <div class="player-rank-name">${player.name}</div>
-                <div class="player-rank-team">Niv. ${player.level} | ${player.wins} victoires</div>
-            </div>
-            <div class="player-rank-points">${player.points.toLocaleString()}</div>
-        `;
-        
-        rankingContainer.appendChild(rankItem);
-        
-        // Mettre à jour la position de l'utilisateur
-        if (isYou) {
-            document.getElementById("your-ranking").innerHTML = `
-                <div style="font-size: 36px; color: #00eaff;">#${index + 1}</div>
-                <div style="font-size: 14px; color: #aaa;">sur 10 000 joueurs</div>
-            `;
-        }
     });
 }
 
@@ -3292,7 +3874,7 @@ function checkBadges() {
     }
     
     // Badge: Collectionneur (20 joueurs)
-    const playerCount = userData.players ? Object.keys(userData.players).length : 0;
+    const playerCount = userData.collection ? Object.keys(userData.collection).length : 0;
     if (playerCount >= 20 && userData.badges && !userData.badges.includes("badge_collector")) {
         newBadges.push("badge_collector");
     }
@@ -3302,9 +3884,17 @@ function checkBadges() {
         newBadges.push("badge_rich");
     }
     
-    // Badge: Ligue Diamant (1800 points)
-    if ((userData.leaguePoints || 0) >= 1800 && userData.badges && !userData.badges.includes("badge_league")) {
+    // Badge: Ligue Ultimate (division 5)
+    if ((userData.division || 1) >= 5 && userData.badges && !userData.badges.includes("badge_league")) {
         newBadges.push("badge_league");
+    }
+    
+    // Badge: Joueur légendaire (avoir un joueur légendaire)
+    if (userData.collection) {
+        const hasLegendary = Object.values(userData.collection).some(p => p.rarity === "legendary");
+        if (hasLegendary && userData.badges && !userData.badges.includes("badge_legendary")) {
+            newBadges.push("badge_legendary");
+        }
     }
     
     // Ajouter les nouveaux badges
@@ -3320,16 +3910,8 @@ function checkBadges() {
             }
         });
         updateBadgesDisplay();
+        saveUserData();
     }
-}
-
-// Trouver un joueur par son ID
-function findPlayerById(playerId) {
-    for (const rarity in footballPlayersDB) {
-        const player = footballPlayersDB[rarity].find(p => p.id === playerId);
-        if (player) return player;
-    }
-    return null;
 }
 
 // Afficher un écran
@@ -3343,6 +3925,22 @@ function showScreen(screenId) {
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) {
         targetScreen.classList.add("active");
+        
+        // Mettre à jour les données spécifiques à l'écran
+        if (screenId === "screen-ranking") {
+            updateGlobalRanking();
+        } else if (screenId === "screen-profile") {
+            updateProfile();
+        } else if (screenId === "screen-league") {
+            updateLeagueSystem();
+            updateWeeklyMatches();
+        } else if (screenId === "screen-collection") {
+            updateCollectionDisplay();
+        } else if (screenId === "screen-team") {
+            updateTeamDisplay();
+        } else if (screenId === "screen-dashboard") {
+            updateDashboard();
+        }
     }
 }
 
@@ -3393,7 +3991,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Exposer certaines fonctions au global scope pour les événements onclick
 window.selectPlayerForPosition = selectPlayerForPosition;
-window.fusePlayerManually = fusePlayerManually;
 </script>
 
 </body>

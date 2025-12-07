@@ -1172,6 +1172,69 @@ main {
     text-align: center;
     border: 1px solid #6d00ff;
 }
+
+/* ============ EMBLÈMES ULTIMATE LEAGUE ============ */
+.emblem-badge {
+    animation: emblemGlow 2s infinite alternate;
+    position: relative;
+}
+
+@keyframes emblemGlow {
+    from { box-shadow: 0 0 10px gold; }
+    to { box-shadow: 0 0 20px gold, 0 0 30px gold; }
+}
+
+.emblems-container {
+    background: rgba(26,26,37,0.8);
+    border: 2px solid gold;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.emblem-icon {
+    display: inline-block;
+    animation: emblemFloat 3s infinite ease-in-out;
+    margin: 0 2px;
+}
+
+@keyframes emblemFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.emblem-counter {
+    background: linear-gradient(135deg, gold, #ffaa00);
+    color: black;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+.ultimate-emblem-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 10px;
+}
+
+.emblem-tooltip {
+    position: absolute;
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    z-index: 1000;
+    white-space: nowrap;
+    display: none;
+}
+
+.emblem-badge:hover .emblem-tooltip {
+    display: block;
+}
 </style>
 
 <!-- Font Awesome Icons -->
@@ -1543,6 +1606,17 @@ main {
             </div>
         </div>
         
+        <!-- Emblèmes Ultimate League -->
+        <div class="emblems-container" id="ultimate-emblems-container" style="display: none;">
+            <h3 style="color: gold; margin-bottom: 15px;">🏆 Emblèmes Ultimate League</h3>
+            <div id="emblems-display" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                <!-- Emblèmes seront ajoutés ici -->
+            </div>
+            <div id="emblems-stats" style="text-align: center; margin-top: 15px; font-size: 14px; color: #aaa;">
+                <!-- Statistiques emblèmes -->
+            </div>
+        </div>
+        
         <div class="badges-container">
             <h3 style="color: #00eaff; margin-bottom: 15px;">Badges Obtenus</h3>
             <div class="badges-grid" id="profile-badges">
@@ -1641,13 +1715,14 @@ const divisions = [
     { id: 5, name: "Ultimate League", minPoints: 4000, maxPoints: 999999, promotion: 999999, relegation: 3500, reward: { coins: 10000, gems: 250 } }
 ];
 
-// Nouvelle structure de données utilisateur avec les améliorations
+// Nouvelle structure de données utilisateur avec le système de reset
 const defaultUserData = {
     coins: 1000,
     gems: 50,
     tokens: 0,
     level: 1,
     xp: 0,
+    
     // Nouvelle structure pour la collection avec anti-doublon
     collection: {
         "GK001": { 
@@ -1723,6 +1798,7 @@ const defaultUserData = {
             rarity: "common"
         }
     },
+    
     team: {
         GK: "GK001",
         RB: "DEF003",
@@ -1736,9 +1812,22 @@ const defaultUserData = {
         ST: "ATT001",
         LW: "ATT005"
     },
+    
     formation: "4-3-3",
-    leaguePoints: 1000,
-    division: 1, // 1: Bronze, 2: Argent, 3: Or, 4: Elite, 5: Ultimate
+    
+    // NOUVEAU SYSTÈME DE LIGUE AVEC RESET
+    league: {
+        division: 2, // 1: Bronze, 2: Argent, 3: Or, 4: Elite, 5: Ultimate
+        points: 1200,
+        ultimateEmblems: 0, // Kantite emblème Ultimate League
+        weeksInUltimate: 0, // Konbyen semen nan Ultimate League
+        lastReset: null, // Dènye fwa reset te fèt
+        seasonStart: new Date().toISOString(),
+        promotionCount: 0,
+        bestDivision: 2,
+        history: [] // Istorik divizyon chak semen
+    },
+    
     matchesPlayed: 0,
     wins: 0,
     draws: 0,
@@ -1749,10 +1838,13 @@ const defaultUserData = {
     joinDate: new Date().toISOString(),
     weeklyMatches: [],
     ranking: 9999,
+    
     // Système de récompense quotidienne
     lastDailyClaim: null,
+    
     // Historique des matchs détaillés
     matchHistory: [],
+    
     // Team ID pour classement
     teamID: null
 };
@@ -1884,7 +1976,7 @@ const formations = {
     }
 };
 
-// Badges disponibles
+// Badges disponibles (incluant emblèmes Ultimate League)
 const badges = [
     {id: "badge_rookie", name: "Débutant", icon: "🥳", description: "Première connexion", unlocked: true},
     {id: "badge_first_win", name: "Première Victoire", icon: "🏆", description: "Gagner son premier match", unlocked: false},
@@ -1893,10 +1985,312 @@ const badges = [
     {id: "badge_legendary", name: "Légende", icon: "⭐", description: "Obtenir un joueur légendaire", unlocked: false},
     {id: "badge_collector", name: "Collectionneur", icon: "📚", description: "20 joueurs dans la collection", unlocked: false},
     {id: "badge_rich", name: "Millionnaire", icon: "💰", description: "10 000 coins", unlocked: false},
-    {id: "badge_league", name: "Ligue Diamant", icon: "💎", description: "Atteindre la ligue diamant", unlocked: false}
+    
+    // Nouveaux badges pour emblèmes Ultimate League
+    {id: "ultimate_emblem_1", name: "Ultimate Emblème 1", icon: "🏆", description: "1ère semaine en Ultimate League", unlocked: false},
+    {id: "ultimate_emblem_3", name: "Ultimate Emblème 3", icon: "🏆🏆🏆", description: "3 semaines en Ultimate League", unlocked: false},
+    {id: "ultimate_emblem_5", name: "Ultimate Emblème 5", icon: "🏆🏆🏆🏆🏆", description: "5 semaines en Ultimate League", unlocked: false},
+    {id: "ultimate_champion", name: "Champion Ultimate", icon: "👑", description: "10 semaines en Ultimate League", unlocked: false},
+    {id: "ultimate_king", name: "Roi Ultimate", icon: "🤴", description: "20 semaines en Ultimate League", unlocked: false},
+    {id: "ultimate_god", name: "Dieu Ultimate", icon: "👑🔥", description: "50 semaines en Ultimate League", unlocked: false}
 ];
 
-// Initialisation de l'application
+// ============================================
+// 1. FONCTIONS POUR SYSTÈM RESET LIGUE
+// ============================================
+
+// Fonksyon pou kalkile lè reset la (Dimanch 00:00 Haiti Time)
+function calculateNextReset() {
+    const now = new Date();
+    
+    // Konvèti nan è tan Haiti (America/Port-au-Prince)
+    const haitiTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Port-au-Prince"}));
+    
+    // Jwè prochèn Dimanch 00:00
+    const daysUntilSunday = (7 - haitiTime.getDay()) % 7;
+    const nextSunday = new Date(haitiTime);
+    nextSunday.setDate(haitiTime.getDate() + daysUntilSunday);
+    nextSunday.setHours(0, 0, 0, 0);
+    
+    // Si nou deja Dimanch men apre 00:00, pran Dimanch pwochen
+    if (haitiTime.getDay() === 0 && haitiTime.getHours() >= 0) {
+        nextSunday.setDate(nextSunday.getDate() + 7);
+    }
+    
+    return nextSunday.getTime();
+}
+
+// Fonksyon pou montre timer reset
+function updateLeagueTimer() {
+    try {
+        const resetTime = calculateNextReset();
+        const now = Date.now();
+        const timeLeft = resetTime - now;
+        
+        if (timeLeft <= 0) {
+            // Reset en cours ou dépassé
+            document.getElementById("league-timer").textContent = "Reset en cours...";
+            
+            // Verifie si bezwen fè reset
+            const today = new Date().toISOString().split('T')[0];
+            if (!userData.league.lastReset || userData.league.lastReset !== today) {
+                setTimeout(() => {
+                    performLeagueReset();
+                }, 2000);
+            }
+        } else {
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.getElementById("league-timer").textContent = 
+                `Reset dans: ${days}j ${hours}h ${minutes}m`;
+        }
+    } catch (error) {
+        console.error("Erreur updateLeagueTimer:", error);
+        document.getElementById("league-timer").textContent = "Timer erreur";
+    }
+}
+
+// Fonksyon reset ligue (DESANN 2 DIVIZYON + EMBLÈME ULTIMATE)
+async function performLeagueReset() {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Si deja reset jodi a, pa fè anyen
+        if (userData.league.lastReset === today) {
+            console.log("Déjà reset aujourd'hui");
+            return;
+        }
+        
+        const oldDivision = userData.league.division;
+        const wasInUltimate = oldDivision === 5;
+        const ultimateEmblems = userData.league.ultimateEmblems || 0;
+        const weeksInUltimate = userData.league.weeksInUltimate || 0;
+        
+        console.log(`Reset ligue: Division ${oldDivision}, Ultimate: ${wasInUltimate}, Emblèmes: ${ultimateEmblems}`);
+        
+        // 1. DESANN 2 DIVIZYON (minimum 1)
+        let newDivision = Math.max(1, oldDivision - 2);
+        
+        // 2. Si moun nan te nan Ultimate League (divizyon 5)
+        let newUltimateEmblems = ultimateEmblems;
+        let newWeeksInUltimate = weeksInUltimate;
+        
+        if (wasInUltimate) {
+            // Ajoute yon emblème Ultimate League
+            newUltimateEmblems += 1;
+            newWeeksInUltimate += 1;
+            
+            // Ajoute badge emblème si bezwen
+            const emblemBadgeId = `ultimate_emblem_${newUltimateEmblems}`;
+            const emblemBadgeExists = badges.find(b => b.id === emblemBadgeId);
+            
+            if (emblemBadgeExists && !userData.badges.includes(emblemBadgeId)) {
+                userData.badges.push(emblemBadgeId);
+            }
+            
+            // Ajoute badges spéciaux selon le nombre d'emblèmes
+            if (newUltimateEmblems >= 3 && !userData.badges.includes("ultimate_emblem_3")) {
+                userData.badges.push("ultimate_emblem_3");
+            }
+            if (newUltimateEmblems >= 5 && !userData.badges.includes("ultimate_emblem_5")) {
+                userData.badges.push("ultimate_emblem_5");
+            }
+            if (newUltimateEmblems >= 10 && !userData.badges.includes("ultimate_champion")) {
+                userData.badges.push("ultimate_champion");
+            }
+            if (newUltimateEmblems >= 20 && !userData.badges.includes("ultimate_king")) {
+                userData.badges.push("ultimate_king");
+            }
+            if (newUltimateEmblems >= 50 && !userData.badges.includes("ultimate_god")) {
+                userData.badges.push("ultimate_god");
+            }
+        } else {
+            // Si pa nan Ultimate, reyinisyalize kontè semen Ultimate
+            newWeeksInUltimate = 0;
+        }
+        
+        // 3. Mete nouvo divizyon ak pwen
+        const newDivisionData = divisions[newDivision - 1];
+        const newPoints = newDivisionData.minPoints;
+        
+        // 4. Reyinisyalize matches semen
+        userData.weeklyMatches = [];
+        
+        // 5. Mete nouvo sezon ak istorik
+        userData.league.division = newDivision;
+        userData.league.points = newPoints;
+        userData.league.ultimateEmblems = newUltimateEmblems;
+        userData.league.weeksInUltimate = newWeeksInUltimate;
+        userData.league.lastReset = today;
+        userData.league.seasonStart = new Date().toISOString();
+        
+        // Mete ajou pi bon divizyon si bezwen
+        if (oldDivision > (userData.league.bestDivision || 1)) {
+            userData.league.bestDivision = oldDivision;
+        }
+        
+        // Ajoute nan istorik
+        if (!userData.league.history) userData.league.history = [];
+        userData.league.history.push({
+            date: today,
+            oldDivision: oldDivision,
+            newDivision: newDivision,
+            ultimateEmblems: newUltimateEmblems,
+            points: newPoints,
+            wasInUltimate: wasInUltimate
+        });
+        
+        // 6. Garde sèlman 10 dènye istorik
+        if (userData.league.history.length > 10) {
+            userData.league.history = userData.league.history.slice(-10);
+        }
+        
+        // 7. Sauvegarder
+        await saveUserData();
+        
+        // 8. Afiche notifikasyon
+        if (wasInUltimate) {
+            showNotification(
+                `🏆 RESET LIGUE! Descen 2 divisions -> ${divisions[newDivision-1].name}. ` +
+                `Emblème Ultimate League: ${newUltimateEmblems} ` +
+                `(Total: ${newUltimateEmblems} emblèmes)`, 
+                "success"
+            );
+        } else {
+            showNotification(
+                `🔄 RESET LIGUE! Nouvelle division: ${divisions[newDivision-1].name}`, 
+                "info"
+            );
+        }
+        
+        // 9. Rafrechi afichaj
+        updateLeagueSystem();
+        updateProfile();
+        updateBadgesDisplay();
+        updateDashboard();
+        
+    } catch (error) {
+        console.error("Erreur performLeagueReset:", error);
+        showNotification("Erreur lors du reset de la ligue", "error");
+    }
+}
+
+// Fonksyon pou verifier reset chak fwa jwè a konekte
+function checkForLeagueReset() {
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    
+    // Konvèti nan è tan Haiti
+    const haitiTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Port-au-Prince"}));
+    
+    // Si se Dimanch 00:00-23:59
+    if (haitiTime.getDay() === 0) {
+        if (!userData.league.lastReset || userData.league.lastReset !== today) {
+            console.log("Vérification reset: Dimanche détecté, reset nécessaire");
+            setTimeout(() => {
+                performLeagueReset();
+            }, 3000);
+        }
+    }
+}
+
+// ============================================
+// 2. FONCTIONS POUR AFFICHER EMBLÈMES
+// ============================================
+
+// Fonksyon pou afiche emblèmes nan profil
+function displayUltimateEmblems() {
+    const container = document.getElementById("ultimate-emblems-container");
+    const emblemsDisplay = document.getElementById("emblems-display");
+    const emblemsStats = document.getElementById("emblems-stats");
+    
+    if (!userData.league.ultimateEmblems || userData.league.ultimateEmblems === 0) {
+        container.style.display = "none";
+        return;
+    }
+    
+    container.style.display = "block";
+    emblemsDisplay.innerHTML = '';
+    emblemsStats.innerHTML = '';
+    
+    const ultimateEmblems = userData.league.ultimateEmblems;
+    const weeksInUltimate = userData.league.weeksInUltimate;
+    
+    // Kreye emblèmes yo
+    for (let i = 1; i <= ultimateEmblems; i++) {
+        const emblemDiv = document.createElement("div");
+        emblemDiv.className = "emblem-badge";
+        emblemDiv.style.cssText = `
+            background: linear-gradient(135deg, gold, #ffaa00);
+            color: black;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: ${i < 10 ? '20px' : i < 100 ? '16px' : '14px'};
+            border: 3px solid #ffaa00;
+            cursor: pointer;
+            position: relative;
+        `;
+        emblemDiv.textContent = i;
+        
+        // Tooltip pou emblème
+        emblemDiv.title = `Emblème Ultimate League #${i}\nSemaine ${i} en Ultimate League`;
+        
+        emblemsDisplay.appendChild(emblemDiv);
+    }
+    
+    // Statistiques
+    emblemsStats.innerHTML = `
+        <div style="margin-bottom: 5px;">
+            <span style="color: gold;">🏆 ${ultimateEmblems} emblème(s) Ultimate League</span>
+        </div>
+        <div style="font-size: 12px; color: #aaa;">
+            Meilleure performance: ${weeksInUltimate} semaine(s) consécutive(s) en Ultimate League
+        </div>
+        ${userData.league.bestDivision === 5 ? 
+            `<div style="font-size: 12px; color: #00eaff; margin-top: 5px;">
+                <i class="fas fa-crown"></i> Atteint l'Ultimate League
+            </div>` : ''
+        }
+    `;
+}
+
+// Fonksyon pou afiche emblème nan klasman
+function getEmblemDisplay(ultimateEmblems) {
+    if (!ultimateEmblems || ultimateEmblems === 0) return '';
+    
+    let emblemIcons = '';
+    if (ultimateEmblems <= 5) {
+        // Afiche kantite emblème
+        emblemIcons = `<span class="ultimate-emblem-display">
+            <span class="emblem-icon">🏆</span>
+            <span class="emblem-counter">${ultimateEmblems}</span>
+        </span>`;
+    } else if (ultimateEmblems <= 10) {
+        emblemIcons = `<span class="ultimate-emblem-display">
+            <span class="emblem-icon">🏆🏆</span>
+            <span class="emblem-counter">${ultimateEmblems}</span>
+        </span>`;
+    } else {
+        emblemIcons = `<span class="ultimate-emblem-display">
+            <span class="emblem-icon">👑</span>
+            <span class="emblem-counter">${ultimateEmblems}</span>
+        </span>`;
+    }
+    
+    return emblemIcons;
+}
+
+// ============================================
+// 3. INITIALISATION DE L'APPLICATION
+// ============================================
+
 function initializeApp() {
     console.log("Initialisation du Football Manager...");
     
@@ -1950,6 +2344,9 @@ async function handleAuthStateChanged(user) {
         updateGlobalRanking();
         updateProfile();
         
+        // Vérifier reset ligue
+        checkForLeagueReset();
+        
         showNotification("Connexion réussie! Bienvenue " + user.email, "success");
         
     } else {
@@ -1991,21 +2388,39 @@ async function loadUserData(userId) {
                 delete loadedData.players;
             }
             
+            // Migration: ajouter système ligue si ancienne structure
+            if (!loadedData.league) {
+                loadedData.league = {
+                    division: loadedData.division || 1,
+                    points: loadedData.leaguePoints || 0,
+                    ultimateEmblems: 0,
+                    weeksInUltimate: 0,
+                    lastReset: null,
+                    seasonStart: new Date().toISOString(),
+                    promotionCount: 0,
+                    bestDivision: loadedData.division || 1,
+                    history: []
+                };
+            }
+            
             // Fusionner avec les valeurs par défaut
             userData = {
                 ...defaultUserData,
                 ...loadedData,
                 collection: loadedData.collection || defaultUserData.collection,
                 team: loadedData.team || defaultUserData.team,
+                league: loadedData.league || defaultUserData.league,
                 teamID: loadedData.teamID || `team_${userId.substring(0, 8)}`
             };
             
             console.log("Données utilisateur chargées avec succès");
+            console.log("Emblèmes Ultimate:", userData.league.ultimateEmblems);
             
         } else {
             // Données par défaut pour les nouveaux utilisateurs
             userData = { ...defaultUserData };
             userData.teamID = `team_${userId.substring(0, 8)}`;
+            userData.league.seasonStart = new Date().toISOString();
             await saveUserData();
         }
         
@@ -2016,6 +2431,10 @@ async function loadUserData(userId) {
         
         // Vérifier si récompense quotidienne disponible
         checkDailyRewardAvailability();
+        
+        // Démarrer le timer de ligue
+        updateLeagueTimer();
+        setInterval(updateLeagueTimer, 60000); // Mete ajou chak minit
         
     } catch (error) {
         console.error("Erreur de chargement des données:", error);
@@ -2073,10 +2492,11 @@ function updateDashboard() {
     
     // Utiliser des valeurs par défaut pour éviter undefined
     const wins = userData.wins || 0;
-    const leaguePoints = userData.leaguePoints || 0;
+    const leaguePoints = userData.league ? userData.league.points : 0;
     const playersCount = userData.collection ? Object.keys(userData.collection).length : 0;
     const teamPower = calculateTeamPower();
     const synergyBonus = calculateSynergyBonus();
+    const ultimateEmblems = userData.league ? userData.league.ultimateEmblems : 0;
     
     // Mettre à jour les statistiques
     document.getElementById("stat-level").textContent = userData.level || 1;
@@ -2089,11 +2509,23 @@ function updateDashboard() {
     document.getElementById("synergy-bonus").textContent = `Bonus Synergie: +${synergyBonus}`;
     
     // Mettre à jour la progression de la ligue
-    const division = divisions[userData.division - 1] || divisions[0];
+    const division = divisions[(userData.league ? userData.league.division : 1) - 1] || divisions[0];
     const progress = division.maxPoints > division.minPoints ? 
         ((leaguePoints - division.minPoints) / (division.maxPoints - division.minPoints)) * 100 : 0;
     document.getElementById("league-progress").style.width = `${Math.min(Math.max(progress, 0), 100)}%`;
     document.getElementById("current-points").textContent = leaguePoints.toLocaleString() + " pts";
+    
+    // Afiche emblèmes si genyen
+    if (ultimateEmblems > 0) {
+        const dashboardTitle = document.querySelector("#screen-dashboard .page-title");
+        if (dashboardTitle && !dashboardTitle.querySelector('.emblem-icon')) {
+            const emblemSpan = document.createElement("span");
+            emblemSpan.className = "ultimate-emblem-display";
+            emblemSpan.style.cssText = "margin-left: 10px; vertical-align: middle;";
+            emblemSpan.innerHTML = `<span class="emblem-icon">🏆</span><span class="emblem-counter">${ultimateEmblems}</span>`;
+            dashboardTitle.appendChild(emblemSpan);
+        }
+    }
 }
 
 // Initialiser les interfaces du jeu
@@ -2107,11 +2539,11 @@ function initializeGameInterfaces() {
     // Mettre à jour la date d'adhésion
     const joinDate = userData.joinDate ? new Date(userData.joinDate) : new Date();
     document.getElementById("member-since").textContent = joinDate.toLocaleDateString('fr-FR');
-    
-    // Initialiser le timer de ligue
-    updateLeagueTimer();
-    setInterval(updateLeagueTimer, 60000);
 }
+
+// ============================================
+// 4. FONCTIONS EXISTANTES (MODIFIÉES POUR EMBLÈMES)
+// ============================================
 
 // Initialiser les gestionnaires d'événements
 function initializeEventHandlers() {
@@ -2266,6 +2698,7 @@ async function handleRegister() {
         // Initialiser les données utilisateur
         userData = { ...defaultUserData };
         userData.teamID = `team_${currentUser.uid.substring(0, 8)}`;
+        userData.league.seasonStart = new Date().toISOString();
         await saveUserData();
         showNotification("Compte créé avec succès!", "success");
         
@@ -2734,7 +3167,7 @@ function findPlayerById(playerId) {
     return null;
 }
 
-// 1. FIX BUG PACKS - Système amélioré avec collection
+// Ajouter un joueur à la collection
 async function addPlayerToCollection(playerId) {
     if (!userData.collection) userData.collection = {};
     
@@ -2994,7 +3427,7 @@ function playLeagueMatch() {
     playMatch(true);
 }
 
-// 2. SIMULATION DE MATCH AMÉLIORÉE
+// Simuler un match
 function playMatch(isLeagueMatch) {
     // Vérifier que l'équipe est complète
     if (!userData.team) {
@@ -3304,7 +3737,8 @@ function processMatchResult(simulationResult, isLeagueMatch) {
     userData.coins = (userData.coins || 0) + coins;
     
     if (isLeagueMatch) {
-        userData.leaguePoints = (userData.leaguePoints || 0) + points;
+        // Mete ajou pwen ligue
+        userData.league.points = (userData.league.points || 0) + points;
         
         // Ajouter le match à l'historique de la semaine
         const matchRecord = {
@@ -3472,7 +3906,7 @@ function addXP(amount) {
     }
 }
 
-// 3. FIX BUG RÉCOMPENSE QUOTIDIENNE
+// Récompense quotidienne
 async function claimDailyReward() {
     const today = new Date().toISOString().split('T')[0];
     
@@ -3505,7 +3939,7 @@ function checkDailyRewardAvailability() {
     }
 }
 
-// 4. CLASSEMENT AVEC VRAIS JOUEURS
+// Classement global avec emblèmes
 async function updateGlobalRanking() {
     try {
         const usersSnapshot = await firebaseDb.ref('users').once('value');
@@ -3516,15 +3950,17 @@ async function updateGlobalRanking() {
         // Convertir en tableau et calculer le classement
         Object.keys(allUsers).forEach(userId => {
             const user = allUsers[userId];
-            if (user && user.leaguePoints !== undefined && user.teamID) {
+            if (user && user.league && user.teamID) {
+                const leagueData = user.league;
                 rankingArray.push({
                     id: userId,
                     teamID: user.teamID,
                     name: user.name || userId.substring(0, 8),
-                    points: user.leaguePoints || 0,
+                    points: leagueData.points || 0,
                     level: user.level || 1,
                     wins: user.wins || 0,
-                    division: user.division || 1,
+                    division: leagueData.division || 1,
+                    ultimateEmblems: leagueData.ultimateEmblems || 0,
                     teamPower: user.teamPower || 0,
                     matchesPlayed: user.matchesPlayed || 0
                 });
@@ -3547,11 +3983,14 @@ async function updateGlobalRanking() {
             rankItem.className = `ranking-item ${isYou ? "you" : ""}`;
             
             const divisionName = divisions[player.division - 1]?.name || 'Bronze';
+            const emblemDisplay = getEmblemDisplay(player.ultimateEmblems);
             
             rankItem.innerHTML = `
                 <div class="rank rank-${index + 1}">${index + 1}</div>
                 <div class="player-rank-info">
-                    <div class="player-rank-name">${player.name}</div>
+                    <div class="player-rank-name">
+                        ${player.name} ${emblemDisplay}
+                    </div>
                     <div class="player-rank-team">${divisionName} | Niv. ${player.level} | ${player.wins}V</div>
                 </div>
                 <div class="player-rank-points">${player.points.toLocaleString()}</div>
@@ -3565,6 +4004,11 @@ async function updateGlobalRanking() {
                     <div style="font-size: 36px; color: #00eaff;">#${index + 1}</div>
                     <div style="font-size: 14px; color: #aaa;">sur ${rankingArray.length} joueurs</div>
                     <div style="font-size: 12px; color: #aaa; margin-top: 5px;">Division: ${divisionName}</div>
+                    ${player.ultimateEmblems > 0 ? `
+                        <div style="margin-top: 10px;">
+                            <span style="color: gold;">🏆 ${player.ultimateEmblems} emblème(s) Ultimate</span>
+                        </div>
+                    ` : ''}
                 `;
             }
         });
@@ -3584,16 +4028,23 @@ function updateGlobalRankingFallback() {
     
     // Classement simulé
     const mockRanking = [
-        { name: "Champion123", points: 2450, level: 25, wins: 120, division: 4 },
-        { name: "FootballPro", points: 2380, level: 24, wins: 115, division: 4 },
-        { name: "GoldenBoot", points: 2310, level: 23, wins: 110, division: 3 },
-        { name: currentUser ? currentUser.email.split('@')[0] : "Joueur", points: userData.leaguePoints || 0, level: userData.level || 1, wins: userData.wins || 0, division: userData.division || 1 },
-        { name: "Striker99", points: 2150, level: 22, wins: 105, division: 3 },
-        { name: "DefenseKing", points: 2080, level: 21, wins: 100, division: 3 },
-        { name: "MidfieldMaestro", points: 2010, level: 20, wins: 95, division: 3 },
-        { name: "GoalieGod", points: 1950, level: 19, wins: 90, division: 2 },
-        { name: "TacticalGenius", points: 1880, level: 18, wins: 85, division: 2 },
-        { name: "UltimateManager", points: 1810, level: 17, wins: 80, division: 2 }
+        { name: "Champion123", points: 2450, level: 25, wins: 120, division: 4, ultimateEmblems: 5 },
+        { name: "FootballPro", points: 2380, level: 24, wins: 115, division: 4, ultimateEmblems: 3 },
+        { name: "GoldenBoot", points: 2310, level: 23, wins: 110, division: 3, ultimateEmblems: 1 },
+        { 
+            name: currentUser ? currentUser.email.split('@')[0] : "Joueur", 
+            points: userData.league ? userData.league.points : 0, 
+            level: userData.level || 1, 
+            wins: userData.wins || 0, 
+            division: userData.league ? userData.league.division : 1,
+            ultimateEmblems: userData.league ? userData.league.ultimateEmblems : 0
+        },
+        { name: "Striker99", points: 2150, level: 22, wins: 105, division: 3, ultimateEmblems: 0 },
+        { name: "DefenseKing", points: 2080, level: 21, wins: 100, division: 3, ultimateEmblems: 0 },
+        { name: "MidfieldMaestro", points: 2010, level: 20, wins: 95, division: 3, ultimateEmblems: 0 },
+        { name: "GoalieGod", points: 1950, level: 19, wins: 90, division: 2, ultimateEmblems: 0 },
+        { name: "TacticalGenius", points: 1880, level: 18, wins: 85, division: 2, ultimateEmblems: 0 },
+        { name: "UltimateManager", points: 1810, level: 17, wins: 80, division: 2, ultimateEmblems: 0 }
     ];
     
     // Trier par points
@@ -3605,11 +4056,14 @@ function updateGlobalRankingFallback() {
         rankItem.className = `ranking-item ${isYou ? "you" : ""}`;
         
         const divisionName = divisions[player.division - 1]?.name || 'Bronze';
+        const emblemDisplay = getEmblemDisplay(player.ultimateEmblems);
         
         rankItem.innerHTML = `
             <div class="rank rank-${index + 1}">${index + 1}</div>
             <div class="player-rank-info">
-                <div class="player-rank-name">${player.name}</div>
+                <div class="player-rank-name">
+                    ${player.name} ${emblemDisplay}
+                </div>
                 <div class="player-rank-team">${divisionName} | Niv. ${player.level} | ${player.wins}V</div>
             </div>
             <div class="player-rank-points">${player.points.toLocaleString()}</div>
@@ -3623,12 +4077,17 @@ function updateGlobalRankingFallback() {
                 <div style="font-size: 36px; color: #00eaff;">#${index + 1}</div>
                 <div style="font-size: 14px; color: #aaa;">sur ${mockRanking.length} joueurs</div>
                 <div style="font-size: 12px; color: #aaa; margin-top: 5px;">Division: ${divisionName}</div>
+                ${player.ultimateEmblems > 0 ? `
+                    <div style="margin-top: 10px;">
+                        <span style="color: gold;">🏆 ${player.ultimateEmblems} emblème(s) Ultimate</span>
+                    </div>
+                ` : ''}
             `;
         }
     });
 }
 
-// 6. SÉLECTION AUTOMATIQUE D'ÉQUIPE
+// Sélection automatique d'équipe
 function autoSelectTeam() {
     if (!userData.collection || Object.keys(userData.collection).length === 0) {
         showNotification("Aucun joueur dans votre collection!", "error");
@@ -3686,17 +4145,25 @@ function autoSelectTeam() {
     showNotification("Équipe sélectionnée automatiquement!", "success");
 }
 
-// 7. SYSTÈME DE LIGUE AMÉLIORÉ
+// Mettre à jour le système de ligue
 function updateLeagueSystem() {
-    const divisionIndex = Math.min(Math.max((userData.division || 1) - 1, 0), divisions.length - 1);
+    const divisionIndex = Math.min(Math.max((userData.league ? userData.league.division : 1) - 1, 0), divisions.length - 1);
     const division = divisions[divisionIndex];
-    const points = userData.leaguePoints || 0;
+    const points = userData.league ? userData.league.points : 0;
+    const ultimateEmblems = userData.league ? userData.league.ultimateEmblems : 0;
     
-    // Mettre à jour l'affichage de la division
+    // Mettre à jour l'affichage de la division avec emblèmes
     const divisionClass = division.name.toLowerCase().replace(' ', '-');
-    document.getElementById("league-division").innerHTML = `
-        Ligue <span class="division-badge ${divisionClass}-division">${division.name}</span>
-    `;
+    let divisionHtml = `Ligue <span class="division-badge ${divisionClass}-division">${division.name}</span>`;
+    
+    if (ultimateEmblems > 0) {
+        divisionHtml += ` <span class="ultimate-emblem-display" title="${ultimateEmblems} emblème(s) Ultimate League">
+            <span class="emblem-icon">🏆</span>
+            <span class="emblem-counter">${ultimateEmblems}</span>
+        </span>`;
+    }
+    
+    document.getElementById("league-division").innerHTML = divisionHtml;
     
     // Mettre à jour les seuils
     document.getElementById("promotion-points").textContent = `Promotion: ${division.promotion} pts`;
@@ -3707,24 +4174,41 @@ function updateLeagueSystem() {
     const range = division.maxPoints - division.minPoints;
     const progress = range > 0 ? ((points - division.minPoints) / range) * 100 : 0;
     document.getElementById("league-progress").style.width = `${Math.min(Math.max(progress, 0), 100)}%`;
+    
+    // Afficher info reset
+    const nextReset = calculateNextReset();
+    const now = Date.now();
+    const daysUntilReset = Math.ceil((nextReset - now) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilReset <= 2) {
+        const resetInfo = document.createElement("div");
+        resetInfo.style.cssText = "margin-top: 10px; padding: 8px; background: rgba(255,100,0,0.2); border-radius: 8px; font-size: 12px;";
+        resetInfo.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Reset dans ${daysUntilReset} jour(s): -2 divisions`;
+        
+        const existingInfo = document.querySelector(".reset-warning");
+        if (existingInfo) existingInfo.remove();
+        resetInfo.className = "reset-warning";
+        
+        document.querySelector(".league-info").appendChild(resetInfo);
+    }
 }
 
 function checkPromotionRelegation() {
-    const currentDivision = divisions[userData.division - 1] || divisions[0];
-    const points = userData.leaguePoints || 0;
+    const currentDivision = divisions[(userData.league ? userData.league.division : 1) - 1] || divisions[0];
+    const points = userData.league ? userData.league.points : 0;
     
     // Promotion
-    if (points >= currentDivision.promotion && userData.division < divisions.length) {
-        userData.division++;
-        const newDivision = divisions[userData.division - 1];
+    if (points >= currentDivision.promotion && (userData.league ? userData.league.division : 1) < divisions.length) {
+        userData.league.division++;
+        const newDivision = divisions[userData.league.division - 1];
         showNotification(`Félicitations! Promotion en ${newDivision.name}!`, "success");
         awardDivisionReward(newDivision);
     }
     
     // Relégation
-    if (points < currentDivision.relegation && userData.division > 1) {
-        userData.division--;
-        const newDivision = divisions[userData.division - 1];
+    if (points < currentDivision.relegation && (userData.league ? userData.league.division : 1) > 1) {
+        userData.league.division--;
+        const newDivision = divisions[userData.league.division - 1];
         showNotification(`Relégation en ${newDivision.name}.`, "warning");
     }
     
@@ -3745,38 +4229,8 @@ function awardDivisionReward(division) {
     // Ajouter un badge si c'est la Ultimate League
     if (division.name === "Ultimate League" && !userData.badges.includes("badge_league")) {
         userData.badges.push("badge_league");
-        showNotification("Nouveau badge débloqué: Ligue Diamant!", "success");
+        showNotification("Nouveau badge débloqué: Ultimate League!", "success");
         updateBadgesDisplay();
-    }
-}
-
-// Mettre à jour le timer de la ligue
-function updateLeagueTimer() {
-    const now = new Date();
-    const nextSunday = new Date();
-    
-    // Trouver le prochain dimanche à 00:00
-    nextSunday.setDate(now.getDate() + (7 - now.getDay()) % 7);
-    nextSunday.setHours(0, 0, 0, 0);
-    
-    // Si aujourd'hui est dimanche et qu'il est avant minuit, prendre aujourd'hui
-    if (now.getDay() === 0 && now.getHours() < 24) {
-        nextSunday.setDate(now.getDate());
-    }
-    
-    const diff = nextSunday - now;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    document.getElementById("league-timer").textContent = 
-        `Reset dans: ${days}j ${hours}h ${minutes}m`;
-    
-    // Réinitialiser les matches hebdomadaires si c'est dimanche minuit
-    if (now.getDay() === 0 && now.getHours() === 0 && now.getMinutes() < 1) {
-        userData.weeklyMatches = [];
-        saveUserData();
-        updateWeeklyMatches();
     }
 }
 
@@ -3837,6 +4291,9 @@ function updateProfile() {
     
     // Mettre à jour les badges
     updateBadgesDisplay();
+    
+    // Afficher emblèmes Ultimate League
+    displayUltimateEmblems();
 }
 
 // Mettre à jour l'affichage des badges
@@ -3884,8 +4341,8 @@ function checkBadges() {
         newBadges.push("badge_rich");
     }
     
-    // Badge: Ligue Ultimate (division 5)
-    if ((userData.division || 1) >= 5 && userData.badges && !userData.badges.includes("badge_league")) {
+    // Badge: Ultimate League (division 5)
+    if ((userData.league ? userData.league.division : 1) >= 5 && userData.badges && !userData.badges.includes("badge_league")) {
         newBadges.push("badge_league");
     }
     

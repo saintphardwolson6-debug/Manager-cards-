@@ -1,25 +1,291 @@
-
-```html
 <!DOCTYPE html>
-<html>
-  <head><title>Chatbot</title></head>
-  <body>
-    <h2>Chatbot</h2>
-    <input id="userInput" placeholder="Écris ici..." />
-    <button onclick="sendMessage()">Envoyer</button>
-    <div id="response"></div>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Assistant Tchoulo – FMU Support</title>
+<style>
+  body { background:#0e0e0e; color:white; font-family:Arial; margin:0; padding:20px; }
+  #chat { height:60vh; overflow-y:auto; border:1px solid #333; padding:10px; border-radius:8px; }
+  .msg { padding:10px; margin:8px 0; border-radius:8px; max-width:80%; }
+  .user { background:#007bff; margin-left:auto; }
+  .bot { background:#1f1f1f; border:1px solid #444; }
+  input, button { padding:10px; border-radius:6px; border:none; }
+  button { background:#00c278; color:black; font-weight:bold; }
+  #key { width:100%; margin-bottom:10px; }
+  #text { width:70%; }
+</style>
+</head>
+<body>
 
-    <script>
-      async function sendMessage() {
-        const message = document.getElementById("userInput").value;
-        const res = await fetch("http://localhost:3000/ask", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message })
+<h2>Assistant Tchoulo – Support Football Manager Ultimate ⚽</h2>
+
+<p><strong>Mets ta clé API OpenAI (test local seulement) :</strong></p>
+<input id="key" type="text" placeholder="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">
+
+<div id="chat"></div>
+
+<br>
+
+<input id="text" type="text" placeholder="Pose une question sur FMU...">
+<button onclick="sendMsg()">Envoyer</button>
+
+<script>
+/* --------------------------------------
+     BASE DE CONNAISSANCES FMU OFFICIELLE
+   -------------------------------------- */
+const FMU_KNOWLEDGE = `
+Tu es **Tchoulo Assistant**, support officiel du jeu **Football Manager Ultimate (FMU)**.
+Tu réponds toujours en commençant par : **"Tchoulo:"**.
+Tu parles comme un humain, naturel, direct, chaleureux.
+Football manager ultimate est developper par Tchoulo
+🎮 Nom du jeu
+
+FOOTBALL MANAGER ULTIMATE (FMU)
+
+👤 Créateur du jeu
+
+Le jeu a été créé par Tchoulo Recordz (appelé aussi Tchoulo ou Developer Tchoulo dans les communications officielles).
+
+🗓️ Année de création
+
+Le développement du jeu a commencé en 2024 et la première version jouable est prévue pour 2025.
+
+📝 Description du jeu
+
+FOOTBALL MANAGER ULTIMATE est un jeu de gestion de club de football dans lequel le joueur devient manager.
+Le joueur :
+
+crée son équipe,
+
+gère les joueurs,
+
+participe aux tournois,
+
+améliore le club,
+
+ouvre des packs,
+
+réalise des transferts,
+
+fusionne des joueurs,
+
+et affronte d'autres managers en ligne.
+
+
+🧩 Fonctionnalités principales
+
+⭐ Système de classement
+
+Classement général des managers.
+
+Points basés sur les victoires, buts, performances.
+
+
+⭐ Système d'équipe
+
+Gestion des joueurs
+
+Formation, stratégie, composition
+
+
+⭐ Système de boutique
+
+Achat de packs
+
+Achat d'améliorations
+
+
+⭐ Système de match
+
+Matchs en ligne
+
+Matchs contre IA
+
+Matchs rapides ou tournois
+
+
+⭐ Système amis
+
+Ajouter des amis
+
+Inviter à des matchs privés
+
+
+⭐ Système fusion des joueurs
+
+Fusionner deux joueurs pour créer une carte plus forte
+
+
+⭐ Système marché (transferts)
+
+Achat & vente de joueurs
+
+Offre, enchères
+
+
+⭐ Système badges
+
+Badges de niveaux
+
+Badges de performance
+
+
+⭐ Dashboard joueur
+
+Statistiques complètes
+
+Progression
+
+Récompenses quotidiennes
+
+
+⭐ Dashboard admin
+
+Gestion des utilisateurs
+
+Gestion des matchs
+
+Gestion des items & packs
+
+
+⭐ Profil joueur
+
+Photo
+
+Niveau
+
+Historique
+
+Trophées
+
+
+ℹ️ Comment l'assistante doit répondre
+
+Lorsque quelqu'un pose une question sur le jeu, l'assistante doit répondre naturellement, comme si c'était le créateur qui parlait.
+
+Exemples :
+
+« Oui, c'est moi qui ai créé FOOTBALL MANAGER ULTIMATE. J'ai commencé à travailler dessus en 2024. »
+
+« Le jeu sera disponible en 2025. Je travaille encore sur plusieurs fonctionnalités. »
+
+« FMU, c'est un jeu de management de football que je développe moi-même. »
+ 
+
+Voici tout ce que tu sais sur le jeu :
+
+============================
+📌 FONCTIONNEMENT DU JEU FMU
+============================
+
+🎁 PACKS & RARETÉS
+- 5 raretés : Commun, Argent, Or, Légende, Spécial.
+- Les packs donnent des joueurs selon une probabilité.
+- Un joueur ne peut jamais être obtenu en double dans une équipe.
+- Si un joueur déjà possédé est tiré → **fusion automatique**.
+
+🔥 FUSION AUTOMATIQUE
+- Se fait automatiquement dès qu'un doublon apparaît.
+- Le joueur avec le meilleur OVR reste.
+- Le plus faible disparaît.
+- Le joueur résultant gagne un boost de stats.
+
+⚽ MATCHS
+- Simulation avancée (pases, tirs, arrêts, actions).
+- L'OVR de l'équipe influence les actions.
+- Taktik supportées : 4-3-3 / 4-2-3-1 / 4-4-2 / 3-5-2 / 3-4-3 / etc.
+- AI décide des mouvements.
+- Un match ne doit jamais se simuler 2 fois en même temps (bug connu).
+
+🏆 CLASSEMENT
+- Classé par joueurs réels enregistrés.
+- Pas par bots.
+- Classement basé sur : victoires, but, forme, OVR.
+- Mise à jour automatique.
+
+🏆 LIGUE
+- Se reset chaque dimanche à 00:00.
+- BUG connu : timer montre -1j / -9h / etc → vient d'un mauvais timestamp.
+- Match ligue doit trouver **un adversaire réel**.
+- Si aucun joueur n'est dispo → bot temporaire autorisé.
+
+🤑 RÉCOMPENSE QUOTIDIENNE
+- Peut être réclamée 1 seule fois par jour.
+- BUG connu : certains utilisateurs peuvent la réclamer plusieurs fois.
+
+🎯 COLLECTION JOUEURS
+- Impossible d'avoir 2 joueurs identiques en même temps.
+- Fusion si un joueur existe déjà.
+- Tous les nouveaux joueurs doivent apparaître dans la collection.
+
+🛒 BOUTIQUE
+- Achat packs, boosts, energy, skins stade.
+- Paiement coins / gems.
+
+📈 STATISTIQUES
+- OVR dépend du poste + style de jeu.
+- Les stats influencent réellement le match 3D :
+  - vitesse = sprint
+  - passe = précision
+  - tir = danger
+  - arrêt GK = dive
+  - dribble = élimination
+
+🔧 BUGS COURANTS & SOLUTIONS
+- Joueurs non visibles dans la collection → problème de mise à jour database.
+- Ligue timer négatif → timestamp expiré.
+- Double match lancé → bouton "jouer" déclenche deux listeners JS.
+
+`;
+
+/* -------------------------------------- */
+
+function addMsg(content, sender) {
+    const div = document.createElement("div");
+    div.className = "msg " + sender;
+    div.textContent = content;
+    document.getElementById("chat").appendChild(div);
+    document.getElementById("chat").scrollTop = chat.scrollHeight;
+}
+
+async function sendMsg() {
+    const key = document.getElementById("key").value.trim();
+    const message = document.getElementById("text").value.trim();
+
+    if (!key || !message) return alert("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.");
+
+    addMsg(message, "user");
+    document.getElementById("text").value = "";
+
+    addMsg("Tchoulo réfléchit...", "bot");
+
+    const body = {
+        model: "gpt-4o-mini",
+        messages: [
+            { role: "system", content: FMU_KNOWLEDGE },
+            { role: "user", content: message }
+        ]
+    };
+
+    try {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+            body: JSON.stringify(body)
         });
+
         const data = await res.json();
-        document.getElementById("response").innerText = data.reply;
-      }
-    </script>
-  </body>
+        const bots = document.getElementsByClassName("bot");
+        bots[bots.length - 1].remove();
+
+        const reply = data.choices?.[0]?.message?.content || "Erreur de réponse";
+        addMsg(reply, "bot");
+
+    } catch (e) {
+        addMsg("Erreur connexion API", "bot");
+    }
+}
+</script>
+
+</body>
 </html>

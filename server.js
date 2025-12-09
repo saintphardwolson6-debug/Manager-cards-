@@ -22,3 +22,14 @@ app.post('/ask', async (req, res) => {
       messages: [
         { role: "system", content: "You are a helpful assistant." },
         { role: "user", content: userMessage }
+
+]
+    })
+  });
+
+  const data = await response.json();
+  res.json({ reply: data.choices[0].message.content });
+});
+
+app.listen(3000, () => console.log("Server running on http://localhost:3000"));
+```

@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
 
-dotenv.config(); // li .env
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -11,6 +11,7 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
+// Endpoint pou frontend
 app.post("/ask", async (req, res) => {
     const { message } = req.body;
 
@@ -26,7 +27,7 @@ app.post("/ask", async (req, res) => {
                 messages: [
                     {
                         role: "system",
-                        content: `Tu es Tchoulo Assistant, expert du jeu FOOTBALL MANAGER ULTIMATE, qui répond toujours comme un humain et commence par "Tchoulo:"`
+                        content: `Tu es Tchoulo Assistant, un assistant intelligent, chaleureux, qui répond TOUJOURS en commençant par "Tchoulo:". Tu connais tout sur le jeu FOOTBALL MANAGER ULTIMATE et tu aides les joueurs comme si tu étais le créateur. Réponds de façon naturelle et humaine.`
                     },
                     { role: "user", content: message }
                 ]

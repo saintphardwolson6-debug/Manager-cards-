@@ -1,55 +1,4582 @@
-// index.js
-import express from "express";
-import cors from "cors";
-import fetch from "node-fetch"; // si Node 18+, ka itilize fetch natif
 
-const app = express();
-const port = process.env.PORT || 3000;
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Football Manager Ultimate</title>
 
-// 🔒 Middleware
-app.use(cors()); // pèmèt frontend fè fetch
-app.use(express.json()); // pou JSON body
-
-// 🔑 Kle OpenAI nan variable d'environnement
-const OPENAI_KEY = process.env.OPENAI_KEY;
-if (!OPENAI_KEY) {
-  console.error("⚠️ OPENAI_KEY pa defini nan environment variables!");
+<style>
+/* ============ RESET & GLOBAL ============ */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-// 🔹 Route pou repons ChatGPT
-app.post("/chat", async (req, res) => {
-  const { message } = req.body;
-  if (!message) return res.status(400).json({ error: "Message vide" });
+html, body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+    font-family: 'Arial', sans-serif;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
 
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `Tu es Tchoulo Assistant, support officiel du jeu Football Manager Ultimate (FMU). Réponds toujours en commençant par "Tchoulo:" et de façon naturelle.`,
-          },
-          { role: "user", content: message },
-        ],
-      }),
+/* ============ LOADING ============ */
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 10, 15, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid #333;
+    border-top-color: #00eaff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============ LOGIN SCREEN ============ */
+#login-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    padding: 20px;
+}
+
+#login-screen h2 {
+    color: #00eaff;
+    text-shadow: 0 0 10px #00eaff;
+    margin-bottom: 30px;
+    font-size: clamp(24px, 6vw, 32px);
+    text-align: center;
+}
+
+#login-screen input {
+    padding: 12px;
+    width: min(320px, 90vw);
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 2px solid #6d00ff;
+    background: rgba(26, 26, 37, 0.8);
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+#login-screen input:focus {
+    outline: none;
+    border-color: #00eaff;
+    box-shadow: 0 0 10px #00eaff;
+}
+
+#login-screen button {
+    padding: 12px;
+    width: min(320px, 90vw);
+    margin-top: 15px;
+    background: #6d00ff;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#login-screen button:hover {
+    background: #8e38ff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(109, 0, 255, 0.4);
+}
+
+#registerBtn {
+    background: #1a1a25 !important;
+}
+
+#login-error {
+    color: #ff4444;
+    margin-top: 10px;
+    text-align: center;
+    max-width: min(320px, 90vw);
+    font-size: 14px;
+}
+
+/* ============ GAME CONTAINER ============ */
+#game-ui {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+/* ============ TOP BAR ============ */
+.top-bar {
+    background: rgba(17, 17, 17, 0.95);
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #6d00ff;
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    height: 70px;
+    flex-shrink: 0;
+}
+
+.player-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#player-name {
+    font-weight: bold;
+    color: #00eaff;
+    text-shadow: 0 0 8px #00eaff;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.money-box {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: nowrap;
+}
+
+.coin, .cash, .token {
+    font-weight: bold;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+/* ============ NAVIGATION ============ */
+.main-nav {
+    display: flex;
+    justify-content: space-around;
+    background: rgba(17, 17, 17, 0.95);
+    border-bottom: 2px solid #6d00ff;
+    padding: 10px 5px;
+    position: sticky;
+    top: 70px;
+    z-index: 99;
+    height: 50px;
+    flex-shrink: 0;
+}
+
+.nav-btn {
+    background: none;
+    color: #666;
+    border: none;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 60px;
+    max-width: 80px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.nav-btn i {
+    font-size: 16px;
+}
+
+.nav-btn.active {
+    color: #00eaff;
+    text-shadow: 0 0 8px #00eaff;
+    background: rgba(0, 234, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+/* ============ MAIN CONTENT ============ */
+main {
+    width: 100%;
+    height: calc(100vh - 170px); /* 70px top + 50px nav + 50px bottom */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 15px;
+}
+
+/* ============ SCREENS ============ */
+.screen {
+    display: none;
+    width: 100%;
+    min-height: 100%;
+    animation: fadeIn 0.3s ease;
+}
+
+.screen.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.page-title {
+    text-align: center;
+    font-size: clamp(20px, 5vw, 24px);
+    margin: 0 0 20px 0;
+    color: white;
+    text-shadow: 0 0 10px #6d00ff;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(109, 0, 255, 0.3);
+}
+
+/* ============ DASHBOARD ============ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: linear-gradient(145deg, #1a1a25, #0f0f18);
+    border: 2px solid #6d00ff;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(109, 0, 255, 0.3);
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #00eaff;
+    text-shadow: 0 0 8px #00eaff;
+    margin: 10px 0;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #aaa;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.quick-btn {
+    background: linear-gradient(145deg, #1a1a25, #0f0f18);
+    border: 2px solid #6d00ff;
+    border-radius: 10px;
+    padding: 15px 10px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.quick-btn:hover {
+    background: linear-gradient(145deg, #2b2b38, #1a1a25);
+    transform: translateY(-2px);
+    border-color: #00eaff;
+}
+
+.quick-btn i {
+    font-size: 20px;
+}
+
+/* ============ MY TEAM ============ */
+.formation-selector {
+    background: rgba(26, 26, 37, 0.8);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 2px solid #6d00ff;
+}
+
+.formation-options {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.formation-btn {
+    background: #1a1a25;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.formation-btn.active {
+    border-color: #00eaff;
+    background: rgba(0, 234, 255, 0.1);
+}
+
+.pitch-container {
+    background: linear-gradient(to bottom, #1a472a, #0f2d1a);
+    border: 3px solid #00eaff;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    position: relative;
+    min-height: 500px;
+}
+
+.pitch {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(to bottom, #2e8b57, #1e5a3a);
+    border: 2px solid white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.player-slot {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #00eaff;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 1;
+}
+
+.player-slot:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px #00eaff;
+}
+
+.player-slot.empty {
+    background: rgba(255, 255, 255, 0.1);
+    border-style: dashed;
+}
+
+.player-slot .position {
+    font-size: 10px;
+    color: #00eaff;
+    font-weight: bold;
+}
+
+.player-slot .rating {
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+}
+
+.team-management {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+@media (min-width: 768px) {
+    .team-management {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.player-list {
+    background: rgba(26, 26, 37, 0.8);
+    border-radius: 12px;
+    padding: 15px;
+    border: 2px solid #6d00ff;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.player-item {
+    background: #1a1a25;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.player-item:hover {
+    background: #2b2b38;
+    border-color: #00eaff;
+}
+
+.player-info-small {
+    display: flex;
+    flex-direction: column;
+}
+
+.player-name {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.player-details {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.player-rating {
+    font-weight: bold;
+    color: gold;
+    font-size: 16px;
+}
+
+/* ============ COLLECTION ============ */
+.filters {
+    background: rgba(26, 26, 37, 0.8);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 2px solid #6d00ff;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.filter-btn {
+    background: #1a1a25;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 12px;
+}
+
+.filter-btn.active {
+    border-color: #00eaff;
+    background: rgba(0, 234, 255, 0.1);
+}
+
+.players-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.player-card {
+    background: linear-gradient(145deg, #1a1a25, #0f0f18);
+    border: 2px solid #6d00ff;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.player-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(109, 0, 255, 0.3);
+    border-color: #00eaff;
+}
+
+.player-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6d00ff, #00eaff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.player-rare-common { border-color: #aaa; }
+.player-rare-rare { border-color: #00eaff; }
+.player-rare-epic { border-color: #8e38ff; }
+.player-rare-legendary { border-color: gold; }
+
+.player-rare-common .player-photo { background: linear-gradient(135deg, #aaa, #666); }
+.player-rare-rare .player-photo { background: linear-gradient(135deg, #00eaff, #0099cc); }
+.player-rare-epic .player-photo { background: linear-gradient(135deg, #8e38ff, #6d00ff); }
+.player-rare-legendary .player-photo { background: linear-gradient(135deg, gold, #ffaa00); }
+
+.player-stats {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-value-small {
+    font-size: 14px;
+    font-weight: bold;
+    color: #00eaff;
+}
+
+.stat-label-small {
+    font-size: 10px;
+    color: #aaa;
+}
+
+/* ============ STORE ============ */
+.packs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.pack-card {
+    background: linear-gradient(145deg, #1a1a25, #0f0f18);
+    border: 3px solid;
+    border-radius: 15px;
+    padding: 25px 20px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.pack-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.pack-bronze { border-color: #cd7f32; }
+.pack-silver { border-color: #c0c0c0; }
+.pack-gold { border-color: gold; }
+.pack-legendary { border-color: #ff00ff; }
+
+.pack-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.pack-price {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.pack-bronze .pack-price { color: #cd7f32; }
+.pack-silver .pack-price { color: #c0c0c0; }
+.pack-gold .pack-price { color: gold; }
+.pack-legendary .pack-price { color: #ff00ff; }
+
+/* ============ LEAGUE ============ */
+.league-info {
+    background: linear-gradient(145deg, #1a1a25, #0f0f18);
+    border: 2px solid #6d00ff;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.league-timer {
+    font-size: 18px;
+    font-weight: bold;
+    color: #00eaff;
+    margin: 15px 0;
+}
+
+.league-progress {
+    background: #333;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 15px 0;
+}
+
+.league-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00eaff, #6d00ff);
+    border-radius: 10px;
+    transition: width 0.5s;
+}
+
+.weekly-matches {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.match-card {
+    background: rgba(26, 26, 37, 0.8);
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.match-result.win {
+    border-color: #00ff00;
+    background: rgba(0, 255, 0, 0.1);
+}
+
+.match-result.lose {
+    border-color: #ff4444;
+    background: rgba(255, 68, 68, 0.1);
+}
+
+.match-teams {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vs {
+    font-weight: bold;
+    color: #00eaff;
+}
+
+.match-score {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* ============ RANKING ============ */
+.ranking-container {
+    background: linear-gradient(145deg, #1a1a25, #0f0f18);
+    border: 2px solid #6d00ff;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.ranking-header {
+    display: grid;
+    grid-template-columns: 50px 1fr 100px;
+    padding: 10px;
+    border-bottom: 2px solid #333;
+    font-weight: bold;
+    color: #00eaff;
+    margin-bottom: 10px;
+}
+
+.ranking-item {
+    display: grid;
+    grid-template-columns: 50px 1fr 100px;
+    padding: 12px 10px;
+    border-bottom: 1px solid #333;
+    align-items: center;
+}
+
+.ranking-item.you {
+    background: rgba(0, 234, 255, 0.1);
+    border-left: 4px solid #00eaff;
+}
+
+.rank {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.rank-1 { color: gold; }
+.rank-2 { color: silver; }
+.rank-3 { color: #cd7f32; }
+
+.player-rank-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.player-rank-name {
+    font-weight: bold;
+}
+
+.player-rank-team {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.player-rank-points {
+    font-weight: bold;
+    color: #00eaff;
+    text-align: right;
+}
+
+/* ============ PROFILE ============ */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: linear-gradient(145deg, #1a1a25, #0f0f18);
+    border: 2px solid #6d00ff;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6d00ff, #00eaff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+}
+
+.profile-details {
+    flex: 1;
+}
+
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.badges-container {
+    background: rgba(26, 26, 37, 0.8);
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid #6d00ff;
+    margin-top: 20px;
+}
+
+.badges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.badge {
+    background: #1a1a25;
+    border: 2px solid #333;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.badge.unlocked {
+    border-color: gold;
+    background: rgba(255, 215, 0, 0.1);
+}
+
+/* ============ BOTTOM NAV ============ */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(17, 17, 17, 0.95);
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 5px;
+    border-top: 2px solid #6d00ff;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    height: 50px;
+    flex-shrink: 0;
+}
+
+.bottom-nav-btn {
+    background: none;
+    color: #666;
+    border: none;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 60px;
+    max-width: 80px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.bottom-nav-btn.active {
+    color: #00eaff;
+    text-shadow: 0 0 8px #00eaff;
+    background: rgba(0, 234, 255, 0.1);
+}
+
+/* ============ MODALS ============ */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, #1a1a25, #0f0f18);
+    border: 3px solid #6d00ff;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    animation: modalPop 0.3s ease;
+}
+
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* ============ NOTIFICATIONS ============ */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    left: 20px;
+    background: linear-gradient(145deg, #1a1a25, #0f0f18);
+    border: 2px solid #6d00ff;
+    border-radius: 10px;
+    padding: 15px;
+    color: white;
+    z-index: 10000;
+    animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+    animation-fill-mode: forwards;
+    max-width: calc(100vw - 40px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    word-wrap: break-word;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(26, 26, 37, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #6d00ff;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #8e38ff;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .packs-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .players-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+    
+    .formation-options {
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding-bottom: 10px;
+    }
+    
+    .player-slot {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .quick-actions {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .nav-btn, .bottom-nav-btn {
+        font-size: 10px;
+        min-width: 50px;
+        padding: 6px 8px;
+    }
+    
+    .pitch {
+        height: 300px;
+    }
+}
+
+/* ============ NOUVEAUX STYLES POUR LES AMÉLIORATIONS ============ */
+.fusion-effect {
+    animation: fusionGlow 1s ease-in-out;
+    border-color: gold !important;
+    box-shadow: 0 0 20px gold;
+}
+
+@keyframes fusionGlow {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.auto-select-btn {
+    background: linear-gradient(135deg, #00eaff, #6d00ff);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.match-event {
+    background: rgba(26,26,37,0.8);
+    border: 1px solid #6d00ff;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 12px;
+    animation: slideIn 0.3s ease;
+}
+
+.division-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+.bronze-division { background: #cd7f32; color: white; }
+.silver-division { background: #c0c0c0; color: black; }
+.gold-division { background: gold; color: black; }
+.elite-division { background: #8e38ff; color: white; }
+.ultimate-division { background: linear-gradient(135deg, gold, #ffaa00); color: black; }
+
+.daily-reward-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.match-action {
+    position: absolute;
+    font-size: 20px;
+    animation: floatUp 2s ease-out forwards;
+    z-index: 1000;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-100px); opacity: 0; }
+}
+
+.fusion-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: gold;
+    color: black;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.player-count {
+    font-size: 10px;
+    color: #00eaff;
+    margin-top: 5px;
+}
+
+.synergy-bonus {
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    padding: 5px;
+    margin-top: 5px;
+    font-size: 10px;
+}
+
+.team-power-display {
+    background: rgba(109, 0, 255, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px 0;
+    text-align: center;
+}
+
+.team-power-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #00eaff;
+}
+
+.match-simulation-container {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 20px;
+    border: 1px solid #6d00ff;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.league-rewards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.league-reward-item {
+    background: rgba(26,26,37,0.8);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #6d00ff;
+}
+
+/* ============ EMBLÈMES ULTIMATE LEAGUE ============ */
+.emblem-badge {
+    animation: emblemGlow 2s infinite alternate;
+    position: relative;
+}
+
+@keyframes emblemGlow {
+    from { box-shadow: 0 0 10px gold; }
+    to { box-shadow: 0 0 20px gold, 0 0 30px gold; }
+}
+
+.emblems-container {
+    background: rgba(26,26,37,0.8);
+    border: 2px solid gold;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.emblem-icon {
+    display: inline-block;
+    animation: emblemFloat 3s infinite ease-in-out;
+    margin: 0 2px;
+}
+
+@keyframes emblemFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.emblem-counter {
+    background: linear-gradient(135deg, gold, #ffaa00);
+    color: black;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+.ultimate-emblem-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 10px;
+}
+
+.emblem-tooltip {
+    position: absolute;
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    z-index: 1000;
+    white-space: nowrap;
+    display: none;
+}
+
+.emblem-badge:hover .emblem-tooltip {
+    display: block;
+}
+
+/* ============ ASSISTANT CHATBOT STYLES ============ */
+/* Fenèt Chatbot (Modal) */
+#chatbot-supportModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    display: none;
+    opacity: 0;
+    z-index: 100001;
+    animation-duration: 0.4s;
+    backdrop-filter: blur(5px);
+}
+
+/* Animation slide-in */
+@keyframes chatbotSlideIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes chatbotSlideOut {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(30px); }
+}
+
+/* Fenèt Iframe */
+#chatbot-supportFrame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: black;
+}
+
+/* Bouton FERMER */
+#chatbot-closeBtn {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, #ff4444, #ff0000);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 100002;
+    box-shadow: 0 0 15px red;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#chatbot-closeBtn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px red;
+}
+
+/* Style pou bouton assistant nan dashboard */
+.quick-assistant-btn {
+    background: linear-gradient(135deg, #00ffa6, #00ccff) !important;
+    border-color: #00ffa6 !important;
+    color: #000 !important;
+}
+
+.quick-assistant-btn:hover {
+    background: linear-gradient(135deg, #00ccff, #00ffa6) !important;
+    border-color: #00ccff !important;
+    box-shadow: 0 0 15px #00ffa6;
+}
+</style>
+
+<!-- Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loading">
+    <div class="loading-spinner"></div>
+    <div style="margin-top: 20px; color: #00eaff;">Chargement du Football Manager...</div>
+</div>
+
+<!-- Login Screen -->
+<div id="login-screen">
+    <h2>FOOTBALL MANAGER ULTIMATE</h2>
+    <input id="email" type="email" placeholder="Email" value="test@test.com">
+    <input id="password" type="password" placeholder="Mot de passe" value="test123">
+    <button id="loginBtn">SE CONNECTER</button>
+    <button id="registerBtn">Créer un compte</button>
+    <div id="login-error">Utilisez test@test.com / test123 pour tester</div>
+</div>
+
+<!-- Main Game Interface -->
+<div id="game-ui" style="display:none;">
+
+<!-- Top Bar -->
+<header class="top-bar">
+    <div class="player-info">
+        <span id="player-name">Joueur</span>
+        <div class="xp-bar" style="width: 100px; height: 6px; background: #333; border-radius: 3px; overflow: hidden;">
+            <div id="xp-fill" style="height: 100%; background: linear-gradient(90deg, #00eaff, #6d00ff); width: 30%;"></div>
+        </div>
+        <span id="player-level">Niv. 1</span>
+    </div>
+    
+    <div class="money-box">
+        <span class="coin">💰 <span id="coins">0</span></span>
+        <span class="cash">💎 <span id="gems">0</span></span>
+        <span class="token">🏆 <span id="tokens">0</span></span>
+    </div>
+</header>
+
+<!-- Main Navigation -->
+<nav class="main-nav">
+    <button class="nav-btn active" data-target="screen-dashboard">
+        <i class="fas fa-tachometer-alt"></i>
+        Dashboard
+    </button>
+    <button class="nav-btn" data-target="screen-team">
+        <i class="fas fa-users"></i>
+        Mon Équipe
+    </button>
+    <button class="nav-btn" data-target="screen-collection">
+        <i class="fas fa-layer-group"></i>
+        Collection
+    </button>
+    <button class="nav-btn" data-target="screen-store">
+        <i class="fas fa-shopping-cart"></i>
+        Boutique
+    </button>
+    <button class="nav-btn" data-target="screen-league">
+        <i class="fas fa-trophy"></i>
+        Ligue
+    </button>
+</nav>
+
+<!-- Main Content -->
+<main>
+    <!-- Dashboard -->
+    <section id="screen-dashboard" class="screen active">
+        <h2 class="page-title">TABLEAU DE BORD</h2>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Niveau</div>
+                <div class="stat-value" id="stat-level">1</div>
+                <div class="stat-label">Expérience</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Victoires</div>
+                <div class="stat-value" id="stat-wins">0</div>
+                <div class="stat-label">Défaites</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Points Ligue</div>
+                <div class="stat-value" id="stat-league-points">0</div>
+                <div class="stat-label">Classement</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Joueurs</div>
+                <div class="stat-value" id="stat-players">0</div>
+                <div class="stat-label">Collection</div>
+            </div>
+        </div>
+        
+        <div class="team-power-display">
+            <div class="stat-label">Puissance d'Équipe</div>
+            <div class="team-power-value" id="team-power-value">0</div>
+            <div class="stat-label" id="synergy-bonus">Bonus Synergie: +0</div>
+        </div>
+        
+        <div class="quick-actions">
+            <button class="quick-btn" id="quick-play">
+                <i class="fas fa-play"></i>
+                Jouer Match
+            </button>
+            <button class="quick-btn" id="quick-pack">
+                <i class="fas fa-gift"></i>
+                Ouvrir Pack
+            </button>
+            <button class="quick-btn" id="quick-daily">
+                <i class="fas fa-calendar-day"></i>
+                Récompense
+            </button>
+            <button class="quick-btn" id="quick-ranking">
+                <i class="fas fa-chart-line"></i>
+                Classement
+            </button>
+            <!-- Bouton Assistant dans le Dashboard -->
+            <button class="quick-btn quick-assistant-btn" id="quick-assistant">
+                <i class="fas fa-robot"></i>
+                Assistant
+            </button>
+        </div>
+        
+        <div style="margin-top: 30px; background: rgba(26,26,37,0.8); border-radius: 12px; padding: 20px; border: 2px solid #6d00ff;">
+            <h3 style="margin-bottom: 15px; color: #00eaff;">Prochain Match</h3>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <div style="font-weight: bold;">Votre Équipe</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #00eaff;">VS</div>
+                    <div style="font-weight: bold;">Adversaire</div>
+                </div>
+                <button id="play-next-match" style="background: #6d00ff; border: none; color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    JOUER
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- My Team -->
+    <section id="screen-team" class="screen">
+        <h2 class="page-title">MON ÉQUIPE</h2>
+        
+        <div class="formation-selector">
+            <h3 style="margin-bottom: 10px; color: #00eaff;">Formation</h3>
+            <div class="formation-options">
+                <button class="formation-btn active" data-formation="4-3-3">4-3-3</button>
+                <button class="formation-btn" data-formation="4-4-2">4-4-2</button>
+                <button class="formation-btn" data-formation="4-2-3-1">4-2-3-1</button>
+                <button class="formation-btn" data-formation="3-5-2">3-5-2</button>
+                <button class="formation-btn" data-formation="5-3-2">5-3-2</button>
+            </div>
+            
+            <button class="auto-select-btn" id="auto-select-team">
+                <i class="fas fa-robot"></i>
+                Sélection Automatique
+            </button>
+        </div>
+        
+        <div class="pitch-container">
+            <div class="pitch" id="football-pitch">
+                <!-- Player slots will be dynamically added here -->
+                <div class="center-circle"></div>
+            </div>
+        </div>
+        
+        <div class="team-management">
+            <div class="player-list">
+                <h3 style="margin-bottom: 10px; color: #00eaff;">Joueurs Disponibles</h3>
+                <div id="available-players-list">
+                    <!-- Available players will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="player-list">
+                <h3 style="margin-bottom: 10px; color: #00eaff;">Équipe Actuelle</h3>
+                <div id="current-team-list">
+                    <!-- Current team players will be loaded here -->
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="save-team" style="background: #00eaff; border: none; color: #0a0a0f; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
+                <i class="fas fa-save"></i> Sauvegarder l'Équipe
+            </button>
+        </div>
+    </section>
+
+    <!-- Collection -->
+    <section id="screen-collection" class="screen">
+        <h2 class="page-title">COLLECTION</h2>
+        
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">Tous</button>
+            <button class="filter-btn" data-filter="common">Commun (★)</button>
+            <button class="filter-btn" data-filter="rare">Rare (★★)</button>
+            <button class="filter-btn" data-filter="epic">Épique (★★★)</button>
+            <button class="filter-btn" data-filter="legendary">Légendaire (★★★★)</button>
+            <button class="filter-btn" data-filter="att">Attaquant</button>
+            <button class="filter-btn" data-filter="mid">Milieu</button>
+            <button class="filter-btn" data-filter="def">Défenseur</button>
+            <button class="filter-btn" data-filter="gk">Gardien</button>
+        </div>
+        
+        <div class="players-grid" id="collection-players">
+            <!-- Player cards will be dynamically added here -->
+        </div>
+    </section>
+
+    <!-- Store -->
+    <section id="screen-store" class="screen">
+        <h2 class="page-title">BOUTIQUE</h2>
+        
+        <div class="packs-grid">
+            <div class="pack-card pack-bronze" data-pack="bronze">
+                <div class="pack-icon">🥉</div>
+                <h3>PACK BRONZE</h3>
+                <p>3 joueurs aléatoires<br>1 joueur rare garanti</p>
+                <div class="pack-price">💰 500</div>
+                <small>Cliquez pour acheter</small>
+            </div>
+            
+            <div class="pack-card pack-silver" data-pack="silver">
+                <div class="pack-icon">🥈</div>
+                <h3>PACK ARGENT</h3>
+                <p>5 joueurs aléatoires<br>1 joueur épique garanti</p>
+                <div class="pack-price">💰 1,500</div>
+                <small>Cliquez pour acheter</small>
+            </div>
+            
+            <div class="pack-card pack-gold" data-pack="gold">
+                <div class="pack-icon">🥇</div>
+                <h3>PACK OR</h3>
+                <p>7 joueurs aléatoires<br>1 joueur légendaire garanti</p>
+                <div class="pack-price">💎 50</div>
+                <small>Cliquez pour acheter</small>
+            </div>
+            
+            <div class="pack-card pack-legendary" data-pack="legendary">
+                <div class="pack-icon">👑</div>
+                <h3>PACK LÉGENDAIRE</h3>
+                <p>10 joueurs aléatoires<br>3 légendaires garantis</p>
+                <div class="pack-price">💎 150</div>
+                <small>Cliquez pour acheter</small>
+            </div>
+        </div>
+        
+        <div style="margin-top: 40px; background: rgba(26,26,37,0.8); border-radius: 12px; padding: 20px; border: 2px solid #6d00ff;">
+            <h3 style="margin-bottom: 15px; color: #00eaff;">Acheter des Devises</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                <button class="quick-btn buy-currency" data-amount="500" data-price="100">
+                    <div>💰 500 Coins</div>
+                    <small>100 gems</small>
+                </button>
+                <button class="quick-btn buy-currency" data-amount="1500" data-price="250">
+                    <div>💰 1,500 Coins</div>
+                    <small>250 gems</small>
+                </button>
+                <button class="quick-btn buy-currency" data-amount="5000" data-price="750">
+                    <div>💰 5,000 Coins</div>
+                    <small>750 gems</small>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- League -->
+    <section id="screen-league" class="screen">
+        <h2 class="page-title">LIGUE HEBDO</h2>
+        
+        <div class="league-info">
+            <h3 style="color: #00eaff; margin-bottom: 10px;" id="league-division">Ligue Bronze</h3>
+            <div class="league-timer" id="league-timer">
+                Reset dans: 2j 14h 30m
+            </div>
+            <div class="league-progress">
+                <div class="league-progress-fill" id="league-progress" style="width: 65%;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                <span id="promotion-points">Promotion: 500 pts</span>
+                <span id="current-points">250 pts</span>
+                <span id="relegation-points">Relégation: 0 pts</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button id="play-league-match" style="background: linear-gradient(135deg, #00eaff, #6d00ff); border: none; color: white; padding: 15px 40px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px;">
+                <i class="fas fa-play-circle"></i> Jouer un Match de Ligue
+            </button>
+        </div>
+        
+        <div class="league-rewards">
+            <div class="league-reward-item">
+                <div>🏆</div>
+                <div>Promotion</div>
+                <div style="font-size: 12px; color: #00eaff;">+500 coins</div>
+            </div>
+            <div class="league-reward-item">
+                <div>💰</div>
+                <div>Top 10</div>
+                <div style="font-size: 12px; color: #00eaff;">+1000 coins</div>
+            </div>
+            <div class="league-reward-item">
+                <div>💎</div>
+                <div>Top 3</div>
+                <div style="font-size: 12px; color: #00eaff;">+50 gems</div>
+            </div>
+        </div>
+        
+        <h3 style="margin: 25px 0 15px 0; color: #00eaff;">Matches de la Semaine</h3>
+        <div class="weekly-matches" id="weekly-matches">
+            <!-- Weekly matches will be loaded here -->
+        </div>
+    </section>
+
+    <!-- Ranking -->
+    <section id="screen-ranking" class="screen">
+        <h2 class="page-title">CLASSEMENT MONDIAL</h2>
+        
+        <div class="ranking-container">
+            <div class="ranking-header">
+                <div>Rang</div>
+                <div>Joueur</div>
+                <div>Points</div>
+            </div>
+            <div id="global-ranking">
+                <!-- Ranking will be loaded here -->
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; background: rgba(26,26,37,0.8); border-radius: 12px; padding: 20px; border: 2px solid #6d00ff;">
+            <h3 style="margin-bottom: 15px; color: #00eaff;">Votre Position</h3>
+            <div id="your-ranking" style="text-align: center; font-size: 24px; font-weight: bold; color: #00eaff;">
+                Chargement...
+            </div>
+        </div>
+    </section>
+
+    <!-- Profile -->
+    <section id="screen-profile" class="screen">
+        <h2 class="page-title">PROFIL</h2>
+        
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="profile-details">
+                <h3 id="profile-name" style="color: #00eaff;">Joueur</h3>
+                <p id="profile-email">test@test.com</p>
+                <p>Membre depuis: <span id="member-since">Aujourd'hui</span></p>
+            </div>
+        </div>
+        
+        <div class="profile-stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Matches Joués</div>
+                <div class="stat-value" id="profile-matches">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Taux de Victoire</div>
+                <div class="stat-value" id="profile-winrate">0%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Buts Marqués</div>
+                <div class="stat-value" id="profile-goals">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Buts Encaisés</div>
+                <div class="stat-value" id="profile-goals-conceded">0</div>
+            </div>
+        </div>
+        
+        <!-- Emblèmes Ultimate League -->
+        <div class="emblems-container" id="ultimate-emblems-container" style="display: none;">
+            <h3 style="color: gold; margin-bottom: 15px;">🏆 Emblèmes Ultimate League</h3>
+            <div id="emblems-display" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                <!-- Emblèmes seront ajoutés ici -->
+            </div>
+            <div id="emblems-stats" style="text-align: center; margin-top: 15px; font-size: 14px; color: #aaa;">
+                <!-- Statistiques emblèmes -->
+            </div>
+        </div>
+        
+        <div class="badges-container">
+            <h3 style="color: #00eaff; margin-bottom: 15px;">Badges Obtenus</h3>
+            <div class="badges-grid" id="profile-badges">
+                <!-- Badges will be loaded here -->
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <button id="logout-btn" style="background: #ff4444; border: none; color: white; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </button>
+        </div>
+    </section>
+</main>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+    <button class="bottom-nav-btn" data-target="screen-ranking">
+        <i class="fas fa-chart-line"></i>
+        Classement
+    </button>
+    <button class="bottom-nav-btn" data-target="screen-profile">
+        <i class="fas fa-user"></i>
+        Profil
+    </button>
+    <button class="bottom-nav-btn" id="open-settings">
+        <i class="fas fa-cog"></i>
+        Paramètres
+    </button>
+</nav>
+
+<!-- Pack Opening Modal -->
+<div id="pack-modal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal">&times;</button>
+        <h2 style="color: #00eaff; text-align: center; margin-bottom: 20px;" id="pack-modal-title">Ouverture de Pack</h2>
+        <div id="pack-results" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 20px;">
+            <!-- Pack results will appear here -->
+        </div>
+    </div>
+</div>
+
+<!-- Player Details Modal -->
+<div id="player-modal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal">&times;</button>
+        <div id="player-modal-content">
+            <!-- Player details will appear here -->
+        </div>
+    </div>
+</div>
+
+<!-- Match Result Modal -->
+<div id="match-modal" class="modal">
+    <div class="modal-content">
+        <button class="close-modal">&times;</button>
+        <h2 style="color: #00eaff; text-align: center; margin-bottom: 20px;" id="match-result-title">Résultat du Match</h2>
+        <div id="match-result-content" style="text-align: center;">
+            <!-- Match result will appear here -->
+        </div>
+        <div id="match-events" style="margin-top: 20px; max-height: 200px; overflow-y: auto;" class="match-simulation-container">
+            <!-- Match events will appear here -->
+        </div>
+    </div>
+</div>
+
+<!-- Chatbot Assistant Modal -->
+<div id="chatbot-supportModal" class="modal">
+    <button id="chatbot-closeBtn" onclick="closeChatbotSupport()">
+        <i class="fas fa-times"></i> FERMER
+    </button>
+    <iframe id="chatbot-supportFrame"></iframe>
+</div>
+
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+// Configuration Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBnDW725laagCdj0INT9gaA2z0FsLn6cO4",
+    authDomain: "defi-amis-plus.firebaseapp.com",
+    databaseURL: "https://defi-amis-plus-default-rtdb.firebaseio.com",
+    projectId: "defi-amis-plus",
+    storageBucket: "defi-amis-plus.appspot.com",
+    messagingSenderId: "714241330241",
+    appId: "1:714241330241:web:b927c37c0d511e66f64ac0"
+};
+
+// Variables globales
+let firebaseApp, firebaseAuth, firebaseDb;
+let currentUser = null;
+
+// Système de divisions
+const divisions = [
+    { id: 1, name: "Bronze", minPoints: 0, maxPoints: 999, promotion: 1000, relegation: 0, reward: { coins: 500, gems: 10 } },
+    { id: 2, name: "Argent", minPoints: 1000, maxPoints: 1999, promotion: 2000, relegation: 500, reward: { coins: 1000, gems: 25 } },
+    { id: 3, name: "Or", minPoints: 2000, maxPoints: 2999, promotion: 3000, relegation: 1500, reward: { coins: 2000, gems: 50 } },
+    { id: 4, name: "Elite", minPoints: 3000, maxPoints: 3999, promotion: 4000, relegation: 2500, reward: { coins: 5000, gems: 100 } },
+    { id: 5, name: "Ultimate League", minPoints: 4000, maxPoints: 999999, promotion: 999999, relegation: 3500, reward: { coins: 10000, gems: 250 } }
+];
+
+// Nouvelle structure de données utilisateur avec le système de reset
+const defaultUserData = {
+    coins: 1000,
+    gems: 50,
+    tokens: 0,
+    level: 1,
+    xp: 0,
+    
+    // Nouvelle structure pour la collection avec anti-doublon
+    collection: {
+        "GK001": { 
+            id: "GK001", 
+            overall: 87, 
+            baseOverall: 87,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "DEF001": { 
+            id: "DEF001", 
+            overall: 89, 
+            baseOverall: 89,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "DEF002": { 
+            id: "DEF002", 
+            overall: 88, 
+            baseOverall: 88,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "DEF003": { 
+            id: "DEF003", 
+            overall: 87, 
+            baseOverall: 87,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "MID001": { 
+            id: "MID001", 
+            overall: 91, 
+            baseOverall: 91,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "MID002": { 
+            id: "MID002", 
+            overall: 88, 
+            baseOverall: 88,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "ATT001": { 
+            id: "ATT001", 
+            overall: 91, 
+            baseOverall: 91,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "ATT003": { 
+            id: "ATT003", 
+            overall: 91, 
+            baseOverall: 91,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        },
+        "ATT005": { 
+            id: "ATT005", 
+            overall: 89, 
+            baseOverall: 89,
+            fusionLevel: 0,
+            count: 1,
+            rarity: "common"
+        }
+    },
+    
+    team: {
+        GK: "GK001",
+        RB: "DEF003",
+        CB1: "DEF001",
+        CB2: "DEF002",
+        LB: "DEF001",
+        CM1: "MID001",
+        CM2: "MID002",
+        CM3: "MID001",
+        RW: "ATT003",
+        ST: "ATT001",
+        LW: "ATT005"
+    },
+    
+    formation: "4-3-3",
+    
+    // NOUVEAU SYSTÈME DE LIGUE AVEC RESET
+    league: {
+        division: 2, // 1: Bronze, 2: Argent, 3: Or, 4: Elite, 5: Ultimate
+        points: 1200,
+        ultimateEmblems: 0, // Kantite emblème Ultimate League
+        weeksInUltimate: 0, // Konbyen semen nan Ultimate League
+        lastReset: null, // Dènye fwa reset te fèt
+        seasonStart: new Date().toISOString(),
+        promotionCount: 0,
+        bestDivision: 2,
+        history: [] // Istorik divizyon chak semen
+    },
+    
+    matchesPlayed: 0,
+    wins: 0,
+    draws: 0,
+    losses: 0,
+    goalsScored: 0,
+    goalsConceded: 0,
+    badges: ["badge_rookie"],
+    joinDate: new Date().toISOString(),
+    weeklyMatches: [],
+    ranking: 9999,
+    
+    // Système de récompense quotidienne
+    lastDailyClaim: null,
+    
+    // Historique des matchs détaillés
+    matchHistory: [],
+    
+    // Team ID pour classement
+    teamID: null
+};
+
+let userData = { ...defaultUserData };
+
+// Base de données des joueurs de football (augmentée)
+const footballPlayersDB = {
+    common: [
+        // Gardiens
+        { id: "GK001", name: "Mike Maignan", position: "GK", overall: 87, rarity: "common", nation: "France", club: "AC Milan", att: 40, def: 85, phy: 88, pac: 65, dri: 60, sho: 45, pas: 55 },
+        { id: "GK002", name: "Gianluigi Donnarumma", position: "GK", overall: 86, rarity: "common", nation: "Italie", club: "PSG", att: 35, def: 86, phy: 90, pac: 60, dri: 55, sho: 40, pas: 50 },
+        { id: "GK003", name: "Alisson Becker", position: "GK", overall: 89, rarity: "common", nation: "Brésil", club: "Liverpool", att: 45, def: 88, phy: 86, pac: 65, dri: 58, sho: 42, pas: 60 },
+        
+        // Défenseurs
+        { id: "DEF001", name: "Virgil van Dijk", position: "CB", overall: 89, rarity: "common", nation: "Pays-Bas", club: "Liverpool", att: 60, def: 90, phy: 92, pac: 75, dri: 70, sho: 65, pas: 72 },
+        { id: "DEF002", name: "Ruben Dias", position: "CB", overall: 88, rarity: "common", nation: "Portugal", club: "Man City", att: 55, def: 89, phy: 85, pac: 70, dri: 68, sho: 60, pas: 70 },
+        { id: "DEF003", name: "Trent Alexander-Arnold", position: "RB", overall: 87, rarity: "common", nation: "Angleterre", club: "Liverpool", att: 75, def: 82, phy: 78, pac: 82, dri: 84, sho: 76, pas: 90 },
+        { id: "DEF004", name: "Jules Koundé", position: "CB", overall: 85, rarity: "common", nation: "France", club: "Barcelona", att: 52, def: 86, phy: 80, pac: 82, dri: 75, sho: 55, pas: 68 },
+        { id: "DEF005", name: "Theo Hernandez", position: "LB", overall: 86, rarity: "common", nation: "France", club: "AC Milan", att: 72, def: 82, phy: 85, pac: 93, dri: 84, sho: 72, pas: 78 },
+        { id: "DEF006", name: "Marquinhos", position: "CB", overall: 87, rarity: "common", nation: "Brésil", club: "PSG", att: 58, def: 88, phy: 83, pac: 78, dri: 72, sho: 62, pas: 74 },
+        { id: "DEF007", name: "João Cancelo", position: "RB", overall: 86, rarity: "common", nation: "Portugal", club: "Barcelona", att: 70, def: 80, phy: 76, pac: 80, dri: 86, sho: 70, pas: 84 },
+        { id: "DEF008", name: "David Alaba", position: "CB", overall: 86, rarity: "common", nation: "Autriche", club: "Real Madrid", att: 65, def: 85, phy: 78, pac: 82, dri: 80, sho: 68, pas: 82 },
+        
+        // Milieux
+        { id: "MID001", name: "Kevin De Bruyne", position: "CM", overall: 91, rarity: "common", nation: "Belgique", club: "Man City", att: 88, def: 65, phy: 82, pac: 75, dri: 88, sho: 89, pas: 94 },
+        { id: "MID002", name: "Luka Modrić", position: "CM", overall: 88, rarity: "common", nation: "Croatie", club: "Real Madrid", att: 82, def: 70, phy: 75, pac: 72, dri: 90, sho: 82, pas: 89 },
+        { id: "MID003", name: "Frenkie de Jong", position: "CM", overall: 87, rarity: "common", nation: "Pays-Bas", club: "Barcelona", att: 75, def: 78, phy: 80, pac: 80, dri: 88, sho: 72, pas: 86 },
+        { id: "MID004", name: "Bernardo Silva", position: "CM", overall: 87, rarity: "common", nation: "Portugal", club: "Man City", att: 78, def: 68, phy: 72, pac: 78, dri: 90, sho: 76, pas: 86 },
+        { id: "MID005", name: "Pedri", position: "CM", overall: 86, rarity: "common", nation: "Espagne", club: "Barcelona", att: 74, def: 65, phy: 68, pac: 75, dri: 89, sho: 72, pas: 85 },
+        { id: "MID006", name: "Bruno Fernandes", position: "CAM", overall: 88, rarity: "common", nation: "Portugal", club: "Man United", att: 86, def: 62, phy: 75, pac: 72, dri: 84, sho: 86, pas: 89 },
+        { id: "MID007", name: "N'Golo Kanté", position: "CDM", overall: 87, rarity: "common", nation: "France", club: "Al Ittihad", att: 65, def: 85, phy: 82, pac: 78, dri: 78, sho: 66, pas: 75 },
+        { id: "MID008", name: "Casemiro", position: "CDM", overall: 87, rarity: "common", nation: "Brésil", club: "Man United", att: 68, def: 86, phy: 88, pac: 65, dri: 75, sho: 72, pas: 76 },
+        { id: "MID009", name: "Toni Kroos", position: "CM", overall: 88, rarity: "common", nation: "Allemagne", club: "Real Madrid", att: 78, def: 72, phy: 75, pac: 58, dri: 82, sho: 82, pas: 91 },
+        { id: "MID010", name: "Martin Ødegaard", position: "CAM", overall: 87, rarity: "common", nation: "Norvège", club: "Arsenal", att: 82, def: 60, phy: 68, pac: 74, dri: 88, sho: 80, pas: 87 },
+        
+        // Attaquants
+        { id: "ATT001", name: "Kylian Mbappé", position: "ST", overall: 91, rarity: "common", nation: "France", club: "PSG", att: 92, def: 35, phy: 82, pac: 97, dri: 92, sho: 90, pas: 80 },
+        { id: "ATT002", name: "Erling Haaland", position: "ST", overall: 91, rarity: "common", nation: "Norvège", club: "Man City", att: 93, def: 45, phy: 94, pac: 89, dri: 80, sho: 94, pas: 65 },
+        { id: "ATT003", name: "Lionel Messi", position: "RW", overall: 91, rarity: "common", nation: "Argentine", club: "Inter Miami", att: 90, def: 38, phy: 72, pac: 81, dri: 95, sho: 90, pas: 91 },
+        { id: "ATT004", name: "Cristiano Ronaldo", position: "ST", overall: 90, rarity: "common", nation: "Portugal", club: "Al Nassr", att: 92, def: 42, phy: 87, pac: 84, dri: 88, sho: 92, pas: 81 },
+        { id: "ATT005", name: "Neymar Jr", position: "LW", overall: 89, rarity: "common", nation: "Brésil", club: "Al Hilal", att: 88, def: 36, phy: 68, pac: 87, dri: 95, sho: 84, pas: 86 },
+        { id: "ATT006", name: "Harry Kane", position: "ST", overall: 89, rarity: "common", nation: "Angleterre", club: "Bayern Munich", att: 91, def: 48, phy: 86, pac: 78, dri: 82, sho: 91, pas: 85 },
+        { id: "ATT007", name: "Karim Benzema", position: "ST", overall: 89, rarity: "common", nation: "France", club: "Al Ittihad", att: 90, def: 45, phy: 82, pac: 77, dri: 88, sho: 89, pas: 83 },
+        { id: "ATT008", name: "Robert Lewandowski", position: "ST", overall: 89, rarity: "common", nation: "Pologne", club: "Barcelona", att: 91, def: 44, phy: 84, pac: 76, dri: 85, sho: 91, pas: 79 },
+        { id: "ATT009", name: "Mohamed Salah", position: "RW", overall: 88, rarity: "common", nation: "Égypte", club: "Liverpool", att: 89, def: 45, phy: 80, pac: 90, dri: 88, sho: 88, pas: 81 },
+        { id: "ATT010", name: "Son Heung-min", position: "LW", overall: 88, rarity: "common", nation: "Corée du Sud", club: "Tottenham", att: 88, def: 42, phy: 76, pac: 89, dri: 86, sho: 88, pas: 82 },
+        { id: "ATT011", name: "Vinícius Júnior", position: "LW", overall: 89, rarity: "common", nation: "Brésil", club: "Real Madrid", att: 88, def: 32, phy: 75, pac: 95, dri: 91, sho: 83, pas: 78 },
+        { id: "ATT012", name: "Jude Bellingham", position: "CAM", overall: 90, rarity: "common", nation: "Angleterre", club: "Real Madrid", att: 86, def: 72, phy: 88, pac: 82, dri: 89, sho: 84, pas: 86 },
+        { id: "ATT013", name: "Phil Foden", position: "RW", overall: 88, rarity: "common", nation: "Angleterre", club: "Man City", att: 86, def: 52, phy: 70, pac: 80, dri: 89, sho: 84, pas: 85 },
+        { id: "ATT014", name: "Antoine Griezmann", position: "CF", overall: 87, rarity: "common", nation: "France", club: "Atlético Madrid", att: 85, def: 58, phy: 72, pac: 78, dri: 87, sho: 84, pas: 84 },
+        { id: "ATT015", name: "Ousmane Dembélé", position: "RW", overall: 86, rarity: "common", nation: "France", club: "PSG", att: 82, def: 40, phy: 65, pac: 93, dri: 90, sho: 78, pas: 82 }
+    ],
+    rare: [
+        { id: "R001", name: "Jude Bellingham (Rare)", position: "CM", overall: 92, rarity: "rare", nation: "Angleterre", club: "Real Madrid", att: 88, def: 75, phy: 90, pac: 84, dri: 91, sho: 86, pas: 88 },
+        { id: "R002", name: "Vinícius Júnior (Rare)", position: "LW", overall: 91, rarity: "rare", nation: "Brésil", club: "Real Madrid", att: 90, def: 35, phy: 78, pac: 97, dri: 93, sho: 85, pas: 80 },
+        { id: "R003", name: "Phil Foden (Rare)", position: "CAM", overall: 90, rarity: "rare", nation: "Angleterre", club: "Man City", att: 88, def: 55, phy: 74, pac: 82, dri: 91, sho: 86, pas: 87 },
+        { id: "R004", name: "Rodri (Rare)", position: "CDM", overall: 91, rarity: "rare", nation: "Espagne", club: "Man City", att: 74, def: 90, phy: 89, pac: 68, dri: 80, sho: 74, pas: 86 },
+        { id: "R005", name: "Joshua Kimmich (Rare)", position: "CDM", overall: 90, rarity: "rare", nation: "Allemagne", club: "Bayern Munich", att: 77, def: 87, phy: 84, pac: 74, dri: 85, sho: 78, pas: 90 },
+        { id: "R006", name: "Virgil van Dijk (Rare)", position: "CB", overall: 91, rarity: "rare", nation: "Pays-Bas", club: "Liverpool", att: 62, def: 92, phy: 94, pac: 77, dri: 72, sho: 67, pas: 74 },
+        { id: "R007", name: "Kevin De Bruyne (Rare)", position: "CM", overall: 93, rarity: "rare", nation: "Belgique", club: "Man City", att: 90, def: 68, phy: 84, pac: 77, dri: 90, sho: 91, pas: 96 },
+        { id: "R008", name: "Kylian Mbappé (Rare)", position: "ST", overall: 93, rarity: "rare", nation: "France", club: "PSG", att: 94, def: 38, phy: 84, pac: 98, dri: 94, sho: 92, pas: 82 },
+        { id: "R009", name: "Erling Haaland (Rare)", position: "ST", overall: 93, rarity: "rare", nation: "Norvège", club: "Man City", att: 95, def: 48, phy: 96, pac: 91, dri: 82, sho: 96, pas: 67 },
+        { id: "R010", name: "Lionel Messi (Rare)", position: "RW", overall: 93, rarity: "rare", nation: "Argentine", club: "Inter Miami", att: 92, def: 40, phy: 74, pac: 83, dri: 97, sho: 92, pas: 93 }
+    ],
+    epic: [
+        { id: "E001", name: "Pelé", position: "ST", overall: 95, rarity: "epic", nation: "Brésil", club: "Légende", att: 96, def: 40, phy: 85, pac: 95, dri: 97, sho: 95, pas: 90 },
+        { id: "E002", name: "Diego Maradona", position: "CAM", overall: 95, rarity: "epic", nation: "Argentine", club: "Légende", att: 92, def: 50, phy: 80, pac: 90, dri: 98, sho: 88, pas: 92 },
+        { id: "E003", name: "Zinedine Zidane", position: "CAM", overall: 94, rarity: "epic", nation: "France", club: "Légende", att: 88, def: 65, phy: 85, pac: 75, dri: 92, sho: 85, pas: 93 },
+        { id: "E004", name: "Ronaldo Nazário", position: "ST", overall: 94, rarity: "epic", nation: "Brésil", club: "Légende", att: 95, def: 30, phy: 90, pac: 96, dri: 92, sho: 94, pas: 75 },
+        { id: "E005", name: "Johan Cruyff", position: "CF", overall: 93, rarity: "epic", nation: "Pays-Bas", club: "Légende", att: 90, def: 55, phy: 75, pac: 85, dri: 95, sho: 86, pas: 92 },
+        { id: "E006", name: "Franz Beckenbauer", position: "CB", overall: 94, rarity: "epic", nation: "Allemagne", club: "Légende", att: 70, def: 94, phy: 85, pac: 80, dri: 85, sho: 75, pas: 88 },
+        { id: "E007", name: "Paolo Maldini", position: "CB", overall: 93, rarity: "epic", nation: "Italie", club: "Légende", att: 60, def: 95, phy: 82, pac: 85, dri: 80, sho: 60, pas: 75 },
+        { id: "E008", name: "Zico", position: "CAM", overall: 93, rarity: "epic", nation: "Brésil", club: "Légende", att: 90, def: 45, phy: 72, pac: 82, dri: 94, sho: 90, pas: 92 },
+        { id: "E009", name: "Garrincha", position: "RW", overall: 92, rarity: "epic", nation: "Brésil", club: "Légende", att: 88, def: 30, phy: 80, pac: 95, dri: 96, sho: 85, pas: 82 },
+        { id: "E010", name: "Ferenc Puskás", position: "ST", overall: 92, rarity: "epic", nation: "Hongrie", club: "Légende", att: 94, def: 35, phy: 82, pac: 80, dri: 88, sho: 95, pas: 85 }
+    ],
+    legendary: [
+        { id: "L001", name: "Lionel Messi (Prime)", position: "RW", overall: 98, rarity: "legendary", nation: "Argentine", club: "Légende", att: 96, def: 35, phy: 75, pac: 88, dri: 99, sho: 94, pas: 95 },
+        { id: "L002", name: "Cristiano Ronaldo (Prime)", position: "ST", overall: 97, rarity: "legendary", nation: "Portugal", club: "Légende", att: 97, def: 40, phy: 90, pac: 92, dri: 91, sho: 96, pas: 84 },
+        { id: "L003", name: "Pelé (Prime)", position: "ST", overall: 98, rarity: "legendary", nation: "Brésil", club: "Légende", att: 98, def: 42, phy: 88, pac: 97, dri: 98, sho: 96, pas: 92 },
+        { id: "L004", name: "Diego Maradona (Prime)", position: "CAM", overall: 97, rarity: "legendary", nation: "Argentine", club: "Légende", att: 94, def: 52, phy: 82, pac: 92, dri: 99, sho: 90, pas: 94 },
+        { id: "L005", name: "Ronaldo Nazário (Prime)", position: "ST", overall: 96, rarity: "legendary", nation: "Brésil", club: "Légende", att: 97, def: 32, phy: 92, pac: 98, dri: 94, sho: 96, pas: 77 }
+    ]
+};
+
+// Formations avec positions
+const formations = {
+    "4-3-3": {
+        positions: [
+            {x: 50, y: 90, pos: "GK"}, // Gardien
+            {x: 25, y: 70, pos: "RB"}, {x: 40, y: 70, pos: "CB"}, {x: 60, y: 70, pos: "CB"}, {x: 75, y: 70, pos: "LB"}, // Défense
+            {x: 30, y: 50, pos: "CM"}, {x: 50, y: 50, pos: "CM"}, {x: 70, y: 50, pos: "CM"}, // Milieu
+            {x: 25, y: 25, pos: "RW"}, {x: 50, y: 20, pos: "ST"}, {x: 75, y: 25, pos: "LW"} // Attaque
+        ]
+    },
+    "4-4-2": {
+        positions: [
+            {x: 50, y: 90, pos: "GK"},
+            {x: 25, y: 70, pos: "RB"}, {x: 40, y: 70, pos: "CB"}, {x: 60, y: 70, pos: "CB"}, {x: 75, y: 70, pos: "LB"},
+            {x: 25, y: 50, pos: "RM"}, {x: 40, y: 50, pos: "CM"}, {x: 60, y: 50, pos: "CM"}, {x: 75, y: 50, pos: "LM"},
+            {x: 35, y: 25, pos: "ST"}, {x: 65, y: 25, pos: "ST"}
+        ]
+    },
+    "4-2-3-1": {
+        positions: [
+            {x: 50, y: 90, pos: "GK"},
+            {x: 25, y: 70, pos: "RB"}, {x: 40, y: 70, pos: "CB"}, {x: 60, y: 70, pos: "CB"}, {x: 75, y: 70, pos: "LB"},
+            {x: 35, y: 55, pos: "CDM"}, {x: 65, y: 55, pos: "CDM"},
+            {x: 25, y: 40, pos: "RM"}, {x: 50, y: 35, pos: "CAM"}, {x: 75, y: 40, pos: "LM"},
+            {x: 50, y: 20, pos: "ST"}
+        ]
+    },
+    "3-5-2": {
+        positions: [
+            {x: 50, y: 90, pos: "GK"},
+            {x: 35, y: 70, pos: "CB"}, {x: 50, y: 70, pos: "CB"}, {x: 65, y: 70, pos: "CB"},
+            {x: 20, y: 55, pos: "RM"}, {x: 35, y: 55, pos: "CM"}, {x: 50, y: 55, pos: "CM"}, {x: 65, y: 55, pos: "CM"}, {x: 80, y: 55, pos: "LM"},
+            {x: 40, y: 25, pos: "ST"}, {x: 60, y: 25, pos: "ST"}
+        ]
+    },
+    "5-3-2": {
+        positions: [
+            {x: 50, y: 90, pos: "GK"},
+            {x: 20, y: 70, pos: "RWB"}, {x: 35, y: 70, pos: "CB"}, {x: 50, y: 70, pos: "CB"}, {x: 65, y: 70, pos: "CB"}, {x: 80, y: 70, pos: "LWB"},
+            {x: 35, y: 50, pos: "CM"}, {x: 50, y: 50, pos: "CM"}, {x: 65, y: 50, pos: "CM"},
+            {x: 40, y: 25, pos: "ST"}, {x: 60, y: 25, pos: "ST"}
+        ]
+    }
+};
+
+// Badges disponibles (incluant emblèmes Ultimate League)
+const badges = [
+    {id: "badge_rookie", name: "Débutant", icon: "🥳", description: "Première connexion", unlocked: true},
+    {id: "badge_first_win", name: "Première Victoire", icon: "🏆", description: "Gagner son premier match", unlocked: false},
+    {id: "badge_10wins", name: "Vainqueur", icon: "👑", description: "10 victoires", unlocked: false},
+    {id: "badge_50wins", name: "Champion", icon: "🏅", description: "50 victoires", unlocked: false},
+    {id: "badge_legendary", name: "Légende", icon: "⭐", description: "Obtenir un joueur légendaire", unlocked: false},
+    {id: "badge_collector", name: "Collectionneur", icon: "📚", description: "20 joueurs dans la collection", unlocked: false},
+    {id: "badge_rich", name: "Millionnaire", icon: "💰", description: "10 000 coins", unlocked: false},
+    
+    // Nouveaux badges pour emblèmes Ultimate League
+    {id: "ultimate_emblem_1", name: "Ultimate Emblème 1", icon: "🏆", description: "1ère semaine en Ultimate League", unlocked: false},
+    {id: "ultimate_emblem_3", name: "Ultimate Emblème 3", icon: "🏆🏆🏆", description: "3 semaines en Ultimate League", unlocked: false},
+    {id: "ultimate_emblem_5", name: "Ultimate Emblème 5", icon: "🏆🏆🏆🏆🏆", description: "5 semaines en Ultimate League", unlocked: false},
+    {id: "ultimate_champion", name: "Champion Ultimate", icon: "👑", description: "10 semaines en Ultimate League", unlocked: false},
+    {id: "ultimate_king", name: "Roi Ultimate", icon: "🤴", description: "20 semaines en Ultimate League", unlocked: false},
+    {id: "ultimate_god", name: "Dieu Ultimate", icon: "👑🔥", description: "50 semaines en Ultimate League", unlocked: false}
+];
+
+// ============================================
+// 1. FONCTIONS POUR SYSTÈM RESET LIGUE
+// ============================================
+
+// Fonksyon pou kalkile lè reset la (Dimanch 00:00 Haiti Time)
+function calculateNextReset() {
+    const now = new Date();
+    
+    // Konvèti nan è tan Haiti (America/Port-au-Prince)
+    const haitiTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Port-au-Prince"}));
+    
+    // Jwè prochèn Dimanch 00:00
+    const daysUntilSunday = (7 - haitiTime.getDay()) % 7;
+    const nextSunday = new Date(haitiTime);
+    nextSunday.setDate(haitiTime.getDate() + daysUntilSunday);
+    nextSunday.setHours(0, 0, 0, 0);
+    
+    // Si nou deja Dimanch men apre 00:00, pran Dimanch pwochen
+    if (haitiTime.getDay() === 0 && haitiTime.getHours() >= 0) {
+        nextSunday.setDate(nextSunday.getDate() + 7);
+    }
+    
+    return nextSunday.getTime();
+}
+
+// Fonksyon pou montre timer reset
+function updateLeagueTimer() {
+    try {
+        const resetTime = calculateNextReset();
+        const now = Date.now();
+        const timeLeft = resetTime - now;
+        
+        if (timeLeft <= 0) {
+            // Reset en cours ou dépassé
+            document.getElementById("league-timer").textContent = "Reset en cours...";
+            
+            // Verifie si bezwen fè reset
+            const today = new Date().toISOString().split('T')[0];
+            if (!userData.league.lastReset || userData.league.lastReset !== today) {
+                setTimeout(() => {
+                    performLeagueReset();
+                }, 2000);
+            }
+        } else {
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.getElementById("league-timer").textContent = 
+                `Reset dans: ${days}j ${hours}h ${minutes}m`;
+        }
+    } catch (error) {
+        console.error("Erreur updateLeagueTimer:", error);
+        document.getElementById("league-timer").textContent = "Timer erreur";
+    }
+}
+
+// Fonksyon reset ligue (DESANN 2 DIVIZYON + EMBLÈME ULTIMATE)
+async function performLeagueReset() {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Si deja reset jodi a, pa fè anyen
+        if (userData.league.lastReset === today) {
+            console.log("Déjà reset aujourd'hui");
+            return;
+        }
+        
+        const oldDivision = userData.league.division;
+        const wasInUltimate = oldDivision === 5;
+        const ultimateEmblems = userData.league.ultimateEmblems || 0;
+        const weeksInUltimate = userData.league.weeksInUltimate || 0;
+        
+        console.log(`Reset ligue: Division ${oldDivision}, Ultimate: ${wasInUltimate}, Emblèmes: ${ultimateEmblems}`);
+        
+        // 1. DESANN 2 DIVIZYON (minimum 1)
+        let newDivision = Math.max(1, oldDivision - 2);
+        
+        // 2. Si moun nan te nan Ultimate League (divizyon 5)
+        let newUltimateEmblems = ultimateEmblems;
+        let newWeeksInUltimate = weeksInUltimate;
+        
+        if (wasInUltimate) {
+            // Ajoute yon emblème Ultimate League
+            newUltimateEmblems += 1;
+            newWeeksInUltimate += 1;
+            
+            // Ajoute badge emblème si bezwen
+            const emblemBadgeId = `ultimate_emblem_${newUltimateEmblems}`;
+            const emblemBadgeExists = badges.find(b => b.id === emblemBadgeId);
+            
+            if (emblemBadgeExists && !userData.badges.includes(emblemBadgeId)) {
+                userData.badges.push(emblemBadgeId);
+            }
+            
+            // Ajoute badges spéciaux selon le nombre d'emblèmes
+            if (newUltimateEmblems >= 3 && !userData.badges.includes("ultimate_emblem_3")) {
+                userData.badges.push("ultimate_emblem_3");
+            }
+            if (newUltimateEmblems >= 5 && !userData.badges.includes("ultimate_emblem_5")) {
+                userData.badges.push("ultimate_emblem_5");
+            }
+            if (newUltimateEmblems >= 10 && !userData.badges.includes("ultimate_champion")) {
+                userData.badges.push("ultimate_champion");
+            }
+            if (newUltimateEmblems >= 20 && !userData.badges.includes("ultimate_king")) {
+                userData.badges.push("ultimate_king");
+            }
+            if (newUltimateEmblems >= 50 && !userData.badges.includes("ultimate_god")) {
+                userData.badges.push("ultimate_god");
+            }
+        } else {
+            // Si pa nan Ultimate, reyinisyalize kontè semen Ultimate
+            newWeeksInUltimate = 0;
+        }
+        
+        // 3. Mete nouvo divizyon ak pwen
+        const newDivisionData = divisions[newDivision - 1];
+        const newPoints = newDivisionData.minPoints;
+        
+        // 4. Reyinisyalize matches semen
+        userData.weeklyMatches = [];
+        
+        // 5. Mete nouvo sezon ak istorik
+        userData.league.division = newDivision;
+        userData.league.points = newPoints;
+        userData.league.ultimateEmblems = newUltimateEmblems;
+        userData.league.weeksInUltimate = newWeeksInUltimate;
+        userData.league.lastReset = today;
+        userData.league.seasonStart = new Date().toISOString();
+        
+        // Mete ajou pi bon divizyon si bezwen
+        if (oldDivision > (userData.league.bestDivision || 1)) {
+            userData.league.bestDivision = oldDivision;
+        }
+        
+        // Ajoute nan istorik
+        if (!userData.league.history) userData.league.history = [];
+        userData.league.history.push({
+            date: today,
+            oldDivision: oldDivision,
+            newDivision: newDivision,
+            ultimateEmblems: newUltimateEmblems,
+            points: newPoints,
+            wasInUltimate: wasInUltimate
+        });
+        
+        // 6. Garde sèlman 10 dènye istorik
+        if (userData.league.history.length > 10) {
+            userData.league.history = userData.league.history.slice(-10);
+        }
+        
+        // 7. Sauvegarder
+        await saveUserData();
+        
+        // 8. Afiche notifikasyon
+        if (wasInUltimate) {
+            showNotification(
+                `🏆 RESET LIGUE! Descen 2 divisions -> ${divisions[newDivision-1].name}. ` +
+                `Emblème Ultimate League: ${newUltimateEmblems} ` +
+                `(Total: ${newUltimateEmblems} emblèmes)`, 
+                "success"
+            );
+        } else {
+            showNotification(
+                `🔄 RESET LIGUE! Nouvelle division: ${divisions[newDivision-1].name}`, 
+                "info"
+            );
+        }
+        
+        // 9. Rafrechi afichaj
+        updateLeagueSystem();
+        updateProfile();
+        updateBadgesDisplay();
+        updateDashboard();
+        
+    } catch (error) {
+        console.error("Erreur performLeagueReset:", error);
+        showNotification("Erreur lors du reset de la ligue", "error");
+    }
+}
+
+// Fonksyon pou verifier reset chak fwa jwè a konekte
+function checkForLeagueReset() {
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    
+    // Konvèti nan è tan Haiti
+    const haitiTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Port-au-Prince"}));
+    
+    // Si se Dimanch 00:00-23:59
+    if (haitiTime.getDay() === 0) {
+        if (!userData.league.lastReset || userData.league.lastReset !== today) {
+            console.log("Vérification reset: Dimanche détecté, reset nécessaire");
+            setTimeout(() => {
+                performLeagueReset();
+            }, 3000);
+        }
+    }
+}
+
+// ============================================
+// 2. FONCTIONS POUR AFFICHER EMBLÈMES
+// ============================================
+
+// Fonksyon pou afiche emblèmes nan profil
+function displayUltimateEmblems() {
+    const container = document.getElementById("ultimate-emblems-container");
+    const emblemsDisplay = document.getElementById("emblems-display");
+    const emblemsStats = document.getElementById("emblems-stats");
+    
+    if (!userData.league.ultimateEmblems || userData.league.ultimateEmblems === 0) {
+        container.style.display = "none";
+        return;
+    }
+    
+    container.style.display = "block";
+    emblemsDisplay.innerHTML = '';
+    emblemsStats.innerHTML = '';
+    
+    const ultimateEmblems = userData.league.ultimateEmblems;
+    const weeksInUltimate = userData.league.weeksInUltimate;
+    
+    // Kreye emblèmes yo
+    for (let i = 1; i <= ultimateEmblems; i++) {
+        const emblemDiv = document.createElement("div");
+        emblemDiv.className = "emblem-badge";
+        emblemDiv.style.cssText = `
+            background: linear-gradient(135deg, gold, #ffaa00);
+            color: black;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: ${i < 10 ? '20px' : i < 100 ? '16px' : '14px'};
+            border: 3px solid #ffaa00;
+            cursor: pointer;
+            position: relative;
+        `;
+        emblemDiv.textContent = i;
+        
+        // Tooltip pou emblème
+        emblemDiv.title = `Emblème Ultimate League #${i}\nSemaine ${i} en Ultimate League`;
+        
+        emblemsDisplay.appendChild(emblemDiv);
+    }
+    
+    // Statistiques
+    emblemsStats.innerHTML = `
+        <div style="margin-bottom: 5px;">
+            <span style="color: gold;">🏆 ${ultimateEmblems} emblème(s) Ultimate League</span>
+        </div>
+        <div style="font-size: 12px; color: #aaa;">
+            Meilleure performance: ${weeksInUltimate} semaine(s) consécutive(s) en Ultimate League
+        </div>
+        ${userData.league.bestDivision === 5 ? 
+            `<div style="font-size: 12px; color: #00eaff; margin-top: 5px;">
+                <i class="fas fa-crown"></i> Atteint l'Ultimate League
+            </div>` : ''
+        }
+    `;
+}
+
+// Fonksyon pou afiche emblème nan klasman
+function getEmblemDisplay(ultimateEmblems) {
+    if (!ultimateEmblems || ultimateEmblems === 0) return '';
+    
+    let emblemIcons = '';
+    if (ultimateEmblems <= 5) {
+        // Afiche kantite emblème
+        emblemIcons = `<span class="ultimate-emblem-display">
+            <span class="emblem-icon">🏆</span>
+            <span class="emblem-counter">${ultimateEmblems}</span>
+        </span>`;
+    } else if (ultimateEmblems <= 10) {
+        emblemIcons = `<span class="ultimate-emblem-display">
+            <span class="emblem-icon">🏆🏆</span>
+            <span class="emblem-counter">${ultimateEmblems}</span>
+        </span>`;
+    } else {
+        emblemIcons = `<span class="ultimate-emblem-display">
+            <span class="emblem-icon">👑</span>
+            <span class="emblem-counter">${ultimateEmblems}</span>
+        </span>`;
+    }
+    
+    return emblemIcons;
+}
+
+// ============================================
+// 3. FONCTIONS POUR ASSISTANT CHATBOT
+// ============================================
+
+function openChatbotSupport() {
+  const modal = document.getElementById("chatbot-supportModal");
+  const frame = document.getElementById("chatbot-supportFrame");
+
+  frame.src = "https://assistantfmu.liveblog365.com";
+  
+  modal.style.display = "flex";
+  modal.style.animationName = "chatbotSlideIn";
+  modal.style.opacity = 1;
+  
+  // Ajoute animation
+  setTimeout(() => {
+    modal.style.animationName = "";
+  }, 400);
+}
+
+function closeChatbotSupport() {
+  const modal = document.getElementById("chatbot-supportModal");
+  const frame = document.getElementById("chatbot-supportFrame");
+
+  modal.style.animationName = "chatbotSlideOut";
+  modal.style.opacity = 0;
+
+  setTimeout(() => {
+    modal.style.display = "none";
+    frame.src = "";
+  }, 350);
+}
+
+// ============================================
+// 4. INITIALISATION DE L'APPLICATION
+// ============================================
+
+function initializeApp() {
+    console.log("Initialisation du Football Manager...");
+    
+    try {
+        // Initialiser Firebase
+        firebaseApp = firebase.initializeApp(firebaseConfig);
+        firebaseAuth = firebase.auth();
+        firebaseDb = firebase.database();
+        console.log("Firebase initialisé avec succès!");
+        
+        // Initialiser les événements
+        initializeEventHandlers();
+        
+        // Observer les changements d'authentification
+        firebaseAuth.onAuthStateChanged(handleAuthStateChanged);
+        
+        // Vérifier la connexion existante
+        if (firebaseAuth.currentUser) {
+            console.log("Utilisateur déjà connecté:", firebaseAuth.currentUser.email);
+        }
+        
+    } catch (error) {
+        console.error("Erreur d'initialisation:", error);
+        showNotification("Erreur d'initialisation: " + error.message, "error");
+    }
+}
+
+// Gérer les changements d'authentification
+async function handleAuthStateChanged(user) {
+    const loginScreen = document.getElementById("login-screen");
+    const gameUI = document.getElementById("game-ui");
+    
+    if (user) {
+        // Utilisateur connecté
+        console.log("Utilisateur connecté:", user.email);
+        currentUser = user;
+        
+        // Charger les données utilisateur
+        await loadUserData(user.uid);
+        
+        // Afficher l'interface du jeu
+        loginScreen.style.display = "none";
+        gameUI.style.display = "block";
+        
+        // Initialiser les interfaces
+        initializeGameInterfaces();
+        updateDashboard();
+        updateTeamDisplay();
+        updateCollectionDisplay();
+        updateLeagueSystem();
+        updateGlobalRanking();
+        updateProfile();
+        
+        // Vérifier reset ligue
+        checkForLeagueReset();
+        
+        showNotification("Connexion réussie! Bienvenue " + user.email, "success");
+        
+    } else {
+        // Utilisateur déconnecté
+        console.log("Utilisateur déconnecté");
+        currentUser = null;
+        gameUI.style.display = "none";
+        loginScreen.style.display = "flex";
+    }
+    
+    hideLoading();
+}
+
+// Charger les données utilisateur
+async function loadUserData(userId) {
+    try {
+        const snapshot = await firebaseDb.ref(`users/${userId}`).once('value');
+        
+        if (snapshot.exists()) {
+            const loadedData = snapshot.val();
+            
+            // Migration: convertir l'ancienne structure de collection si nécessaire
+            if (loadedData.players && !loadedData.collection) {
+                console.log("Migration de l'ancienne structure de collection...");
+                loadedData.collection = {};
+                Object.keys(loadedData.players).forEach(playerId => {
+                    const player = findPlayerById(playerId);
+                    if (player) {
+                        loadedData.collection[playerId] = {
+                            id: playerId,
+                            overall: player.overall,
+                            baseOverall: player.overall,
+                            fusionLevel: 0,
+                            count: 1,
+                            rarity: player.rarity
+                        };
+                    }
+                });
+                delete loadedData.players;
+            }
+            
+            // Migration: ajouter système ligue si ancienne structure
+            if (!loadedData.league) {
+                loadedData.league = {
+                    division: loadedData.division || 1,
+                    points: loadedData.leaguePoints || 0,
+                    ultimateEmblems: 0,
+                    weeksInUltimate: 0,
+                    lastReset: null,
+                    seasonStart: new Date().toISOString(),
+                    promotionCount: 0,
+                    bestDivision: loadedData.division || 1,
+                    history: []
+                };
+            }
+            
+            // Fusionner avec les valeurs par défaut
+            userData = {
+                ...defaultUserData,
+                ...loadedData,
+                collection: loadedData.collection || defaultUserData.collection,
+                team: loadedData.team || defaultUserData.team,
+                league: loadedData.league || defaultUserData.league,
+                teamID: loadedData.teamID || `team_${userId.substring(0, 8)}`
+            };
+            
+            console.log("Données utilisateur chargées avec succès");
+            console.log("Emblèmes Ultimate:", userData.league.ultimateEmblems);
+            
+        } else {
+            // Données par défaut pour les nouveaux utilisateurs
+            userData = { ...defaultUserData };
+            userData.teamID = `team_${userId.substring(0, 8)}`;
+            userData.league.seasonStart = new Date().toISOString();
+            await saveUserData();
+        }
+        
+        // Mettre à jour l'interface
+        updateUI();
+        updateCollectionDisplay();
+        updateLeagueSystem();
+        
+        // Vérifier si récompense quotidienne disponible
+        checkDailyRewardAvailability();
+        
+        // Démarrer le timer de ligue
+        updateLeagueTimer();
+        setInterval(updateLeagueTimer, 60000); // Mete ajou chak minit
+        
+    } catch (error) {
+        console.error("Erreur de chargement des données:", error);
+        showNotification("Erreur de chargement des données", "error");
+        
+        // Données par défaut en cas d'erreur
+        userData = { ...defaultUserData };
+        userData.teamID = `team_${userId.substring(0, 8)}`;
+    }
+}
+
+// Sauvegarder les données utilisateur
+async function saveUserData() {
+    if (!currentUser) return;
+    
+    try {
+        // Calculer la puissance d'équipe avant sauvegarde
+        userData.teamPower = calculateTeamPower();
+        
+        await firebaseDb.ref(`users/${currentUser.uid}`).set(userData);
+        console.log("Données sauvegardées avec succès");
+        
+    } catch (error) {
+        console.error("Erreur de sauvegarde:", error);
+        showNotification("Erreur de sauvegarde des données", "error");
+    }
+}
+
+// Mettre à jour l'interface utilisateur
+function updateUI() {
+    // Utiliser des valeurs par défaut pour éviter undefined
+    const coins = userData.coins || 0;
+    const gems = userData.gems || 0;
+    const tokens = userData.tokens || 0;
+    const level = userData.level || 1;
+    const xp = userData.xp || 0;
+    
+    // Mettre à jour les devises avec vérification
+    document.getElementById("coins").textContent = coins.toLocaleString();
+    document.getElementById("gems").textContent = gems.toLocaleString();
+    document.getElementById("tokens").textContent = tokens.toLocaleString();
+    
+    // Mettre à jour le niveau
+    document.getElementById("player-level").textContent = "Niv. " + level;
+    
+    // Mettre à jour la barre d'XP
+    const xpNeeded = level * 100;
+    const xpPercentage = xpNeeded > 0 ? (xp / xpNeeded) * 100 : 0;
+    document.getElementById("xp-fill").style.width = `${Math.min(xpPercentage, 100)}%`;
+}
+
+// Mettre à jour le tableau de bord
+function updateDashboard() {
+    updateUI();
+    
+    // Utiliser des valeurs par défaut pour éviter undefined
+    const wins = userData.wins || 0;
+    const leaguePoints = userData.league ? userData.league.points : 0;
+    const playersCount = userData.collection ? Object.keys(userData.collection).length : 0;
+    const teamPower = calculateTeamPower();
+    const synergyBonus = calculateSynergyBonus();
+    const ultimateEmblems = userData.league ? userData.league.ultimateEmblems : 0;
+    
+    // Mettre à jour les statistiques
+    document.getElementById("stat-level").textContent = userData.level || 1;
+    document.getElementById("stat-wins").textContent = wins;
+    document.getElementById("stat-league-points").textContent = leaguePoints.toLocaleString();
+    document.getElementById("stat-players").textContent = playersCount;
+    
+    // Mettre à jour la puissance d'équipe
+    document.getElementById("team-power-value").textContent = Math.round(teamPower);
+    document.getElementById("synergy-bonus").textContent = `Bonus Synergie: +${synergyBonus}`;
+    
+    // Mettre à jour la progression de la ligue
+    const division = divisions[(userData.league ? userData.league.division : 1) - 1] || divisions[0];
+    const progress = division.maxPoints > division.minPoints ? 
+        ((leaguePoints - division.minPoints) / (division.maxPoints - division.minPoints)) * 100 : 0;
+    document.getElementById("league-progress").style.width = `${Math.min(Math.max(progress, 0), 100)}%`;
+    document.getElementById("current-points").textContent = leaguePoints.toLocaleString() + " pts";
+    
+    // Afiche emblèmes si genyen
+    if (ultimateEmblems > 0) {
+        const dashboardTitle = document.querySelector("#screen-dashboard .page-title");
+        if (dashboardTitle && !dashboardTitle.querySelector('.emblem-icon')) {
+            const emblemSpan = document.createElement("span");
+            emblemSpan.className = "ultimate-emblem-display";
+            emblemSpan.style.cssText = "margin-left: 10px; vertical-align: middle;";
+            emblemSpan.innerHTML = `<span class="emblem-icon">🏆</span><span class="emblem-counter">${ultimateEmblems}</span>`;
+            dashboardTitle.appendChild(emblemSpan);
+        }
+    }
+}
+
+// Initialiser les interfaces du jeu
+function initializeGameInterfaces() {
+    // Mettre à jour le nom du joueur
+    const userName = currentUser ? currentUser.email.split('@')[0] : "Joueur";
+    document.getElementById("player-name").textContent = userName;
+    document.getElementById("profile-name").textContent = userName;
+    document.getElementById("profile-email").textContent = currentUser ? currentUser.email : "test@test.com";
+    
+    // Mettre à jour la date d'adhésion
+    const joinDate = userData.joinDate ? new Date(userData.joinDate) : new Date();
+    document.getElementById("member-since").textContent = joinDate.toLocaleDateString('fr-FR');
+}
+
+// ============================================
+// 5. FONCTIONS EXISTANTES (MODIFIÉES POUR EMBLÈMES)
+// ============================================
+
+// Initialiser les gestionnaires d'événements
+function initializeEventHandlers() {
+    // Boutons de connexion
+    document.getElementById("loginBtn").addEventListener("click", handleLogin);
+    document.getElementById("registerBtn").addEventListener("click", handleRegister);
+    
+    // Navigation principale
+    document.querySelectorAll(".nav-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const target = btn.dataset.target;
+            showScreen(target);
+            document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+        });
     });
+    
+    // Navigation basse
+    document.querySelectorAll(".bottom-nav-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const target = btn.dataset.target;
+            if (target) {
+                showScreen(target);
+            }
+        });
+    });
+    
+    // Boutons rapides du dashboard
+    document.getElementById("quick-play").addEventListener("click", () => playLeagueMatch());
+    document.getElementById("quick-pack").addEventListener("click", () => showScreen("screen-store"));
+    document.getElementById("quick-daily").addEventListener("click", claimDailyReward);
+    document.getElementById("quick-ranking").addEventListener("click", () => showScreen("screen-ranking"));
+    document.getElementById("quick-assistant").addEventListener("click", openChatbotSupport); // Nouveau bouton assistant
+    document.getElementById("play-next-match").addEventListener("click", playQuickMatch);
+    document.getElementById("play-league-match").addEventListener("click", playLeagueMatch);
+    
+    // Bouton sauvegarder équipe
+    document.getElementById("save-team").addEventListener("click", saveTeam);
+    
+    // Bouton déconnexion
+    document.getElementById("logout-btn").addEventListener("click", handleLogout);
+    
+    // Formation selector
+    document.querySelectorAll(".formation-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const formation = btn.dataset.formation;
+            userData.formation = formation;
+            updateTeamDisplay();
+            document.querySelectorAll(".formation-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+        });
+    });
+    
+    // Filtres de collection
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const filter = btn.dataset.filter;
+            updateCollectionDisplay(filter);
+            document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+        });
+    });
+    
+    // Boutons d'achat de packs
+    document.querySelectorAll(".pack-card").forEach(card => {
+        card.addEventListener("click", () => {
+            const packType = card.dataset.pack;
+            buyPack(packType);
+        });
+    });
+    
+    // Boutons d'achat de devises
+    document.querySelectorAll(".buy-currency").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const amount = parseInt(btn.dataset.amount);
+            const price = parseInt(btn.dataset.price);
+            buyCurrency(amount, price);
+        });
+    });
+    
+    // Boutons de fermeture des modals
+    document.querySelectorAll(".close-modal").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".modal").forEach(modal => {
+                modal.style.display = "none";
+            });
+        });
+    });
+    
+    // Fermer les modals en cliquant à l'extérieur
+    window.addEventListener("click", (event) => {
+        if (event.target.classList.contains("modal")) {
+            event.target.style.display = "none";
+        }
+    });
+    
+    // Bouton Sélection Automatique
+    document.getElementById("auto-select-team").addEventListener("click", autoSelectTeam);
+    
+    // Fermer modal chatbot ak echap
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeChatbotSupport();
+        }
+    });
+}
 
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || "Erreur de réponse OpenAI";
-    res.json({ reply });
+// Gérer la connexion
+async function handleLogin() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    
+    if (!email || !password) {
+        showNotification("Veuillez entrer un email et un mot de passe", "error");
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        await firebaseAuth.signInWithEmailAndPassword(email, password);
+    } catch (error) {
+        hideLoading();
+        console.error("Erreur de connexion:", error);
+        
+        let errorMessage = "Erreur de connexion";
+        if (error.code === 'auth/user-not-found') {
+            errorMessage = "Utilisateur non trouvé";
+        } else if (error.code === 'auth/wrong-password') {
+            errorMessage = "Mot de passe incorrect";
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = "Email invalide";
+        }
+        
+        showNotification(errorMessage, "error");
+    }
+}
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erreur serveur" });
-  }
+// Gérer l'inscription
+async function handleRegister() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    
+    if (!email || !password) {
+        showNotification("Veuillez entrer un email et un mot de passe", "error");
+        return;
+    }
+    
+    if (password.length < 6) {
+        showNotification("Le mot de passe doit contenir au moins 6 caractères", "error");
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+        currentUser = userCredential.user;
+        
+        // Initialiser les données utilisateur
+        userData = { ...defaultUserData };
+        userData.teamID = `team_${currentUser.uid.substring(0, 8)}`;
+        userData.league.seasonStart = new Date().toISOString();
+        await saveUserData();
+        showNotification("Compte créé avec succès!", "success");
+        
+    } catch (error) {
+        hideLoading();
+        console.error("Erreur d'inscription:", error);
+        
+        let errorMessage = "Erreur d'inscription";
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = "Cet email est déjà utilisé";
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = "Mot de passe trop faible";
+        }
+        
+        showNotification(errorMessage, "error");
+    }
+}
+
+// Gérer la déconnexion
+async function handleLogout() {
+    try {
+        await firebaseAuth.signOut();
+        showNotification("Déconnexion réussie", "success");
+    } catch (error) {
+        console.error("Erreur de déconnexion:", error);
+    }
+}
+
+// Mettre à jour l'affichage de l'équipe
+function updateTeamDisplay() {
+    const pitch = document.getElementById("football-pitch");
+    const availableList = document.getElementById("available-players-list");
+    const currentList = document.getElementById("current-team-list");
+    
+    // Vider les conteneurs
+    pitch.innerHTML = '<div class="center-circle"></div>';
+    availableList.innerHTML = '';
+    currentList.innerHTML = '';
+    
+    // Obtenir la formation actuelle
+    const formation = formations[userData.formation || "4-3-3"];
+    
+    // Créer les emplacements de joueurs sur le terrain
+    formation.positions.forEach((pos, index) => {
+        const slot = document.createElement("div");
+        slot.className = "player-slot";
+        slot.style.left = `${pos.x}%`;
+        slot.style.top = `${pos.y}%`;
+        slot.dataset.position = pos.pos;
+        slot.dataset.index = index;
+        
+        // Chercher le joueur dans cette position
+        const playerId = userData.team ? userData.team[pos.pos] : null;
+        
+        if (playerId) {
+            const playerData = getPlayerFromCollection(playerId);
+            if (playerData) {
+                slot.innerHTML = `
+                    <div class="position">${pos.pos}</div>
+                    <div class="rating">${playerData.overall}</div>
+                    <div style="font-size: 8px;">${playerData.name.split(' ')[0]}</div>
+                `;
+                slot.title = `${playerData.name} - ${playerData.overall}`;
+                
+                // Afficher badge de fusion si applicable
+                const collectionData = userData.collection[playerId];
+                if (collectionData && collectionData.fusionLevel > 0) {
+                    const fusionBadge = document.createElement("div");
+                    fusionBadge.className = "fusion-badge";
+                    fusionBadge.textContent = `+${collectionData.fusionLevel}`;
+                    slot.appendChild(fusionBadge);
+                }
+            }
+        } else {
+            slot.classList.add("empty");
+            slot.innerHTML = `
+                <div class="position">${pos.pos}</div>
+                <div style="font-size: 12px;">+</div>
+            `;
+        }
+        
+        slot.addEventListener("click", () => openPlayerSelection(pos.pos));
+        pitch.appendChild(slot);
+    });
+    
+    // Remplir la liste des joueurs disponibles
+    if (userData.collection) {
+        Object.keys(userData.collection).forEach(playerId => {
+            const playerData = getPlayerFromCollection(playerId);
+            if (playerData && (!userData.team || !Object.values(userData.team).includes(playerId))) {
+                const playerItem = document.createElement("div");
+                playerItem.className = "player-item";
+                playerItem.dataset.playerId = playerId;
+                
+                const collectionData = userData.collection[playerId];
+                const fusionBadge = collectionData.fusionLevel > 0 ? `<span style="color:gold; margin-left:5px;">+${collectionData.fusionLevel}</span>` : '';
+                
+                playerItem.innerHTML = `
+                    <div class="player-info-small">
+                        <div class="player-name">${playerData.name}${fusionBadge}</div>
+                        <div class="player-details">${playerData.position} | ${playerData.club}</div>
+                    </div>
+                    <div class="player-rating">${playerData.overall}</div>
+                `;
+                playerItem.addEventListener("click", () => openPlayerDetails(playerId));
+                availableList.appendChild(playerItem);
+            }
+        });
+    }
+    
+    // Remplir la liste de l'équipe actuelle
+    if (userData.team) {
+        Object.entries(userData.team).forEach(([position, playerId]) => {
+            if (playerId) {
+                const playerData = getPlayerFromCollection(playerId);
+                if (playerData) {
+                    const playerItem = document.createElement("div");
+                    playerItem.className = "player-item";
+                    playerItem.dataset.position = position;
+                    playerItem.dataset.playerId = playerId;
+                    
+                    const collectionData = userData.collection[playerId];
+                    const fusionBadge = collectionData && collectionData.fusionLevel > 0 ? `<span style="color:gold; margin-left:5px;">+${collectionData.fusionLevel}</span>` : '';
+                    
+                    playerItem.innerHTML = `
+                        <div class="player-info-small">
+                            <div class="player-name">${playerData.name}${fusionBadge}</div>
+                            <div class="player-details">${position} | ${playerData.club}</div>
+                        </div>
+                        <div class="player-rating">${playerData.overall}</div>
+                    `;
+                    playerItem.addEventListener("click", () => {
+                        userData.team[position] = null;
+                        updateTeamDisplay();
+                    });
+                    currentList.appendChild(playerItem);
+                }
+            }
+        });
+    }
+    
+    // Mettre à jour la puissance d'équipe
+    updateDashboard();
+}
+
+// Ouvrir la sélection de joueur pour une position
+function openPlayerSelection(position) {
+    // Créer une liste modale des joueurs disponibles pour cette position
+    let modalContent = `<h3 style="color: #00eaff; margin-bottom: 15px;">Sélectionner un joueur pour ${position}</h3>`;
+    
+    if (!userData.collection || Object.keys(userData.collection).length === 0) {
+        modalContent += `<p style="text-align: center; color: #aaa;">Aucun joueur disponible</p>`;
+    } else {
+        const availablePlayers = [];
+        
+        Object.keys(userData.collection).forEach(playerId => {
+            const playerData = getPlayerFromCollection(playerId);
+            if (playerData && (!userData.team || !Object.values(userData.team).includes(playerId))) {
+                // Vérifier si le joueur peut jouer à cette position
+                if (isPlayerCompatibleWithPosition(playerData, position)) {
+                    availablePlayers.push({
+                        id: playerId,
+                        player: playerData,
+                        collectionData: userData.collection[playerId]
+                    });
+                }
+            }
+        });
+        
+        if (availablePlayers.length === 0) {
+            modalContent += `<p style="text-align: center; color: #aaa;">Aucun joueur disponible pour cette position</p>`;
+        } else {
+            // Trier par OVR décroissant
+            availablePlayers.sort((a, b) => b.player.overall - a.player.overall);
+            
+            availablePlayers.forEach(data => {
+                const fusionBadge = data.collectionData.fusionLevel > 0 ? 
+                    `<span style="color:gold; margin-left:5px;">+${data.collectionData.fusionLevel}</span>` : '';
+                
+                modalContent += `
+                    <div class="player-item" style="margin-bottom: 10px; cursor: pointer;" onclick="selectPlayerForPosition('${data.id}', '${position}')">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div>
+                                <strong>${data.player.name}</strong>${fusionBadge}<br>
+                                <small>${data.player.position} | ${data.player.club} | OVR: ${data.player.overall}</small>
+                            </div>
+                            <button style="background: #00eaff; border: none; color: #0a0a0f; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                                Sélectionner
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    }
+    
+    document.getElementById("player-modal-content").innerHTML = modalContent;
+    document.getElementById("player-modal").style.display = "flex";
+}
+
+// Sélectionner un joueur pour une position
+function selectPlayerForPosition(playerId, position) {
+    if (!userData.team) userData.team = {};
+    userData.team[position] = playerId;
+    updateTeamDisplay();
+    document.getElementById("player-modal").style.display = "none";
+    
+    const playerData = getPlayerFromCollection(playerId);
+    if (playerData) {
+        showNotification(`${playerData.name} ajouté à la position ${position}`, "success");
+    }
+}
+
+// Vérifier si un joueur est compatible avec une position
+function isPlayerCompatibleWithPosition(player, position) {
+    const positionGroups = {
+        GK: ["GK"],
+        RB: ["RB", "RWB"],
+        RWB: ["RB", "RWB"],
+        CB: ["CB"],
+        LB: ["LB", "LWB"],
+        LWB: ["LB", "LWB"],
+        CDM: ["CDM", "CM"],
+        CM: ["CM", "CDM", "CAM"],
+        CAM: ["CAM", "CM"],
+        RM: ["RM", "RW"],
+        LM: ["LM", "LW"],
+        RW: ["RW", "RM"],
+        LW: ["LW", "LM"],
+        ST: ["ST", "CF"],
+        CF: ["CF", "ST"]
+    };
+    
+    const compatiblePositions = positionGroups[position] || [];
+    return compatiblePositions.includes(player.position);
+}
+
+// Sauvegarder l'équipe
+function saveTeam() {
+    saveUserData();
+    showNotification("Équipe sauvegardée avec succès!", "success");
+}
+
+// Obtenir un joueur depuis la collection
+function getPlayerFromCollection(playerId) {
+    if (userData.collection && userData.collection[playerId]) {
+        const collectionData = userData.collection[playerId];
+        const basePlayer = findPlayerById(playerId);
+        if (basePlayer) {
+            return {
+                ...basePlayer,
+                overall: collectionData.overall,
+                fusionLevel: collectionData.fusionLevel
+            };
+        }
+    }
+    return findPlayerById(playerId);
+}
+
+// Mettre à jour l'affichage de la collection
+function updateCollectionDisplay(filter = "all") {
+    const container = document.getElementById("collection-players");
+    container.innerHTML = '';
+    
+    if (!userData.collection || Object.keys(userData.collection).length === 0) {
+        container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #aaa;">
+                Aucun joueur dans votre collection
+            </div>
+        `;
+        return;
+    }
+    
+    let hasFilteredPlayers = false;
+    
+    Object.values(userData.collection).forEach(collectionData => {
+        const player = findPlayerById(collectionData.id);
+        if (!player) return;
+        
+        // Appliquer les filtres
+        if (filter !== "all") {
+            if (filter === "common" && player.rarity !== "common") return;
+            if (filter === "rare" && player.rarity !== "rare") return;
+            if (filter === "epic" && player.rarity !== "epic") return;
+            if (filter === "legendary" && player.rarity !== "legendary") return;
+            if (filter === "att" && !["ST", "CF", "RW", "LW"].includes(player.position)) return;
+            if (filter === "mid" && !["CM", "CAM", "CDM", "RM", "LM"].includes(player.position)) return;
+            if (filter === "def" && !["CB", "RB", "LB", "RWB", "LWB"].includes(player.position)) return;
+            if (filter === "gk" && player.position !== "GK") return;
+        }
+        
+        hasFilteredPlayers = true;
+        
+        const playerCard = document.createElement("div");
+        playerCard.className = `player-card player-rare-${player.rarity}`;
+        playerCard.dataset.playerId = player.id;
+        
+        // Rareté en étoiles
+        let stars = "";
+        switch(player.rarity) {
+            case "common": stars = "★"; break;
+            case "rare": stars = "★★"; break;
+            case "epic": stars = "★★★"; break;
+            case "legendary": stars = "★★★★"; break;
+        }
+        
+        // Badge de fusion
+        const fusionBadge = collectionData.fusionLevel > 0 ? 
+            `<div class="fusion-badge">+${collectionData.fusionLevel}</div>` : '';
+        
+        // Compteur de copies pour fusion
+        const fusionCount = collectionData.count > 0 ? 
+            `<div class="player-count">Copies: ${collectionData.count}/${getFusionRequirement(collectionData.fusionLevel)}</div>` : '';
+        
+        playerCard.innerHTML = `
+            ${fusionBadge}
+            <div class="player-photo">
+                ${player.name.split(' ')[0].charAt(0)}${player.name.split(' ')[1] ? player.name.split(' ')[1].charAt(0) : ''}
+            </div>
+            <h4>${player.name}</h4>
+            <div style="font-size: 12px; color: #aaa;">${player.position} | ${player.club}</div>
+            <div style="font-size: 14px; font-weight: bold; margin: 5px 0; color: ${player.rarity === 'common' ? '#aaa' : player.rarity === 'rare' ? '#00eaff' : player.rarity === 'epic' ? '#8e38ff' : 'gold'}">
+                ${stars} OVR ${collectionData.overall}
+            </div>
+            ${fusionCount}
+            <div class="player-stats">
+                <div class="stat-item">
+                    <div class="stat-value-small">${player.pac}</div>
+                    <div class="stat-label-small">PAC</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value-small">${player.sho}</div>
+                    <div class="stat-label-small">SHO</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value-small">${player.pas}</div>
+                    <div class="stat-label-small">PAS</div>
+                </div>
+            </div>
+        `;
+        
+        playerCard.addEventListener("click", () => openPlayerDetails(player.id));
+        container.appendChild(playerCard);
+    });
+    
+    if (!hasFilteredPlayers) {
+        container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #aaa;">
+                Aucun joueur ne correspond aux filtres sélectionnés
+            </div>
+        `;
+    }
+}
+
+// Ouvrir les détails d'un joueur
+function openPlayerDetails(playerId) {
+    const playerData = getPlayerFromCollection(playerId);
+    if (!playerData) return;
+    
+    const collectionData = userData.collection[playerId];
+    
+    let modalContent = `
+        <div style="text-align: center;">
+            <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #6d00ff, #00eaff); display: inline-flex; align-items: center; justify-content: center; font-size: 36px; margin-bottom: 20px;">
+                ${playerData.name.split(' ')[0].charAt(0)}${playerData.name.split(' ')[1] ? playerData.name.split(' ')[1].charAt(0) : ''}
+            </div>
+            <h3 style="color: #00eaff; margin-bottom: 10px;">${playerData.name}</h3>
+            <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <div style="background: rgba(0,234,255,0.1); padding: 8px 15px; border-radius: 20px;">
+                    ${playerData.position}
+                </div>
+                <div style="background: rgba(109,0,255,0.1); padding: 8px 15px; border-radius: 20px;">
+                    ${playerData.club}
+                </div>
+                <div style="background: rgba(255,215,0,0.1); padding: 8px 15px; border-radius: 20px; color: gold;">
+                    OVR ${playerData.overall}
+                </div>
+            </div>
+            
+            ${collectionData && collectionData.fusionLevel > 0 ? `
+                <div style="background: rgba(255,215,0,0.1); border: 2px solid gold; border-radius: 10px; padding: 10px; margin-bottom: 15px;">
+                    <div style="color: gold; font-weight: bold;">Niveau de Fusion: +${collectionData.fusionLevel}</div>
+                    <div style="font-size: 12px; color: #aaa;">OVR original: ${playerData.baseOverall || playerData.overall - collectionData.fusionLevel}</div>
+                </div>
+            ` : ''}
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0;">
+                <div style="text-align: left;">
+                    <h4 style="color: #00eaff; margin-bottom: 10px;">Statistiques</h4>
+                    <div style="background: rgba(26,26,37,0.8); padding: 15px; border-radius: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Pace:</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.pac}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Shooting:</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.sho}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Passing:</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.pas}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Dribbling:</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.dri}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Defending:</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.def}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Physical:</span>
+                            <span style="font-weight: bold; color: #00eaff;">${playerData.phy}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: left;">
+                    <h4 style="color: #00eaff; margin-bottom: 10px;">Informations</h4>
+                    <div style="background: rgba(26,26,37,0.8); padding: 15px; border-radius: 10px;">
+                        <div style="margin-bottom: 8px;">
+                            <div style="color: #aaa; font-size: 12px;">Nationalité</div>
+                            <div style="font-weight: bold;">${playerData.nation}</div>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <div style="color: #aaa; font-size: 12px;">Rareté</div>
+                            <div style="font-weight: bold; color: ${playerData.rarity === 'common' ? '#aaa' : playerData.rarity === 'rare' ? '#00eaff' : playerData.rarity === 'epic' ? '#8e38ff' : 'gold'}">
+                                ${playerData.rarity.charAt(0).toUpperCase() + playerData.rarity.slice(1)}
+                            </div>
+                        </div>
+                        <div>
+                            <div style="color: #aaa; font-size: 12px;">Dans votre collection</div>
+                            <div style="font-weight: bold; color: #00eaff;">
+                                ${collectionData ? (collectionData.count || 1) : 1} exemplaire(s)
+                                ${collectionData && collectionData.count > 0 ? `(${collectionData.count}/${getFusionRequirement(collectionData.fusionLevel)} pour fusion)` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    `;
+    
+    // Vérifier si le joueur est dans l'équipe
+    const isInTeam = userData.team && Object.values(userData.team).includes(playerId);
+    if (isInTeam) {
+        modalContent += `
+            <div style="margin-top: 20px; padding: 15px; background: rgba(0,255,0,0.1); border-radius: 10px; border: 2px solid #00ff00;">
+                <i class="fas fa-check-circle" style="color: #00ff00; margin-right: 10px;"></i>
+                Ce joueur est actuellement dans votre équipe
+            </div>
+        `;
+    }
+    
+    modalContent += `</div>`;
+    
+    document.getElementById("player-modal-content").innerHTML = modalContent;
+    document.getElementById("player-modal").style.display = "flex";
+}
+
+// Trouver un joueur par son ID
+function findPlayerById(playerId) {
+    for (const rarity in footballPlayersDB) {
+        const player = footballPlayersDB[rarity].find(p => p.id === playerId);
+        if (player) return player;
+    }
+    return null;
+}
+
+// Ajouter un joueur à la collection
+async function addPlayerToCollection(playerId) {
+    if (!userData.collection) userData.collection = {};
+    
+    const player = findPlayerById(playerId);
+    if (!player) return;
+    
+    if (userData.collection[playerId]) {
+        // Doublon -> Augmenter le compteur
+        userData.collection[playerId].count = (userData.collection[playerId].count || 0) + 1;
+        
+        // Vérifier si on peut fusionner
+        const fusionRequirement = getFusionRequirement(userData.collection[playerId].fusionLevel);
+        if (userData.collection[playerId].count >= fusionRequirement) {
+            // Fusion automatique
+            await autoFusionPlayer(playerId);
+        } else {
+            showNotification(`${player.name} déjà possédé! Copies: ${userData.collection[playerId].count}/${fusionRequirement}`, "info");
+        }
+    } else {
+        // Nouveau joueur -> Ajout à la collection
+        userData.collection[playerId] = {
+            id: playerId,
+            overall: player.overall,
+            baseOverall: player.overall,
+            fusionLevel: 0,
+            count: 1,
+            rarity: player.rarity
+        };
+        
+        showNotification(`Nouveau joueur: ${player.name} (OVR ${player.overall})`, "success");
+    }
+    
+    await saveUserData();
+    updateCollectionDisplay();
+    updateTeamDisplay();
+}
+
+// Fusion automatique
+async function autoFusionPlayer(playerId) {
+    const player = findPlayerById(playerId);
+    const playerInCollection = userData.collection[playerId];
+    
+    if (!player || !playerInCollection) return;
+    
+    // Calculer le boost selon la rareté
+    const boost = getFusionBoost(player.rarity);
+    
+    // Améliorer le joueur
+    playerInCollection.overall = Math.min(99, playerInCollection.overall + boost);
+    playerInCollection.fusionLevel++;
+    playerInCollection.count = 0;
+    
+    // Afficher effet de fusion
+    showNotification(`Fusion réussie! ${player.name} +${boost} OVR (Niveau ${playerInCollection.fusionLevel})`, "success");
+    
+    // Effet visuel
+    const playerCard = document.querySelector(`[data-player-id="${playerId}"]`);
+    if (playerCard) {
+        playerCard.classList.add('fusion-effect');
+        setTimeout(() => playerCard.classList.remove('fusion-effect'), 1000);
+    }
+    
+    await saveUserData();
+}
+
+function getFusionRequirement(fusionLevel) {
+    return 2 + fusionLevel; // 2, 3, 4...
+}
+
+function getFusionBoost(rarity) {
+    const boosts = {
+        common: 1,
+        rare: 2,
+        epic: 3,
+        legendary: 5
+    };
+    return boosts[rarity] || 1;
+}
+
+// Acheter un pack
+async function buyPack(packType) {
+    const packPrices = {
+        bronze: { coins: 500, gems: 0 },
+        silver: { coins: 1500, gems: 0 },
+        gold: { gems: 50, coins: 0 },
+        legendary: { gems: 150, coins: 0 }
+    };
+    
+    const packContents = {
+        bronze: { count: 3, guaranteed: "rare" },
+        silver: { count: 5, guaranteed: "epic" },
+        gold: { count: 7, guaranteed: "legendary" },
+        legendary: { count: 10, guaranteed: "legendary", guaranteedCount: 3 }
+    };
+    
+    const price = packPrices[packType];
+    const content = packContents[packType];
+    
+    // Vérifier si l'utilisateur a assez d'argent
+    if (price.coins > 0 && (userData.coins || 0) < price.coins) {
+        showNotification("Pas assez de coins!", "error");
+        return;
+    }
+    if (price.gems > 0 && (userData.gems || 0) < price.gems) {
+        showNotification("Pas assez de gems!", "error");
+        return;
+    }
+    
+    // Déduire le prix
+    if (price.coins > 0) userData.coins = (userData.coins || 0) - price.coins;
+    if (price.gems > 0) userData.gems = (userData.gems || 0) - price.gems;
+    
+    // Générer les joueurs
+    const players = [];
+    const rarities = ["common", "rare", "epic", "legendary"];
+    
+    // Joueur(s) garanti(s)
+    if (content.guaranteedCount) {
+        for (let i = 0; i < content.guaranteedCount; i++) {
+            const playerList = footballPlayersDB[content.guaranteed];
+            const randomPlayer = playerList[Math.floor(Math.random() * playerList.length)];
+            players.push({ ...randomPlayer });
+            
+            // Ajouter à la collection
+            await addPlayerToCollection(randomPlayer.id);
+        }
+    } else {
+        const playerList = footballPlayersDB[content.guaranteed];
+        const randomPlayer = playerList[Math.floor(Math.random() * playerList.length)];
+        players.push({ ...randomPlayer });
+        await addPlayerToCollection(randomPlayer.id);
+    }
+    
+    // Générer les joueurs restants
+    const remainingCount = content.count - (content.guaranteedCount || 1);
+    const rarityWeights = {
+        bronze: { common: 0.7, rare: 0.25, epic: 0.04, legendary: 0.01 },
+        silver: { common: 0.5, rare: 0.35, epic: 0.12, legendary: 0.03 },
+        gold: { common: 0.2, rare: 0.3, epic: 0.4, legendary: 0.1 },
+        legendary: { common: 0.05, rare: 0.15, epic: 0.3, legendary: 0.5 }
+    };
+    
+    const weights = rarityWeights[packType];
+    
+    for (let i = 0; i < remainingCount; i++) {
+        const rand = Math.random();
+        let selectedRarity = "common";
+        
+        if (rand < weights.common) selectedRarity = "common";
+        else if (rand < weights.common + weights.rare) selectedRarity = "rare";
+        else if (rand < weights.common + weights.rare + weights.epic) selectedRarity = "epic";
+        else selectedRarity = "legendary";
+        
+        const playerList = footballPlayersDB[selectedRarity];
+        const randomPlayer = playerList[Math.floor(Math.random() * playerList.length)];
+        players.push({ ...randomPlayer });
+        
+        // Ajouter à la collection
+        await addPlayerToCollection(randomPlayer.id);
+    }
+    
+    // Ajouter de l'XP
+    addXP(25);
+    
+    // Sauvegarder et mettre à jour
+    await saveUserData();
+    updateDashboard();
+    updateCollectionDisplay();
+    
+    // Afficher les résultats
+    showPackResults(players, packType);
+}
+
+// Afficher les résultats d'un pack
+function showPackResults(players, packType) {
+    const packNames = {
+        bronze: "BRONZE",
+        silver: "ARGENT",
+        gold: "OR",
+        legendary: "LÉGENDAIRE"
+    };
+    
+    document.getElementById("pack-modal-title").textContent = `PACK ${packNames[packType]} OUVERT!`;
+    
+    const resultsContainer = document.getElementById("pack-results");
+    resultsContainer.innerHTML = '';
+    
+    players.forEach((player, index) => {
+        setTimeout(() => {
+            const playerCard = document.createElement("div");
+            playerCard.className = "player-card";
+            playerCard.style.borderColor = player.rarity === "common" ? "#aaa" : 
+                                          player.rarity === "rare" ? "#00eaff" : 
+                                          player.rarity === "epic" ? "#8e38ff" : "gold";
+            playerCard.style.animation = "none";
+            playerCard.style.opacity = "0";
+            playerCard.style.transform = "scale(0.8)";
+            
+            // Rareté en étoiles
+            let stars = "";
+            switch(player.rarity) {
+                case "common": stars = "★"; break;
+                case "rare": stars = "★★"; break;
+                case "epic": stars = "★★★"; break;
+                case "legendary": stars = "★★★★"; break;
+            }
+            
+            playerCard.innerHTML = `
+                <div class="player-photo" style="width: 60px; height: 60px; font-size: 24px;">
+                    ${player.name.split(' ')[0].charAt(0)}${player.name.split(' ')[1] ? player.name.split(' ')[1].charAt(0) : ''}
+                </div>
+                <h4 style="font-size: 14px;">${player.name}</h4>
+                <div style="font-size: 11px; color: #aaa;">${player.position}</div>
+                <div style="font-size: 12px; font-weight: bold; margin: 5px 0; color: ${player.rarity === 'common' ? '#aaa' : player.rarity === 'rare' ? '#00eaff' : player.rarity === 'epic' ? '#8e38ff' : 'gold'}">
+                    ${stars} OVR ${player.overall}
+                </div>
+            `;
+            
+            resultsContainer.appendChild(playerCard);
+            
+            // Animation d'apparition
+            setTimeout(() => {
+                playerCard.style.transition = "all 0.5s ease";
+                playerCard.style.opacity = "1";
+                playerCard.style.transform = "scale(1)";
+            }, 50);
+            
+        }, index * 200);
+    });
+    
+    document.getElementById("pack-modal").style.display = "flex";
+}
+
+// Acheter des devises
+function buyCurrency(amount, price) {
+    if ((userData.gems || 0) < price) {
+        showNotification("Pas assez de gems!", "error");
+        return;
+    }
+    
+    userData.gems = (userData.gems || 0) - price;
+    userData.coins = (userData.coins || 0) + amount;
+    
+    saveUserData();
+    updateDashboard();
+    
+    showNotification(`Achat réussi! +${amount} coins`, "success");
+}
+
+// Jouer un match rapide
+function playQuickMatch() {
+    playMatch(false);
+}
+
+// Jouer un match de ligue
+function playLeagueMatch() {
+    playMatch(true);
+}
+
+// Simuler un match
+function playMatch(isLeagueMatch) {
+    // Vérifier que l'équipe est complète
+    if (!userData.team) {
+        showNotification("Votre équipe n'est pas configurée!", "error");
+        return;
+    }
+    
+    const emptyPositions = Object.values(userData.team).filter(id => !id).length;
+    if (emptyPositions > 0) {
+        showNotification(`Votre équipe n'est pas complète! ${emptyPositions} position(s) vacante(s).`, "error");
+        return;
+    }
+    
+    // Calculer la force de l'équipe
+    const playerPower = calculateTeamPower();
+    
+    // Générer une force adverse basée sur la puissance du joueur
+    const opponentPower = playerPower + (Math.random() * 20 - 10); // +/- 10 points
+    const opponentPowerRounded = Math.max(60, Math.min(99, Math.round(opponentPower)));
+    
+    // Simuler le match détaillé
+    const simulationResult = simulateDetailedMatch(playerPower, opponentPowerRounded);
+    
+    // Traiter le résultat
+    processMatchResult(simulationResult, isLeagueMatch);
+    
+    // Afficher le résultat avec détails
+    showDetailedMatchResult(simulationResult, playerPower, opponentPowerRounded);
+}
+
+function calculateTeamPower() {
+    if (!userData.team) return 0;
+    
+    let totalPower = 0;
+    let count = 0;
+    
+    Object.values(userData.team).forEach(playerId => {
+        const playerData = getPlayerFromCollection(playerId);
+        if (playerData) {
+            totalPower += playerData.overall;
+            count++;
+        }
+    });
+    
+    // Ajouter bonus de synergie
+    const synergyBonus = calculateSynergyBonus();
+    const avgPower = count > 0 ? totalPower / count : 0;
+    
+    return avgPower + synergyBonus;
+}
+
+function calculateSynergyBonus() {
+    if (!userData.team) return 0;
+    
+    let bonus = 0;
+    const players = [];
+    const nationalities = {};
+    const clubs = {};
+    
+    // Collecter les données des joueurs
+    Object.values(userData.team).forEach(playerId => {
+        const playerData = getPlayerFromCollection(playerId);
+        if (playerData) {
+            players.push(playerData);
+            
+            // Compter les nationalités
+            nationalities[playerData.nation] = (nationalities[playerData.nation] || 0) + 1;
+            
+            // Compter les clubs
+            clubs[playerData.club] = (clubs[playerData.club] || 0) + 1;
+        }
+    });
+    
+    // Bonus par nation
+    Object.values(nationalities).forEach(count => {
+        if (count >= 3) bonus += 1;
+        if (count >= 5) bonus += 2;
+        if (count >= 7) bonus += 3;
+    });
+    
+    // Bonus par club
+    Object.values(clubs).forEach(count => {
+        if (count >= 4) bonus += 2;
+        if (count >= 7) bonus += 3;
+        if (count >= 9) bonus += 4;
+    });
+    
+    // Bonus par rareté
+    const rarities = {};
+    players.forEach(player => {
+        rarities[player.rarity] = (rarities[player.rarity] || 0) + 1;
+    });
+    
+    if (rarities.legendary && rarities.legendary >= 3) bonus += 3;
+    if (rarities.epic && rarities.epic >= 5) bonus += 2;
+    
+    return Math.min(bonus, 10); // Limiter le bonus maximum à 10
+}
+
+function simulateDetailedMatch(playerPower, opponentPower) {
+    const events = [];
+    let playerScore = 0;
+    let opponentScore = 0;
+    
+    // Simulation par minute (90 minutes)
+    for (let minute = 1; minute <= 90; minute++) {
+        // Chance d'action chaque minute (30%)
+        if (Math.random() < 0.3) {
+            const action = getRandomMatchAction();
+            const actionResult = simulateMatchAction(action, playerPower, opponentPower, minute);
+            
+            events.push({
+                minute: minute,
+                action: action,
+                result: actionResult.result,
+                details: actionResult.details,
+                goalFor: actionResult.goalFor
+            });
+            
+            if (actionResult.goalFor === 'player') playerScore++;
+            if (actionResult.goalFor === 'opponent') opponentScore++;
+        }
+        
+        // Pause à la mi-temps
+        if (minute === 45) {
+            events.push({
+                minute: 45,
+                action: "PAUSE",
+                result: "Mi-temps",
+                details: "Les équipes se dirigent vers les vestiaires",
+                goalFor: null
+            });
+        }
+    }
+    
+    // Ajouter le coup de sifflet final
+    events.push({
+        minute: 90,
+        action: "FIN",
+        result: "Fin du match",
+        details: "L'arbitre siffle la fin de la rencontre",
+        goalFor: null
+    });
+    
+    return {
+        playerScore: playerScore,
+        opponentScore: opponentScore,
+        events: events,
+        playerPower: playerPower,
+        opponentPower: opponentPower
+    };
+}
+
+function getRandomMatchAction() {
+    const actions = [
+        { type: "PASS", weight: 0.3 },
+        { type: "TACKLE", weight: 0.2 },
+        { type: "SHOT", weight: 0.2 },
+        { type: "COUNTER", weight: 0.15 },
+        { type: "CORNER", weight: 0.08 },
+        { type: "FREE_KICK", weight: 0.07 }
+    ];
+    
+    const totalWeight = actions.reduce((sum, action) => sum + action.weight, 0);
+    let random = Math.random() * totalWeight;
+    
+    for (const action of actions) {
+        if (random < action.weight) {
+            return action.type;
+        }
+        random -= action.weight;
+    }
+    
+    return "PASS";
+}
+
+function simulateMatchAction(actionType, playerPower, opponentPower, minute) {
+    const powerDiff = playerPower - opponentPower;
+    const playerChance = 50 + (powerDiff * 0.8); // Ajuster l'impact de la différence de puissance
+    
+    let result = '';
+    let details = '';
+    let goalFor = null;
+    
+    switch(actionType) {
+        case 'SHOT':
+            if (Math.random() * 100 < playerChance) {
+                // Le joueur tire
+                const shotQuality = 30 + (playerPower * 0.5) + (Math.random() * 20);
+                if (shotQuality > 85) {
+                    result = 'BUT!';
+                    goalFor = 'player';
+                    details = 'Tir précis dans la lucarne! Magnifique but!';
+                } else if (shotQuality > 70) {
+                    result = 'Tir arrêté';
+                    details = 'Le gardien fait une belle parade';
+                } else if (shotQuality > 50) {
+                    result = 'Tir sur le poteau';
+                    details = 'Le ballon heurte le poteau!';
+                } else {
+                    result = 'Tir manqué';
+                    details = 'Le tir passe au-dessus de la barre';
+                }
+            } else {
+                // L'adversaire contre-attaque
+                const counterChance = 20 + (opponentPower * 0.3);
+                if (Math.random() * 100 < counterChance) {
+                    result = 'CONTRE-ATTAQUE!';
+                    goalFor = 'opponent';
+                    details = 'Contre-attaque rapide aboutie!';
+                } else {
+                    result = 'Contre raté';
+                    details = 'La contre-attaque est mal ajustée';
+                }
+            }
+            break;
+            
+        case 'PASS':
+            if (Math.random() * 100 < playerChance) {
+                const passQuality = 40 + (playerPower * 0.4) + (Math.random() * 20);
+                if (passQuality > 80) {
+                    result = 'Passe décisive';
+                    details = 'Passe magistrale qui découpe la défense';
+                } else if (passQuality > 60) {
+                    result = 'Passe réussie';
+                    details = 'Belle circulation de balle';
+                } else {
+                    result = 'Passe interceptée';
+                    details = 'La passe est coupée par un défenseur';
+                }
+            } else {
+                result = 'Perte de balle';
+                details = 'Mauvaise passe qui donne le ballon à l\'adversaire';
+            }
+            break;
+            
+        case 'TACKLE':
+            if (Math.random() * 100 < playerChance) {
+                result = 'Tacle réussi';
+                details = 'Récupération propre du ballon';
+            } else {
+                const foulChance = 30;
+                if (Math.random() * 100 < foulChance) {
+                    result = 'Faute';
+                    details = 'Tacle trop appuyé, l\'arbitre siffle la faute';
+                } else {
+                    result = 'Tacle raté';
+                    details = 'Le joueur est dribblé';
+                }
+            }
+            break;
+            
+        case 'CORNER':
+            if (Math.random() * 100 < playerChance) {
+                const cornerSuccess = 40 + (playerPower * 0.3);
+                if (Math.random() * 100 < cornerSuccess) {
+                    result = 'Corner dangereux';
+                    details = 'Centre précis qui trouve un attaquant';
+                } else {
+                    result = 'Corner dégagé';
+                    details = 'Le gardien sort et punch le ballon';
+                }
+            } else {
+                result = 'Corner mal tiré';
+                details = 'Le corner sort directement';
+            }
+            break;
+            
+        default:
+            result = 'Action';
+            details = 'Échange de balle au milieu du terrain';
+    }
+    
+    return { result, details, goalFor };
+}
+
+function processMatchResult(simulationResult, isLeagueMatch) {
+    const playerScore = simulationResult.playerScore;
+    const opponentScore = simulationResult.opponentScore;
+    
+    let result, points, coins, xp;
+    
+    if (playerScore > opponentScore) {
+        result = "VICTOIRE";
+        points = isLeagueMatch ? 3 : 1;
+        coins = 200 + (playerScore * 25);
+        xp = 50 + (playerScore * 5);
+        userData.wins = (userData.wins || 0) + 1;
+    } else if (playerScore < opponentScore) {
+        result = "DÉFAITE";
+        points = 0;
+        coins = 50;
+        xp = 20;
+        userData.losses = (userData.losses || 0) + 1;
+    } else {
+        result = "MATCH NUL";
+        points = isLeagueMatch ? 1 : 0;
+        coins = 100 + (playerScore * 15);
+        xp = 30 + (playerScore * 3);
+        userData.draws = (userData.draws || 0) + 1;
+    }
+    
+    // Mettre à jour les statistiques
+    userData.matchesPlayed = (userData.matchesPlayed || 0) + 1;
+    userData.goalsScored = (userData.goalsScored || 0) + playerScore;
+    userData.goalsConceded = (userData.goalsConceded || 0) + opponentScore;
+    userData.coins = (userData.coins || 0) + coins;
+    
+    if (isLeagueMatch) {
+        // Mete ajou pwen ligue
+        userData.league.points = (userData.league.points || 0) + points;
+        
+        // Ajouter le match à l'historique de la semaine
+        const matchRecord = {
+            date: new Date().toISOString(),
+            result: result,
+            score: `${playerScore}-${opponentScore}`,
+            points: points,
+            opponentPower: simulationResult.opponentPower
+        };
+        
+        if (!userData.weeklyMatches) {
+            userData.weeklyMatches = [];
+        }
+        userData.weeklyMatches.push(matchRecord);
+        
+        // Garder seulement les 10 derniers matchs
+        if (userData.weeklyMatches.length > 10) {
+            userData.weeklyMatches = userData.weeklyMatches.slice(-10);
+        }
+        
+        // Vérifier promotion/relégation
+        checkPromotionRelegation();
+    }
+    
+    // Ajouter XP et vérifier le niveau
+    addXP(xp);
+    
+    // Vérifier les badges
+    checkBadges();
+    
+    // Sauvegarder
+    saveUserData();
+    updateDashboard();
+    updateWeeklyMatches();
+    updateLeagueSystem();
+    
+    return { result, playerScore, opponentScore, coins, xp, points };
+}
+
+function showDetailedMatchResult(simulationResult, playerPower, opponentPower) {
+    const matchResult = processMatchResult(simulationResult, true);
+    const resultContent = document.getElementById("match-result-content");
+    const eventsContainer = document.getElementById("match-events");
+    
+    let resultColor = "#00eaff";
+    let resultIcon = "⚽";
+    
+    if (matchResult.result === "VICTOIRE") {
+        resultColor = "#00ff00";
+        resultIcon = "🏆";
+    } else if (matchResult.result === "DÉFAITE") {
+        resultColor = "#ff4444";
+        resultIcon = "😢";
+    }
+    
+    resultContent.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 20px;">${resultIcon}</div>
+        <h3 style="color: ${resultColor}; margin-bottom: 20px; font-size: 28px;">${matchResult.result}!</h3>
+        
+        <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin: 30px 0;">
+            <div style="text-align: center;">
+                <div style="font-size: 14px; color: #aaa;">Votre Équipe</div>
+                <div style="font-size: 48px; font-weight: bold; color: #00eaff;">${matchResult.playerScore}</div>
+                <div style="font-size: 12px; color: #aaa;">Puissance: ${Math.round(playerPower)}</div>
+            </div>
+            <div style="font-size: 24px; font-weight: bold;">-</div>
+            <div style="text-align: center;">
+                <div style="font-size: 14px; color: #aaa;">Adversaire</div>
+                <div style="font-size: 48px; font-weight: bold; color: #ff4444;">${matchResult.opponentScore}</div>
+                <div style="font-size: 12px; color: #aaa;">Puissance: ${Math.round(opponentPower)}</div>
+            </div>
+        </div>
+        
+        <div style="background: rgba(26,26,37,0.8); border-radius: 12px; padding: 20px; margin-top: 20px;">
+            <h4 style="color: #00eaff; margin-bottom: 15px;">Récompenses</h4>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 12px; color: #aaa;">Coins</div>
+                    <div style="font-size: 24px; font-weight: bold; color: gold;">+${matchResult.coins}</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 12px; color: #aaa;">XP</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #00eaff;">+${matchResult.xp}</div>
+                </div>
+                ${matchResult.points > 0 ? `
+                <div style="text-align: center; grid-column: 1/-1;">
+                    <div style="font-size: 12px; color: #aaa;">Points de Ligue</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #8e38ff;">+${matchResult.points}</div>
+                </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    // Afficher les événements du match
+    eventsContainer.innerHTML = '<h4 style="color: #00eaff; margin-bottom: 10px;">Résumé du Match</h4>';
+    simulationResult.events.forEach(event => {
+        if (event.action === "PAUSE" || event.action === "FIN") {
+            const eventDiv = document.createElement("div");
+            eventDiv.className = "match-event";
+            eventDiv.style.background = "rgba(109,0,255,0.2)";
+            eventDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: bold; color: #00eaff;">${event.minute}'</span>
+                    <span style="font-weight: bold;">${event.result}</span>
+                </div>
+                <div style="font-size: 11px; color: #aaa; margin-top: 5px;">${event.details}</div>
+            `;
+            eventsContainer.appendChild(eventDiv);
+        } else if (event.goalFor) {
+            const eventDiv = document.createElement("div");
+            eventDiv.className = "match-event";
+            eventDiv.style.background = event.goalFor === 'player' ? "rgba(0,255,0,0.1)" : "rgba(255,0,0,0.1)";
+            eventDiv.style.borderColor = event.goalFor === 'player' ? "#00ff00" : "#ff4444";
+            eventDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: bold; color: ${event.goalFor === 'player' ? '#00ff00' : '#ff4444'};">${event.minute}' ⚽ BUT!</span>
+                    <span style="font-weight: bold;">${event.result}</span>
+                </div>
+                <div style="font-size: 11px; color: #aaa; margin-top: 5px;">${event.details}</div>
+            `;
+            eventsContainer.appendChild(eventDiv);
+        } else {
+            const eventDiv = document.createElement("div");
+            eventDiv.className = "match-event";
+            eventDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: bold; color: #00eaff;">${event.minute}' ${getActionIcon(event.action)}</span>
+                    <span>${event.result}</span>
+                </div>
+                <div style="font-size: 11px; color: #aaa; margin-top: 5px;">${event.details}</div>
+            `;
+            eventsContainer.appendChild(eventDiv);
+        }
+    });
+    
+    document.getElementById("match-modal").style.display = "flex";
+}
+
+function getActionIcon(action) {
+    const icons = {
+        "PASS": "↔️",
+        "SHOT": "⚽",
+        "TACKLE": "🛡️",
+        "COUNTER": "⚡",
+        "CORNER": "↩️",
+        "FREE_KICK": "🎯"
+    };
+    return icons[action] || "🔄";
+}
+
+// Ajouter de l'XP
+function addXP(amount) {
+    userData.xp = (userData.xp || 0) + amount;
+    const level = userData.level || 1;
+    const xpNeeded = level * 100;
+    
+    if (userData.xp >= xpNeeded) {
+        userData.level = level + 1;
+        userData.xp = userData.xp - xpNeeded;
+        userData.coins = (userData.coins || 0) + (userData.level * 100);
+        userData.gems = (userData.gems || 0) + Math.floor(userData.level / 2);
+        
+        showNotification(`Level Up! Vous êtes maintenant niveau ${userData.level}`, "success");
+    }
+}
+
+// Récompense quotidienne
+async function claimDailyReward() {
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (userData.lastDailyClaim === today) {
+        showNotification("Vous avez déjà réclamé votre récompense aujourd'hui!", "error");
+        document.getElementById("quick-daily").classList.add("daily-reward-disabled");
+        return;
+    }
+    
+    const rewardCoins = 100 + ((userData.level || 1) * 10);
+    const rewardGems = Math.floor((userData.level || 1) / 3) + 1;
+    
+    userData.coins = (userData.coins || 0) + rewardCoins;
+    userData.gems = (userData.gems || 0) + rewardGems;
+    userData.lastDailyClaim = today;
+    
+    await saveUserData();
+    updateDashboard();
+    
+    showNotification(`Récompense quotidienne: +${rewardCoins} coins, +${rewardGems} gems!`, "success");
+    
+    // Désactiver le bouton pour aujourd'hui
+    document.getElementById("quick-daily").classList.add("daily-reward-disabled");
+}
+
+function checkDailyRewardAvailability() {
+    const today = new Date().toISOString().split('T')[0];
+    if (userData.lastDailyClaim === today) {
+        document.getElementById("quick-daily").classList.add("daily-reward-disabled");
+    }
+}
+
+// Classement global avec emblèmes
+async function updateGlobalRanking() {
+    try {
+        const usersSnapshot = await firebaseDb.ref('users').once('value');
+        const allUsers = usersSnapshot.val() || {};
+        
+        const rankingArray = [];
+        
+        // Convertir en tableau et calculer le classement
+        Object.keys(allUsers).forEach(userId => {
+            const user = allUsers[userId];
+            if (user && user.league && user.teamID) {
+                const leagueData = user.league;
+                rankingArray.push({
+                    id: userId,
+                    teamID: user.teamID,
+                    name: user.name || userId.substring(0, 8),
+                    points: leagueData.points || 0,
+                    level: user.level || 1,
+                    wins: user.wins || 0,
+                    division: leagueData.division || 1,
+                    ultimateEmblems: leagueData.ultimateEmblems || 0,
+                    teamPower: user.teamPower || 0,
+                    matchesPlayed: user.matchesPlayed || 0
+                });
+            }
+        });
+        
+        // Trier par points (puis par puissance d'équipe en cas d'égalité)
+        rankingArray.sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            return (b.teamPower || 0) - (a.teamPower || 0);
+        });
+        
+        // Mettre à jour l'affichage
+        const rankingContainer = document.getElementById("global-ranking");
+        rankingContainer.innerHTML = '';
+        
+        rankingArray.forEach((player, index) => {
+            const rankItem = document.createElement("div");
+            const isYou = player.id === currentUser.uid;
+            rankItem.className = `ranking-item ${isYou ? "you" : ""}`;
+            
+            const divisionName = divisions[player.division - 1]?.name || 'Bronze';
+            const emblemDisplay = getEmblemDisplay(player.ultimateEmblems);
+            
+            rankItem.innerHTML = `
+                <div class="rank rank-${index + 1}">${index + 1}</div>
+                <div class="player-rank-info">
+                    <div class="player-rank-name">
+                        ${player.name} ${emblemDisplay}
+                    </div>
+                    <div class="player-rank-team">${divisionName} | Niv. ${player.level} | ${player.wins}V</div>
+                </div>
+                <div class="player-rank-points">${player.points.toLocaleString()}</div>
+            `;
+            
+            rankingContainer.appendChild(rankItem);
+            
+            if (isYou) {
+                userData.ranking = index + 1;
+                document.getElementById("your-ranking").innerHTML = `
+                    <div style="font-size: 36px; color: #00eaff;">#${index + 1}</div>
+                    <div style="font-size: 14px; color: #aaa;">sur ${rankingArray.length} joueurs</div>
+                    <div style="font-size: 12px; color: #aaa; margin-top: 5px;">Division: ${divisionName}</div>
+                    ${player.ultimateEmblems > 0 ? `
+                        <div style="margin-top: 10px;">
+                            <span style="color: gold;">🏆 ${player.ultimateEmblems} emblème(s) Ultimate</span>
+                        </div>
+                    ` : ''}
+                `;
+            }
+        });
+        
+    } catch (error) {
+        console.error("Erreur de chargement du classement:", error);
+        // Fallback au classement simulé
+        showNotification("Classement en maintenance, utilisation du classement simulé", "warning");
+        updateGlobalRankingFallback();
+    }
+}
+
+function updateGlobalRankingFallback() {
+    // Classement simulé en cas d'erreur
+    const rankingContainer = document.getElementById("global-ranking");
+    rankingContainer.innerHTML = '';
+    
+    // Classement simulé
+    const mockRanking = [
+        { name: "Champion123", points: 2450, level: 25, wins: 120, division: 4, ultimateEmblems: 5 },
+        { name: "FootballPro", points: 2380, level: 24, wins: 115, division: 4, ultimateEmblems: 3 },
+        { name: "GoldenBoot", points: 2310, level: 23, wins: 110, division: 3, ultimateEmblems: 1 },
+        { 
+            name: currentUser ? currentUser.email.split('@')[0] : "Joueur", 
+            points: userData.league ? userData.league.points : 0, 
+            level: userData.level || 1, 
+            wins: userData.wins || 0, 
+            division: userData.league ? userData.league.division : 1,
+            ultimateEmblems: userData.league ? userData.league.ultimateEmblems : 0
+        },
+        { name: "Striker99", points: 2150, level: 22, wins: 105, division: 3, ultimateEmblems: 0 },
+        { name: "DefenseKing", points: 2080, level: 21, wins: 100, division: 3, ultimateEmblems: 0 },
+        { name: "MidfieldMaestro", points: 2010, level: 20, wins: 95, division: 3, ultimateEmblems: 0 },
+        { name: "GoalieGod", points: 1950, level: 19, wins: 90, division: 2, ultimateEmblems: 0 },
+        { name: "TacticalGenius", points: 1880, level: 18, wins: 85, division: 2, ultimateEmblems: 0 },
+        { name: "UltimateManager", points: 1810, level: 17, wins: 80, division: 2, ultimateEmblems: 0 }
+    ];
+    
+    // Trier par points
+    mockRanking.sort((a, b) => b.points - a.points);
+    
+    mockRanking.forEach((player, index) => {
+        const rankItem = document.createElement("div");
+        const isYou = player.name === (currentUser ? currentUser.email.split('@')[0] : "Joueur");
+        rankItem.className = `ranking-item ${isYou ? "you" : ""}`;
+        
+        const divisionName = divisions[player.division - 1]?.name || 'Bronze';
+        const emblemDisplay = getEmblemDisplay(player.ultimateEmblems);
+        
+        rankItem.innerHTML = `
+            <div class="rank rank-${index + 1}">${index + 1}</div>
+            <div class="player-rank-info">
+                <div class="player-rank-name">
+                    ${player.name} ${emblemDisplay}
+                </div>
+                <div class="player-rank-team">${divisionName} | Niv. ${player.level} | ${player.wins}V</div>
+            </div>
+            <div class="player-rank-points">${player.points.toLocaleString()}</div>
+        `;
+        
+        rankingContainer.appendChild(rankItem);
+        
+        if (isYou) {
+            userData.ranking = index + 1;
+            document.getElementById("your-ranking").innerHTML = `
+                <div style="font-size: 36px; color: #00eaff;">#${index + 1}</div>
+                <div style="font-size: 14px; color: #aaa;">sur ${mockRanking.length} joueurs</div>
+                <div style="font-size: 12px; color: #aaa; margin-top: 5px;">Division: ${divisionName}</div>
+                ${player.ultimateEmblems > 0 ? `
+                    <div style="margin-top: 10px;">
+                        <span style="color: gold;">🏆 ${player.ultimateEmblems} emblème(s) Ultimate</span>
+                    </div>
+                ` : ''}
+            `;
+        }
+    });
+}
+
+// Sélection automatique d'équipe
+function autoSelectTeam() {
+    if (!userData.collection || Object.keys(userData.collection).length === 0) {
+        showNotification("Aucun joueur dans votre collection!", "error");
+        return;
+    }
+    
+    const formation = formations[userData.formation || "4-3-3"];
+    const newTeam = {};
+    
+    // Trier les joueurs par OVR
+    const sortedPlayers = Object.values(userData.collection)
+        .map(collectionData => {
+            const player = findPlayerById(collectionData.id);
+            if (!player) return null;
+            return {
+                id: collectionData.id,
+                player: player,
+                overall: collectionData.overall,
+                position: player.position,
+                collectionData: collectionData
+            };
+        })
+        .filter(p => p !== null)
+        .sort((a, b) => b.overall - a.overall);
+    
+    // Fonction pour trouver le meilleur joueur pour une position
+    function findBestPlayerForPosition(position) {
+        for (const playerData of sortedPlayers) {
+            if (!Object.values(newTeam).includes(playerData.id) && 
+                isPlayerCompatibleWithPosition(playerData.player, position)) {
+                return playerData;
+            }
+        }
+        return null;
+    }
+    
+    // Pour chaque position dans la formation
+    formation.positions.forEach(pos => {
+        const bestPlayer = findBestPlayerForPosition(pos.pos);
+        if (bestPlayer) {
+            newTeam[pos.pos] = bestPlayer.id;
+        } else {
+            // Si aucun joueur trouvé, chercher un joueur compatible de n'importe quelle position
+            for (const playerData of sortedPlayers) {
+                if (!Object.values(newTeam).includes(playerData.id)) {
+                    newTeam[pos.pos] = playerData.id;
+                    break;
+                }
+            }
+        }
+    });
+    
+    userData.team = newTeam;
+    updateTeamDisplay();
+    showNotification("Équipe sélectionnée automatiquement!", "success");
+}
+
+// Mettre à jour le système de ligue
+function updateLeagueSystem() {
+    const divisionIndex = Math.min(Math.max((userData.league ? userData.league.division : 1) - 1, 0), divisions.length - 1);
+    const division = divisions[divisionIndex];
+    const points = userData.league ? userData.league.points : 0;
+    const ultimateEmblems = userData.league ? userData.league.ultimateEmblems : 0;
+    
+    // Mettre à jour l'affichage de la division avec emblèmes
+    const divisionClass = division.name.toLowerCase().replace(' ', '-');
+    let divisionHtml = `Ligue <span class="division-badge ${divisionClass}-division">${division.name}</span>`;
+    
+    if (ultimateEmblems > 0) {
+        divisionHtml += ` <span class="ultimate-emblem-display" title="${ultimateEmblems} emblème(s) Ultimate League">
+            <span class="emblem-icon">🏆</span>
+            <span class="emblem-counter">${ultimateEmblems}</span>
+        </span>`;
+    }
+    
+    document.getElementById("league-division").innerHTML = divisionHtml;
+    
+    // Mettre à jour les seuils
+    document.getElementById("promotion-points").textContent = `Promotion: ${division.promotion} pts`;
+    document.getElementById("relegation-points").textContent = `Relégation: ${division.relegation} pts`;
+    document.getElementById("current-points").textContent = `${points} pts`;
+    
+    // Calculer la progression
+    const range = division.maxPoints - division.minPoints;
+    const progress = range > 0 ? ((points - division.minPoints) / range) * 100 : 0;
+    document.getElementById("league-progress").style.width = `${Math.min(Math.max(progress, 0), 100)}%`;
+    
+    // Afficher info reset
+    const nextReset = calculateNextReset();
+    const now = Date.now();
+    const daysUntilReset = Math.ceil((nextReset - now) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilReset <= 2) {
+        const resetInfo = document.createElement("div");
+        resetInfo.style.cssText = "margin-top: 10px; padding: 8px; background: rgba(255,100,0,0.2); border-radius: 8px; font-size: 12px;";
+        resetInfo.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Reset dans ${daysUntilReset} jour(s): -2 divisions`;
+        
+        const existingInfo = document.querySelector(".reset-warning");
+        if (existingInfo) existingInfo.remove();
+        resetInfo.className = "reset-warning";
+        
+        document.querySelector(".league-info").appendChild(resetInfo);
+    }
+}
+
+function checkPromotionRelegation() {
+    const currentDivision = divisions[(userData.league ? userData.league.division : 1) - 1] || divisions[0];
+    const points = userData.league ? userData.league.points : 0;
+    
+    // Promotion
+    if (points >= currentDivision.promotion && (userData.league ? userData.league.division : 1) < divisions.length) {
+        userData.league.division++;
+        const newDivision = divisions[userData.league.division - 1];
+        showNotification(`Félicitations! Promotion en ${newDivision.name}!`, "success");
+        awardDivisionReward(newDivision);
+    }
+    
+    // Relégation
+    if (points < currentDivision.relegation && (userData.league ? userData.league.division : 1) > 1) {
+        userData.league.division--;
+        const newDivision = divisions[userData.league.division - 1];
+        showNotification(`Relégation en ${newDivision.name}.`, "warning");
+    }
+    
+    // Sauvegarder les changements
+    saveUserData();
+    updateLeagueSystem();
+}
+
+function awardDivisionReward(division) {
+    if (!division.reward) return;
+    
+    const reward = division.reward;
+    userData.coins += reward.coins;
+    userData.gems += reward.gems;
+    
+    showNotification(`Récompense de promotion: ${reward.coins} coins, ${reward.gems} gems!`, "success");
+    
+    // Ajouter un badge si c'est la Ultimate League
+    if (division.name === "Ultimate League" && !userData.badges.includes("badge_league")) {
+        userData.badges.push("badge_league");
+        showNotification("Nouveau badge débloqué: Ultimate League!", "success");
+        updateBadgesDisplay();
+    }
+}
+
+// Mettre à jour l'affichage des matches hebdomadaires
+function updateWeeklyMatches() {
+    const container = document.getElementById("weekly-matches");
+    container.innerHTML = '';
+    
+    if (!userData.weeklyMatches || userData.weeklyMatches.length === 0) {
+        container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #aaa;">
+                Aucun match joué cette semaine
+            </div>
+        `;
+        return;
+    }
+    
+    // Afficher les 10 derniers matchs
+    const recentMatches = userData.weeklyMatches.slice(-10).reverse();
+    
+    recentMatches.forEach((match, index) => {
+        const matchCard = document.createElement("div");
+        matchCard.className = `match-card match-result ${match.result.toLowerCase()}`;
+        
+        const scores = match.score.split('-');
+        const playerScore = parseInt(scores[0]);
+        const opponentScore = parseInt(scores[1]);
+        
+        matchCard.innerHTML = `
+            <div class="match-teams">
+                <div style="font-weight: bold;">Vous</div>
+                <div class="vs">VS</div>
+                <div>Adversaire</div>
+            </div>
+            <div class="match-score">${playerScore} - ${opponentScore}</div>
+            <div style="font-weight: bold; color: ${match.result === 'VICTOIRE' ? '#00ff00' : match.result === 'DÉFAITE' ? '#ff4444' : '#00eaff'}">
+                ${match.result}
+            </div>
+        `;
+        
+        container.appendChild(matchCard);
+    });
+}
+
+// Mettre à jour le profil
+function updateProfile() {
+    // Mettre à jour les statistiques du profil
+    document.getElementById("profile-matches").textContent = userData.matchesPlayed || 0;
+    
+    const matchesPlayed = userData.matchesPlayed || 0;
+    const wins = userData.wins || 0;
+    const winrate = matchesPlayed > 0 ? 
+        Math.round((wins / matchesPlayed) * 100) : 0;
+    document.getElementById("profile-winrate").textContent = winrate + "%";
+    
+    document.getElementById("profile-goals").textContent = userData.goalsScored || 0;
+    document.getElementById("profile-goals-conceded").textContent = userData.goalsConceded || 0;
+    
+    // Mettre à jour les badges
+    updateBadgesDisplay();
+    
+    // Afficher emblèmes Ultimate League
+    displayUltimateEmblems();
+}
+
+// Mettre à jour l'affichage des badges
+function updateBadgesDisplay() {
+    const container = document.getElementById("profile-badges");
+    container.innerHTML = '';
+    
+    badges.forEach(badge => {
+        const badgeElement = document.createElement("div");
+        const hasBadge = userData.badges ? userData.badges.includes(badge.id) : badge.id === "badge_rookie";
+        badgeElement.className = `badge ${hasBadge ? "unlocked" : ""}`;
+        badgeElement.title = `${badge.name}: ${badge.description}`;
+        badgeElement.innerHTML = badge.icon;
+        container.appendChild(badgeElement);
+    });
+}
+
+// Vérifier les badges
+function checkBadges() {
+    const newBadges = [];
+    
+    // Badge: Première victoire
+    if ((userData.wins || 0) >= 1 && userData.badges && !userData.badges.includes("badge_first_win")) {
+        newBadges.push("badge_first_win");
+    }
+    
+    // Badge: 10 victoires
+    if ((userData.wins || 0) >= 10 && userData.badges && !userData.badges.includes("badge_10wins")) {
+        newBadges.push("badge_10wins");
+    }
+    
+    // Badge: 50 victoires
+    if ((userData.wins || 0) >= 50 && userData.badges && !userData.badges.includes("badge_50wins")) {
+        newBadges.push("badge_50wins");
+    }
+    
+    // Badge: Collectionneur (20 joueurs)
+    const playerCount = userData.collection ? Object.keys(userData.collection).length : 0;
+    if (playerCount >= 20 && userData.badges && !userData.badges.includes("badge_collector")) {
+        newBadges.push("badge_collector");
+    }
+    
+    // Badge: Millionnaire (10 000 coins)
+    if ((userData.coins || 0) >= 10000 && userData.badges && !userData.badges.includes("badge_rich")) {
+        newBadges.push("badge_rich");
+    }
+    
+    // Badge: Ultimate League (division 5)
+    if ((userData.league ? userData.league.division : 1) >= 5 && userData.badges && !userData.badges.includes("badge_league")) {
+        newBadges.push("badge_league");
+    }
+    
+    // Badge: Joueur légendaire (avoir un joueur légendaire)
+    if (userData.collection) {
+        const hasLegendary = Object.values(userData.collection).some(p => p.rarity === "legendary");
+        if (hasLegendary && userData.badges && !userData.badges.includes("badge_legendary")) {
+            newBadges.push("badge_legendary");
+        }
+    }
+    
+    // Ajouter les nouveaux badges
+    if (newBadges.length > 0) {
+        if (!userData.badges) userData.badges = ["badge_rookie"];
+        newBadges.forEach(badgeId => {
+            if (!userData.badges.includes(badgeId)) {
+                userData.badges.push(badgeId);
+                const badge = badges.find(b => b.id === badgeId);
+                if (badge) {
+                    showNotification(`Nouveau badge débloqué: ${badge.name}!`, "success");
+                }
+            }
+        });
+        updateBadgesDisplay();
+        saveUserData();
+    }
+}
+
+// Afficher un écran
+function showScreen(screenId) {
+    // Cacher tous les écrans
+    document.querySelectorAll(".screen").forEach(screen => {
+        screen.classList.remove("active");
+    });
+    
+    // Afficher l'écran demandé
+    const targetScreen = document.getElementById(screenId);
+    if (targetScreen) {
+        targetScreen.classList.add("active");
+        
+        // Mettre à jour les données spécifiques à l'écran
+        if (screenId === "screen-ranking") {
+            updateGlobalRanking();
+        } else if (screenId === "screen-profile") {
+            updateProfile();
+        } else if (screenId === "screen-league") {
+            updateLeagueSystem();
+            updateWeeklyMatches();
+        } else if (screenId === "screen-collection") {
+            updateCollectionDisplay();
+        } else if (screenId === "screen-team") {
+            updateTeamDisplay();
+        } else if (screenId === "screen-dashboard") {
+            updateDashboard();
+        }
+    }
+}
+
+// Afficher une notification
+function showNotification(message, type = "info") {
+    // Supprimer les notifications existantes
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(n => n.remove());
+    
+    const notification = document.createElement("div");
+    notification.className = "notification";
+    notification.textContent = message;
+    
+    if (type === "success") {
+        notification.style.borderColor = "#00ff00";
+    } else if (type === "error") {
+        notification.style.borderColor = "#ff4444";
+    } else if (type === "warning") {
+        notification.style.borderColor = "#ffaa00";
+    }
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 3000);
+}
+
+// Afficher le loading
+function showLoading() {
+    document.getElementById("loading").style.display = "flex";
+}
+
+// Cacher le loading
+function hideLoading() {
+    document.getElementById("loading").style.display = "none";
+}
+
+// Initialiser l'application au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+    
+    // Cacher le loading après 2 secondes max
+    setTimeout(hideLoading, 2000);
 });
 
-app.listen(port, () => {
-  console.log(`Backend Tchoulo Assistant démarré sur le port ${port}`);
-});
+// Exposer certaines fonctions au global scope pour les événements onclick
+window.selectPlayerForPosition = selectPlayerForPosition;
+</script>
+
+</body>
+</html>
